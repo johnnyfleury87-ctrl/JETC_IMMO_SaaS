@@ -1,0 +1,9 @@
+# Demo - Données de démonstration
+
+Ce dossier contiendra les données fictives pour le MODE DEMO.
+
+Optionnel selon l'implémentation choisie (frontend uniquement ou avec données SQL).
+
+---
+
+**ÉTAPE 0** - Dossier créé, sera rempli si nécessaire.

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hub DEMO - JETC_IMMO</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 42px;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .header p {
+      font-size: 18px;
+      opacity: 0.95;
+    }
+
+    .demo-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 8px 20px;
+      border-radius: 20px;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+
+    /* Role Cards */
+    .roles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+      margin-bottom: 40px;
+    }
+
+    .role-card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .role-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .role-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .role-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .role-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .role-card h3 {
+      font-size: 24px;
+      margin-bottom: 12px;
+      color: #667eea;
+    }
+
+    .role-card p {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 25px;
+      min-height: 48px;
+    }
+
+    .role-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+
+    .role-btn:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    /* Actions */
+    .actions {
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .btn-back {
+      display: inline-block;
+      padding: 12px 30px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-back:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    /* Warning Banner */
+    .warning {
+      background: rgba(255, 255, 255, 0.95);
+      border-left: 4px solid #f59e0b;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .warning-icon {
+      font-size: 32px;
+    }
+
+    .warning-content h4 {
+      color: #f59e0b;
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+
+    .warning-content p {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 28px;
+      }
+
+      .roles-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1 id="chooseRole">Choisissez votre rôle</h1>
+      <p>Explorez JETC_IMMO sous différentes perspectives</p>
+      <span class="demo-badge">🎮 <span id="demoMode">MODE DEMO</span></span>
+    </div>
+
+    <!-- Warning -->
+    <div class="warning">
+      <div class="warning-icon">⚠️</div>
+      <div class="warning-content">
+        <h4 id="demoSimulation">Ceci est une simulation</h4>
+        <p id="noRealData">Aucune donnée réelle n'a été enregistrée. Toutes les actions sont simulées côté navigateur uniquement.</p>
+      </div>
+    </div>
+
+    <!-- Roles Grid -->
+    <div class="roles-grid">
+      <!-- Régie -->
+      <div class="role-card" onclick="selectRole('regie')">
+        <div class="role-icon">🏢</div>
+        <h3 id="roleRegie">Régie</h3>
+        <p id="roleRegieDesc">Gérer immeubles, logements et tickets</p>
+        <button class="role-btn" id="enterDemo1">Entrer en démo</button>
+      </div>
+
+      <!-- Entreprise -->
+      <div class="role-card" onclick="selectRole('entreprise')">
+        <div class="role-icon">🏗️</div>
+        <h3 id="roleEntreprise">Entreprise</h3>
+        <p id="roleEntrepriseDesc">Accepter des missions et gérer vos techniciens</p>
+        <button class="role-btn" id="enterDemo2">Entrer en démo</button>
+      </div>
+
+      <!-- Locataire -->
+      <div class="role-card" onclick="selectRole('locataire')">
+        <div class="role-icon">👤</div>
+        <h3 id="roleLocataire">Locataire</h3>
+        <p id="roleLocataireDesc">Déclarer et suivre vos tickets</p>
+        <button class="role-btn" id="enterDemo3">Entrer en démo</button>
+      </div>
+
+      <!-- Technicien -->
+      <div class="role-card" onclick="selectRole('technicien')">
+        <div class="role-icon">🔧</div>
+        <h3 id="roleTechnicien">Technicien</h3>
+        <p id="roleTechnicienDesc">Intervenir sur vos missions assignées</p>
+        <button class="role-btn" id="enterDemo4">Entrer en démo</button>
+      </div>
+
+      <!-- Admin JTEC -->
+      <div class="role-card" onclick="selectRole('admin_jtec')">
+        <div class="role-icon">⚙️</div>
+        <h3 id="roleAdmin">Admin JTEC</h3>
+        <p id="roleAdminDesc">Vue globale et statistiques</p>
+        <button class="role-btn" id="enterDemo5">Entrer en démo</button>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <a href="/index.html" class="btn-back" id="backToHome">← Retour à l'accueil</a>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/src/lib/i18n.js"></script>
+  <script src="/src/lib/demoProfiles.js"></script>
+  <script>
+    // Initialisation de la langue
+    function initLanguage() {
+      const currentLang = getCurrentLanguage();
+      console.log('[DEMO HUB] Langue active:', currentLang);
+      
+      // Appliquer les traductions
+      const translations = getAllTranslations();
+      
+      Object.keys(translations).forEach(key => {
+        const element = document.getElementById(key);
+        if (element) {
+          element.textContent = translations[key];
+        }
+      });
+      
+      // Mettre à jour tous les boutons "Entrer en démo"
+      document.querySelectorAll('[id^="enterDemo"]').forEach(btn => {
+        btn.textContent = translations.enterDemo || 'Entrer en démo';
+      });
+      
+      document.documentElement.lang = currentLang;
+    }
+
+    // Sélectionner un rôle et entrer en DEMO
+    function selectRole(role) {
+      console.log('[DEMO HUB] Rôle sélectionné:', role);
+      
+      // Activer le MODE DEMO avec ce rôle
+      const success = activateDemoMode(role);
+      
+      if (!success) {
+        alert('Erreur lors de l\'activation du mode DEMO');
+        return;
+      }
+      
+      // Redirection vers le dashboard du rôle
+      // TODO: Créer ces pages aux prochaines étapes
+      const dashboardRoutes = {
+        regie: '/demo/regie/dashboard.html',
+        entreprise: '/demo/entreprise/dashboard.html',
+        locataire: '/demo/locataire/dashboard.html',
+        technicien: '/demo/technicien/dashboard.html',
+        admin_jtec: '/demo/admin/dashboard.html'
+      };
+      
+      const route = dashboardRoutes[role];
+      
+      if (route) {
+        console.log('[DEMO HUB] Redirection vers:', route);
+        // Pour l'instant, afficher un message
+        alert(`Mode DEMO activé pour le rôle: ${role}\n\nLe dashboard sera créé aux prochaines étapes.\n\nRetour à l'accueil...`);
+        window.location.href = '/index.html';
+      } else {
+        alert('Route non définie pour ce rôle');
+      }
+    }
+
+    // Vérifier si un utilisateur PRO est connecté
+    function checkProUser() {
+      // TODO: À implémenter à l'ÉTAPE 2
+      // Si utilisateur PRO connecté → rediriger vers son dashboard
+      // Car DEMO interdit pour utilisateurs connectés
+    }
+
+    // Initialisation
+    document.addEventListener('DOMContentLoaded', () => {
+      initLanguage();
+      checkProUser();
+      console.log('[DEMO HUB] Page initialisée');
+    });
+  </script>
+</body>
+</html>

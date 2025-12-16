@@ -1,0 +1,20 @@
+# Policies - Row Level Security
+
+Ce dossier contiendra toutes les policies RLS.
+
+Les fichiers seront créés à **l'ÉTAPE 7**.
+
+Structure prévue :
+- 10_policies_profiles.sql
+- 11_policies_regies.sql
+- 12_policies_locataires.sql
+- 13_policies_entreprises.sql
+- 14_policies_techniciens.sql
+- 15_policies_tickets.sql
+- 16_policies_missions.sql
+- 17_policies_factures.sql
+- 18_policies_messages.sql
+
+---
+
+**ÉTAPE 0** - Dossier créé et prêt.

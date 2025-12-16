@@ -1,0 +1,9 @@
+# Public Assets
+
+Ce dossier contient les fichiers statiques publics (images, icônes, etc.).
+
+Les fichiers placés ici seront accessibles directement via l'URL `/public/`.
+
+---
+
+**ÉTAPE 0** - Dossier créé, sera rempli aux prochaines étapes.

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Locataire - JETC_IMMO</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f7fa;
+      min-height: 100vh;
+    }
+    .navbar {
+      background: #667eea;
+      color: white;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .navbar h1 { font-size: 24px; }
+    .navbar .user-info { display: flex; gap: 20px; align-items: center; }
+    .btn-logout {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-logout:hover { background: rgba(255,255,255,0.3); }
+    .btn-create-ticket {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px 40px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 16px;
+      margin-top: 20px;
+      box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+      transition: all 0.3s ease;
+    }
+    .btn-create-ticket:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102,126,234,0.6);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .welcome-card {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      text-align: center;
+    }
+    .welcome-card h2 { color: #667eea; margin-bottom: 20px; font-size: 32px; }
+    .welcome-card p { color: #666; line-height: 1.6; margin-bottom: 15px; }
+    .info-box {
+      background: #e6f7ff;
+      border-left: 4px solid #1890ff;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 30px 0;
+    }
+    .info-box h3 { color: #0050b3; margin-bottom: 10px; }
+    .info-box ul { margin-left: 20px; color: #666; }
+    .info-box li { margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <h1>👤 JETC_IMMO - Locataire</h1>
+    <div class="user-info">
+      <span id="userEmail">Chargement...</span>
+      <button class="btn-logout" onclick="logout()">Déconnexion</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="welcome-card">
+      <h2>🎉 Bienvenue sur votre dashboard</h2>
+      <p><strong>Rôle :</strong> Locataire</p>
+      <p>Vous êtes connecté en tant que <strong id="userEmailDisplay">utilisateur</strong></p>
+      
+      <div class="info-box" style="background: #d4edda; border-left-color: #28a745;">
+        <h3 style="color: #155724;">✅ ÉTAPE 5 - Création de tickets</h3>
+        <p style="color: #155724; margin-top: 10px;">Vous pouvez maintenant déclarer des problèmes dans votre logement.</p>
+      </div>
+
+      <button class="btn-create-ticket" onclick="showTicketForm()">
+        🎫 Créer un nouveau ticket
+      </button>
+
+      <!-- Formulaire de création de ticket (caché par défaut) -->
+      <div id="ticketFormContainer" style="display: none; margin-top: 30px;">
+        <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: left;">
+          <h3 style="margin-bottom: 20px; color: #667eea;">📝 Nouveau ticket d'intervention</h3>
+          
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Titre *</label>
+            <input type="text" id="ticketTitre" placeholder="Ex: Fuite d'eau dans la salle de bain" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Catégorie *</label>
+            <select id="ticketCategorie" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+              <option value="">Sélectionnez une catégorie</option>
+              <option value="plomberie">💧 Plomberie</option>
+              <option value="électricité">⚡ Électricité</option>
+              <option value="chauffage">🔥 Chauffage</option>
+              <option value="serrurerie">🔑 Serrurerie</option>
+              <option value="vitrerie">🪟 Vitrerie</option>
+              <option value="menuiserie">🪵 Menuiserie</option>
+              <option value="peinture">🎨 Peinture</option>
+              <option value="autre">❓ Autre</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Priorité</label>
+            <select id="ticketPriorite" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+              <option value="normale">Normale</option>
+              <option value="faible">Faible</option>
+              <option value="haute">Haute</option>
+              <option value="urgente">🚨 Urgente</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Description *</label>
+            <textarea id="ticketDescription" rows="5" placeholder="Décrivez le problème en détail..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; resize: vertical;"></textarea>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <label style="display: flex; align-items: center; cursor: pointer;">
+              <input type="checkbox" id="ticketUrgence" style="margin-right: 10px; width: 18px; height: 18px;">
+              <span style="font-weight: 600; color: #d73a49;">⚠️ Marquer comme urgence</span>
+            </label>
+          </div>
+
+          <div id="ticketError" style="display: none; background: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 15px;"></div>
+          <div id="ticketSuccess" style="display: none; background: #d4edda; color: #155724; padding: 12px; border-radius: 6px; margin-bottom: 15px;"></div>
+
+          <div style="display: flex; gap: 10px;">
+            <button onclick="createTicket()" style="flex: 1; background: #667eea; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; cursor: pointer;">
+              Créer le ticket
+            </button>
+            <button onclick="hideTicketForm()" style="background: #e0e0e0; color: #666; border: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; cursor: pointer;">
+              Annuler
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <h3>📋 Fonctionnalités à venir (ÉTAPES suivantes)</h3>
+        <ul style="text-align: left;">
+          <li><strong>ÉTAPE 6</strong> : Suivre vos tickets</li>
+          <li><strong>ÉTAPE 12</strong> : Signer les interventions terminées</li>
+          <li><strong>ÉTAPE 14</strong> : Messagerie avec entreprises/techniciens</li>
+        </ul>
+      </div>
+
+      <p style="margin-top: 30px; color: #999;">
+        <small>ÉTAPE 5 - Création de tickets fonctionnelle ✅</small>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // Vérifier l'authentification
+    async function checkAuth() {
+      const token = localStorage.getItem('jetc_access_token');
+      const userStr = localStorage.getItem('jetc_user');
+      
+      if (!token || !userStr) {
+        console.log('[DASHBOARD] Non authentifié, redirection...');
+        window.location.href = '/login.html';
+        return;
+      }
+      
+      const user = JSON.parse(userStr);
+      
+      // Vérifier le rôle
+      if (user.role !== 'locataire') {
+        console.log('[DASHBOARD] Rôle incorrect:', user.role);
+        alert('Accès interdit : ce dashboard est réservé aux locataires');
+        window.location.href = '/login.html';
+        return;
+      }
+      
+      // Afficher les infos utilisateur
+      document.getElementById('userEmail').textContent = user.email;
+      document.getElementById('userEmailDisplay').textContent = user.email;
+      
+      console.log('[DASHBOARD] Utilisateur connecté:', user);
+    }
+
+    // Afficher le formulaire de création de ticket
+    function showTicketForm() {
+      document.getElementById('ticketFormContainer').style.display = 'block';
+      document.getElementById('ticketTitre').focus();
+      // Réinitialiser les messages
+      document.getElementById('ticketError').style.display = 'none';
+      document.getElementById('ticketSuccess').style.display = 'none';
+    }
+
+    // Cacher le formulaire
+    function hideTicketForm() {
+      document.getElementById('ticketFormContainer').style.display = 'none';
+      // Réinitialiser le formulaire
+      document.getElementById('ticketTitre').value = '';
+      document.getElementById('ticketCategorie').value = '';
+      document.getElementById('ticketDescription').value = '';
+      document.getElementById('ticketPriorite').value = 'normale';
+      document.getElementById('ticketUrgence').checked = false;
+      document.getElementById('ticketError').style.display = 'none';
+      document.getElementById('ticketSuccess').style.display = 'none';
+    }
+
+    // Créer un ticket
+    async function createTicket() {
+      const titre = document.getElementById('ticketTitre').value.trim();
+      const categorie = document.getElementById('ticketCategorie').value;
+      const description = document.getElementById('ticketDescription').value.trim();
+      const priorite = document.getElementById('ticketPriorite').value;
+      const urgence = document.getElementById('ticketUrgence').checked;
+
+      // Validation
+      if (!titre || !categorie || !description) {
+        showError('Veuillez remplir tous les champs obligatoires');
+        return;
+      }
+
+      if (titre.length < 5) {
+        showError('Le titre doit contenir au moins 5 caractères');
+        return;
+      }
+
+      if (description.length < 10) {
+        showError('La description doit contenir au moins 10 caractères');
+        return;
+      }
+
+      const token = localStorage.getItem('jetc_access_token');
+      if (!token) {
+        showError('Session expirée, veuillez vous reconnecter');
+        setTimeout(() => window.location.href = '/login.html', 2000);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/tickets/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            titre,
+            categorie,
+            description,
+            priorite,
+            urgence
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          showError(data.message || 'Erreur lors de la création du ticket');
+          return;
+        }
+
+        // Succès
+        showSuccess('✅ Ticket créé avec succès !');
+        console.log('[TICKET] Créé:', data.ticket);
+
+        // Réinitialiser le formulaire après 2 secondes
+        setTimeout(() => {
+          hideTicketForm();
+        }, 2000);
+
+      } catch (error) {
+        console.error('[TICKET] Erreur:', error);
+        showError('Erreur de connexion au serveur');
+      }
+    }
+
+    // Afficher une erreur
+    function showError(message) {
+      const errorDiv = document.getElementById('ticketError');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      document.getElementById('ticketSuccess').style.display = 'none';
+    }
+
+    // Afficher un succès
+    function showSuccess(message) {
+      const successDiv = document.getElementById('ticketSuccess');
+      successDiv.textContent = message;
+      successDiv.style.display = 'block';
+      document.getElementById('ticketError').style.display = 'none';
+    }
+
+    // Déconnexion
+    function logout() {
+      localStorage.removeItem('jetc_access_token');
+      localStorage.removeItem('jetc_refresh_token');
+      localStorage.removeItem('jetc_user');
+      console.log('[DASHBOARD] Déconnexion');
+      window.location.href = '/index.html';
+    }
+
+    // Initialisation
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuth();
+    });
+  </script>
+</body>
+</html>

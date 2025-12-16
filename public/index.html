@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JETC_IMMO - Gestion des interventions techniques immobilières</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Header avec sélecteur de langue */
+    header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #667eea;
+    }
+
+    .language-selector {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .lang-btn {
+      padding: 8px 16px;
+      border: 2px solid #667eea;
+      background: white;
+      color: #667eea;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .lang-btn:hover {
+      background: #667eea;
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .lang-btn.active {
+      background: #667eea;
+      color: white;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 80px 20px 60px;
+      color: white;
+    }
+
+    .hero h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .hero p {
+      font-size: 20px;
+      margin-bottom: 40px;
+      opacity: 0.95;
+    }
+
+    /* Mode Selection Cards */
+    .mode-selection {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      max-width: 900px;
+      margin: 0 auto 60px;
+    }
+
+    .mode-card {
+      background: white;
+      border-radius: 12px;
+      padding: 40px 30px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .mode-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .mode-card h2 {
+      font-size: 28px;
+      margin-bottom: 15px;
+      color: #667eea;
+    }
+
+    .mode-card p {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 15px 40px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: #48bb78;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #38a169;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
+    }
+
+    /* Features Section */
+    .features {
+      background: white;
+      border-radius: 12px;
+      padding: 60px 40px;
+      margin-bottom: 40px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .features h2 {
+      text-align: center;
+      font-size: 36px;
+      margin-bottom: 50px;
+      color: #667eea;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 40px;
+    }
+
+    .feature {
+      text-align: center;
+    }
+
+    .feature-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+
+    .feature h3 {
+      font-size: 22px;
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .feature p {
+      color: #666;
+      line-height: 1.6;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 30px 20px;
+      color: white;
+      opacity: 0.9;
+    }
+
+    footer a {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 32px;
+      }
+
+      .hero p {
+        font-size: 16px;
+      }
+
+      .mode-selection {
+        grid-template-columns: 1fr;
+      }
+
+      .header-content {
+        flex-direction: column;
+        gap: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header avec sélecteur de langue -->
+  <header>
+    <div class="header-content">
+      <div class="logo" id="appName">JETC_IMMO</div>
+      <div class="language-selector">
+        <button class="lang-btn" onclick="changeLanguage('fr')" id="lang-fr">🇫🇷 FR</button>
+        <button class="lang-btn" onclick="changeLanguage('en')" id="lang-en">🇬🇧 EN</button>
+        <button class="lang-btn" onclick="changeLanguage('de')" id="lang-de">🇩🇪 DE</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Hero Section -->
+    <section class="hero">
+      <h1 id="welcomeTitle">Bienvenue sur JETC_IMMO</h1>
+      <p id="welcomeDescription">Gérez efficacement vos interventions techniques, de la déclaration à la facturation.</p>
+    </section>
+
+    <!-- Mode Selection -->
+    <section class="mode-selection">
+      <!-- Mode DEMO -->
+      <div class="mode-card">
+        <h2 id="demoMode">🎮 Mode Démo</h2>
+        <p id="demoDescription">Découvrez la plateforme sans créer de compte</p>
+        <a href="/demo-hub.html" class="btn btn-primary" id="tryDemo">Essayer en démo</a>
+      </div>
+
+      <!-- Mode PRO -->
+      <div class="mode-card">
+        <h2 id="proMode">🔐 Mode Professionnel</h2>
+        <p id="proDescription">Accédez à vos données réelles</p>
+        <div style="display: flex; gap: 10px; flex-direction: column;">
+          <a href="/login.html" class="btn btn-secondary" id="login">Se connecter</a>
+          <a href="/register.html" class="btn btn-primary" id="register" style="background: #48bb78;">Créer un compte</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+      <h2 id="featuresTitle">Fonctionnalités</h2>
+      <div class="features-grid">
+        <div class="feature">
+          <div class="feature-icon">🎫</div>
+          <h3 id="feature1Title">Gestion des tickets</h3>
+          <p id="feature1Desc">Déclaration et suivi des interventions</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔧</div>
+          <h3 id="feature2Title">Missions techniques</h3>
+          <p id="feature2Desc">Assignation et suivi des techniciens</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">💰</div>
+          <h3 id="feature3Title">Facturation automatique</h3>
+          <p id="feature3Desc">Génération des factures et commissions</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 <span id="appName2">JETC_IMMO</span> - <span id="allRightsReserved">Tous droits réservés</span></p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/src/lib/i18n.js"></script>
+  <script>
+    // Initialisation de la langue
+    function initLanguage() {
+      const currentLang = getCurrentLanguage();
+      console.log('[LANDING] Langue active:', currentLang);
+      
+      // Marquer le bouton actif
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.getElementById(`lang-${currentLang}`)?.classList.add('active');
+      
+      // Appliquer les traductions
+      applyTranslations();
+    }
+
+    // Appliquer les traductions à tous les éléments
+    function applyTranslations() {
+      const translations = getAllTranslations();
+      
+      // Mettre à jour tous les éléments avec ID correspondant
+      Object.keys(translations).forEach(key => {
+        const element = document.getElementById(key);
+        if (element) {
+          element.textContent = translations[key];
+        }
+      });
+      
+      // Mettre à jour la langue du document
+      document.documentElement.lang = getCurrentLanguage();
+    }
+
+    // Changer la langue
+    function changeLanguage(lang) {
+      console.log('[LANDING] Changement de langue:', lang);
+      setLanguage(lang);
+      // La page va se recharger automatiquement
+    }
+
+    // Vérifier si l'utilisateur est connecté
+    function checkAuthStatus() {
+      // TODO: À implémenter à l'ÉTAPE 2
+      // Si utilisateur connecté ET essaye d'accéder à DEMO
+      // → rediriger vers dashboard PRO
+      
+      const isDemoActive = isDemoMode();
+      if (isDemoActive) {
+        console.log('[LANDING] Mode DEMO actif détecté');
+      }
+    }
+
+    // Initialisation au chargement
+    document.addEventListener('DOMContentLoaded', () => {
+      initLanguage();
+      checkAuthStatus();
+      console.log('[LANDING] Page initialisée');
+    });
+  </script>
+</body>
+</html>

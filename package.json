@@ -1,0 +1,26 @@
+{
+  "name": "jetc-immo-saas",
+  "version": "1.0.0",
+  "description": "JETC_IMMO - Plateforme de gestion des interventions techniques immobilières",
+  "private": true,
+  "scripts": {
+    "dev": "node server.js",
+    "start": "NODE_ENV=production node server.js",
+    "test": "echo \"Tests à implémenter\" && exit 0"
+  },
+  "keywords": [
+    "immobilier",
+    "gestion",
+    "interventions"
+  ],
+  "author": "JETC",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
