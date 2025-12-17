@@ -111,22 +111,5 @@ create trigger set_ticket_regie_id_trigger
 
 comment on function set_ticket_regie_id is $$Calcule automatiquement la regie_id d'un ticket via logement → immeuble → regie$$;
 
--- Vue pour faciliter les requêtes
-create or replace view tickets_complets as
-select 
-  t.*,
-  loc.nom as locataire_nom,
-  loc.prenom as locataire_prenom,
-  loc.email as locataire_email,
-  log.numero as logement_numero,
-  log.etage as logement_etage,
-  imm.nom as immeuble_nom,
-  imm.adresse as immeuble_adresse,
-  reg.nom as regie_nom
-from tickets t
-join locataires loc on t.locataire_id = loc.id
-join logements log on t.logement_id = log.id
-join immeubles imm on log.immeuble_id = imm.id
-join regies reg on t.regie_id = reg.id;
-
-comment on view tickets_complets is 'Vue enrichie des tickets avec toutes les informations liées';
+-- NOTE : La vue 'tickets_complets' a été déplacée vers 16_views.sql
+-- pour une meilleure organisation (regroupement de toutes les vues métier)

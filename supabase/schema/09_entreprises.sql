@@ -95,32 +95,5 @@ create trigger set_updated_at_regies_entreprises
   before update on regies_entreprises
   for each row execute function handle_updated_at();
 
--- ============================================================
--- VUE : Tickets visibles par entreprise
--- ============================================================
-
-create or replace view tickets_visibles_entreprise as
-select 
-  t.*,
-  re.entreprise_id,
-  re.mode_diffusion,
-  loc.nom as locataire_nom,
-  loc.prenom as locataire_prenom,
-  log.numero as logement_numero,
-  imm.nom as immeuble_nom,
-  imm.adresse as immeuble_adresse,
-  reg.nom as regie_nom
-from tickets t
-join regies_entreprises re on t.regie_id = re.regie_id
-join locataires loc on t.locataire_id = loc.id
-join logements log on t.logement_id = log.id
-join immeubles imm on log.immeuble_id = imm.id
-join regies reg on t.regie_id = reg.id
-where 
-  -- Mode général : tous les tickets ouverts de la régie
-  (re.mode_diffusion = 'general' and t.statut = 'ouvert')
-  or
-  -- Mode restreint : seulement les tickets assignés à cette entreprise
-  (re.mode_diffusion = 'restreint' and t.entreprise_id = re.entreprise_id);
-
-comment on view tickets_visibles_entreprise is 'JETC_IMMO - Tickets visibles par chaque entreprise selon les autorisations';
+-- NOTE : La vue 'tickets_visibles_entreprise' a été déplacée vers 16_views.sql
+-- pour respecter l'ordre des dépendances (elle nécessite la table tickets créée en 11)
