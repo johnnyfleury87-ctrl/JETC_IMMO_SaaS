@@ -121,6 +121,51 @@ module.exports = async (req, res) => {
       }));
     }
     
+    // NOUVEAU : Si le rôle est régie, vérifier le statut de validation
+    if (profile.role === 'regie') {
+      const { data: regie, error: regieError } = await supabaseAdmin
+        .from('regies')
+        .select('statut_validation, commentaire_refus, nom')
+        .eq('profile_id', authenticatedUser.id)
+        .single();
+      
+      if (regieError) {
+        console.error('[AUTH/LOGIN] Erreur récupération régie:', regieError);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({
+          success: false,
+          error: 'Erreur lors de la vérification de votre agence'
+        }));
+      }
+      
+      // Bloquer si en_attente
+      if (regie && regie.statut_validation === 'en_attente') {
+        console.log('[AUTH/LOGIN] Régie en attente de validation:', regie.nom);
+        res.writeHead(403, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({
+          success: false,
+          error: '⏳ Votre inscription est en attente de validation par l\'équipe JETC_IMMO. Vous recevrez un email dès validation.',
+          status: 'pending_validation',
+          regie: regie.nom
+        }));
+      }
+      
+      // Bloquer si refusé
+      if (regie && regie.statut_validation === 'refuse') {
+        console.log('[AUTH/LOGIN] Régie refusée:', regie.nom);
+        res.writeHead(403, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({
+          success: false,
+          error: '❌ Votre inscription a été refusée. Raison : ' + (regie.commentaire_refus || 'Non spécifiée'),
+          status: 'refused',
+          regie: regie.nom
+        }));
+      }
+      
+      // Si valide, continuer normalement
+      console.log('[AUTH/LOGIN] Régie validée, accès autorisé:', regie.nom);
+    }
+    
     console.log('[AUTH/LOGIN] Connexion réussie:', {
       userId: authenticatedUser.id,
       email: authenticatedUser.email,

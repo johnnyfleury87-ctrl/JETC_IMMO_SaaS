@@ -42,7 +42,7 @@ module.exports = async (req, res) => {
       body += chunk.toString();
     }
     
-    const { email, password, language = 'fr' } = JSON.parse(body);
+    const { email, password, language = 'fr', nomAgence, nbCollaborateurs, nbLogements, siret } = JSON.parse(body);
     
     console.log('[AUTH/REGISTER] Tentative inscription:', email);
     
@@ -68,6 +68,39 @@ module.exports = async (req, res) => {
       return res.end(JSON.stringify({
         success: false,
         error: 'Langue non supportée. Utilisez fr, en ou de.'
+      }));
+    }
+    
+    // NOUVEAU : Validation des champs métier
+    if (!nomAgence || nomAgence.trim().length < 3) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({
+        success: false,
+        error: 'Le nom de l\'agence doit contenir au moins 3 caractères'
+      }));
+    }
+    
+    if (!nbCollaborateurs || parseInt(nbCollaborateurs) < 1) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({
+        success: false,
+        error: 'Le nombre de collaborateurs doit être au moins 1'
+      }));
+    }
+    
+    if (!nbLogements || parseInt(nbLogements) < 1) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({
+        success: false,
+        error: 'Le nombre de logements gérés doit être au moins 1'
+      }));
+    }
+    
+    if (siret && (siret.length !== 14 || !/^\d{14}$/.test(siret))) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({
+        success: false,
+        error: 'Le numéro SIRET doit contenir exactement 14 chiffres'
       }));
     }
     
@@ -125,6 +158,39 @@ module.exports = async (req, res) => {
       }));
     }
     
+    // NOUVEAU : Si le rôle est régie, créer l'entrée dans la table regies
+    if (profile.role === 'regie') {
+      console.log('[AUTH/REGISTER] Création de la régie pour le profil:', user.id);
+      
+      const { error: regieError } = await supabaseAdmin
+        .from('regies')
+        .insert({
+          profile_id: user.id,
+          nom: nomAgence.trim(),
+          email: email,
+          nb_collaborateurs: parseInt(nbCollaborateurs),
+          nb_logements_geres: parseInt(nbLogements),
+          siret: siret || null,
+          statut_validation: 'en_attente' // Par défaut en attente de validation
+        });
+      
+      if (regieError) {
+        console.error('[AUTH/REGISTER] Erreur création régie:', regieError);
+        
+        // Rollback : supprimer l'utilisateur créé
+        await supabaseAdmin.auth.admin.deleteUser(user.id);
+        
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({
+          success: false,
+          error: 'Erreur lors de la création de l\'agence',
+          details: regieError.message
+        }));
+      }
+      
+      console.log('[AUTH/REGISTER] Régie créée avec succès (statut: en_attente)');
+    }
+    
     console.log('[AUTH/REGISTER] Inscription réussie:', {
       userId: user.id,
       email: user.email,
@@ -142,7 +208,9 @@ module.exports = async (req, res) => {
         language: profile.language,
         created_at: user.created_at
       },
-      message: 'Inscription réussie. Vous pouvez maintenant vous connecter.'
+      message: profile.role === 'regie' 
+        ? 'Inscription réussie. Votre agence est en attente de validation par l\'équipe JETC_IMMO. Vous recevrez un email dès validation.'
+        : 'Inscription réussie. Vous pouvez maintenant vous connecter.'
     }));
     
   } catch (error) {

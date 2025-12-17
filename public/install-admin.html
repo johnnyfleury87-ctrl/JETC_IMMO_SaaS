@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔐 Installation Admin JTEC</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .install-container {
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      max-width: 500px;
+      width: 100%;
+    }
+    
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      color: #333;
+      text-align: center;
+    }
+    
+    .warning {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      color: #856404;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 25px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    .warning strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #555;
+    }
+    
+    input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    .help-text {
+      font-size: 13px;
+      color: #777;
+      margin-top: 5px;
+    }
+    
+    button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .status-message {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 5px;
+      display: none;
+    }
+    
+    .status-message.success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+    
+    .status-message.error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 10px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="install-container">
+    <h1>🔐 Installation Admin JTEC</h1>
+    
+    <div class="warning">
+      <strong>⚠️ IMPORTANT</strong>
+      Cette page permet de créer le premier administrateur JTEC.
+      <br><br>
+      • Accessible <strong>uniquement lors de l'installation initiale</strong><br>
+      • Nécessite la clé d'installation fournie dans le fichier .env<br>
+      • Ne peut être utilisée <strong>qu'une seule fois</strong><br>
+      • Le compte admin aura un accès complet à la plateforme
+    </div>
+    
+    <form id="installForm">
+      <div class="form-group">
+        <label for="installKey">Clé d'installation *</label>
+        <input 
+          type="password" 
+          id="installKey" 
+          name="installKey"
+          required 
+          minlength="32"
+          placeholder="Clé fournie dans INSTALL_ADMIN_KEY"
+          autocomplete="off"
+        >
+        <div class="help-text">Cette clé se trouve dans le fichier .env du serveur</div>
+      </div>
+      
+      <div class="form-group">
+        <label for="adminEmail">Email administrateur *</label>
+        <input 
+          type="email" 
+          id="adminEmail" 
+          name="adminEmail"
+          required 
+          placeholder="admin@jetc-immo.fr"
+          autocomplete="email"
+        >
+        <div class="help-text">Cet email sera utilisé pour se connecter à l'administration</div>
+      </div>
+      
+      <div class="form-group">
+        <label for="adminPassword">Mot de passe *</label>
+        <input 
+          type="password" 
+          id="adminPassword" 
+          name="adminPassword"
+          required 
+          minlength="12"
+          placeholder="Minimum 12 caractères"
+          autocomplete="new-password"
+        >
+        <div class="help-text">Utilisez un mot de passe fort (lettres, chiffres, symboles)</div>
+      </div>
+      
+      <div class="form-group">
+        <label for="adminPasswordConfirm">Confirmer le mot de passe *</label>
+        <input 
+          type="password" 
+          id="adminPasswordConfirm" 
+          name="adminPasswordConfirm"
+          required 
+          minlength="12"
+          placeholder="Retapez le mot de passe"
+          autocomplete="new-password"
+        >
+      </div>
+      
+      <button type="submit" id="submitBtn">
+        Créer Admin JTEC
+      </button>
+    </form>
+    
+    <div id="statusMessage" class="status-message"></div>
+  </div>
+  
+  <script>
+    const form = document.getElementById('installForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const statusMessage = document.getElementById('statusMessage');
+    
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Récupérer les valeurs
+      const installKey = document.getElementById('installKey').value;
+      const email = document.getElementById('adminEmail').value;
+      const password = document.getElementById('adminPassword').value;
+      const passwordConfirm = document.getElementById('adminPasswordConfirm').value;
+      
+      // Validation côté client
+      if (password !== passwordConfirm) {
+        showMessage('error', 'Les mots de passe ne correspondent pas');
+        return;
+      }
+      
+      if (password.length < 12) {
+        showMessage('error', 'Le mot de passe doit contenir au moins 12 caractères');
+        return;
+      }
+      
+      if (installKey.length < 32) {
+        showMessage('error', 'La clé d\'installation semble invalide (trop courte)');
+        return;
+      }
+      
+      // Désactiver le formulaire
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner"></span>Création en cours...';
+      
+      try {
+        const response = await fetch('/api/install/create-admin', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json' 
+          },
+          body: JSON.stringify({ 
+            installKey, 
+            email, 
+            password 
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          showMessage('success', 
+            '✅ Admin JTEC créé avec succès !\n\n' +
+            'Vous allez être redirigé vers la page de connexion dans 3 secondes...'
+          );
+          
+          // Redirection après 3 secondes
+          setTimeout(() => {
+            window.location.href = '/login.html';
+          }, 3000);
+        } else {
+          showMessage('error', '❌ Erreur : ' + data.error);
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = 'Créer Admin JTEC';
+        }
+      } catch (error) {
+        console.error('Erreur création admin:', error);
+        showMessage('error', '❌ Erreur de connexion au serveur. Vérifiez que le backend est démarré.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Créer Admin JTEC';
+      }
+    });
+    
+    function showMessage(type, message) {
+      statusMessage.className = 'status-message ' + type;
+      statusMessage.textContent = message;
+      statusMessage.style.display = 'block';
+      
+      // Scroll vers le message
+      statusMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  </script>
+</body>
+</html>

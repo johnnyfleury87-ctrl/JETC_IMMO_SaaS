@@ -255,3 +255,178 @@ create index if not exists idx_entreprises_created_at on entreprises(created_at)
 create index if not exists idx_tickets_statut on tickets(statut);
 create index if not exists idx_tickets_priorite on tickets(priorite);
 create index if not exists idx_tickets_categorie on tickets(categorie);
+
+-- =====================================================
+-- NOUVEAU : VUE - Agences en attente de validation
+-- =====================================================
+
+create or replace view admin_agences_en_attente as
+select
+  r.id,
+  r.nom as nom_agence,
+  r.email,
+  r.siret,
+  r.nb_collaborateurs,
+  r.nb_logements_geres,
+  r.statut_validation,
+  r.created_at as date_inscription,
+  p.email as email_contact,
+  p.language
+from regies r
+join profiles p on p.id = r.profile_id
+where r.statut_validation = 'en_attente'
+order by r.created_at desc;
+
+comment on view admin_agences_en_attente is 'Liste des agences en attente de validation (admin_jtec uniquement)';
+
+-- =====================================================
+-- NOUVEAU : FONCTION - Valider une agence
+-- =====================================================
+
+create or replace function valider_agence(
+  p_regie_id uuid,
+  p_admin_id uuid
+)
+returns jsonb
+language plpgsql
+security definer
+as $$
+declare
+  v_admin_role text;
+  v_regie_email text;
+  v_regie_nom text;
+begin
+  -- 1. Vérifier que c'est bien un admin_jtec
+  select role into v_admin_role
+  from profiles
+  where id = p_admin_id;
+  
+  if v_admin_role != 'admin_jtec' then
+    return jsonb_build_object(
+      'success', false,
+      'error', 'Seul un admin JTEC peut valider une agence'
+    );
+  end if;
+  
+  -- 2. Vérifier que la régie existe et est en attente
+  if not exists (
+    select 1 from regies
+    where id = p_regie_id
+    and statut_validation = 'en_attente'
+  ) then
+    return jsonb_build_object(
+      'success', false,
+      'error', 'Régie non trouvée ou déjà validée/refusée'
+    );
+  end if;
+  
+  -- 3. Valider la régie
+  update regies
+  set 
+    statut_validation = 'valide',
+    date_validation = now(),
+    admin_validateur_id = p_admin_id,
+    commentaire_refus = null
+  where id = p_regie_id
+  returning email, nom into v_regie_email, v_regie_nom;
+  
+  -- 4. Log
+  raise notice 'AUDIT: Admin % a validé l''agence % (ID: %)', p_admin_id, v_regie_nom, p_regie_id;
+  
+  -- TODO: Envoyer notification email à la régie
+  
+  return jsonb_build_object(
+    'success', true,
+    'message', 'Agence validée avec succès',
+    'regie_email', v_regie_email,
+    'regie_nom', v_regie_nom
+  );
+end;
+$$;
+
+comment on function valider_agence is 'Valide une agence en attente (admin_jtec uniquement)';
+
+-- =====================================================
+-- NOUVEAU : FONCTION - Refuser une agence
+-- =====================================================
+
+create or replace function refuser_agence(
+  p_regie_id uuid,
+  p_admin_id uuid,
+  p_commentaire text
+)
+returns jsonb
+language plpgsql
+security definer
+as $$
+declare
+  v_admin_role text;
+  v_regie_email text;
+  v_regie_nom text;
+begin
+  -- 1. Vérifier que c'est bien un admin_jtec
+  select role into v_admin_role
+  from profiles
+  where id = p_admin_id;
+  
+  if v_admin_role != 'admin_jtec' then
+    return jsonb_build_object(
+      'success', false,
+      'error', 'Seul un admin JTEC peut refuser une agence'
+    );
+  end if;
+  
+  -- 2. Validation du commentaire
+  if p_commentaire is null or trim(p_commentaire) = '' then
+    return jsonb_build_object(
+      'success', false,
+      'error', 'Un commentaire est obligatoire pour refuser une agence'
+    );
+  end if;
+  
+  -- 3. Vérifier que la régie existe et est en attente
+  if not exists (
+    select 1 from regies
+    where id = p_regie_id
+    and statut_validation = 'en_attente'
+  ) then
+    return jsonb_build_object(
+      'success', false,
+      'error', 'Régie non trouvée ou déjà validée/refusée'
+    );
+  end if;
+  
+  -- 4. Refuser la régie
+  update regies
+  set 
+    statut_validation = 'refuse',
+    date_validation = now(),
+    admin_validateur_id = p_admin_id,
+    commentaire_refus = p_commentaire
+  where id = p_regie_id
+  returning email, nom into v_regie_email, v_regie_nom;
+  
+  -- 5. Log
+  raise notice 'AUDIT: Admin % a refusé l''agence % (ID: %): %', p_admin_id, v_regie_nom, p_regie_id, p_commentaire;
+  
+  -- TODO: Envoyer notification email à la régie
+  
+  return jsonb_build_object(
+    'success', true,
+    'message', 'Agence refusée',
+    'regie_email', v_regie_email,
+    'regie_nom', v_regie_nom
+  );
+end;
+$$;
+
+comment on function refuser_agence is 'Refuse une agence en attente avec commentaire (admin_jtec uniquement)';
+
+-- =====================================================
+-- GRANTS pour les nouvelles vues et fonctions
+-- =====================================================
+
+grant select on admin_agences_en_attente to authenticated;
+grant execute on function valider_agence(uuid, uuid) to authenticated;
+grant execute on function refuser_agence(uuid, uuid, text) to authenticated;
+

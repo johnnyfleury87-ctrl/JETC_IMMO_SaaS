@@ -191,6 +191,58 @@
         >
       </div>
 
+      <!-- NOUVEAU : Informations agence -->
+      <div class="form-group">
+        <label for="nomAgence">Nom de l'agence *</label>
+        <input 
+          type="text" 
+          id="nomAgence" 
+          name="nomAgence" 
+          required 
+          placeholder="Agence Immobilière ABC"
+          minlength="3"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="nbCollaborateurs">Nombre de collaborateurs *</label>
+        <input 
+          type="number" 
+          id="nbCollaborateurs" 
+          name="nbCollaborateurs" 
+          required 
+          min="1"
+          placeholder="5"
+        >
+        <div class="help-text">Nombre de personnes travaillant dans votre agence</div>
+      </div>
+
+      <div class="form-group">
+        <label for="nbLogements">Nombre de logements gérés *</label>
+        <input 
+          type="number" 
+          id="nbLogements" 
+          name="nbLogements" 
+          required 
+          min="1"
+          placeholder="150"
+        >
+        <div class="help-text">Nombre de biens immobiliers actuellement gérés</div>
+      </div>
+
+      <div class="form-group">
+        <label for="siret">Numéro SIRET (optionnel)</label>
+        <input 
+          type="text" 
+          id="siret" 
+          name="siret" 
+          pattern="[0-9]{14}"
+          placeholder="12345678901234"
+          maxlength="14"
+        >
+        <div class="help-text">14 chiffres - Vous pourrez le renseigner plus tard</div>
+      </div>
+
       <div class="form-group">
         <label for="password">Mot de passe</label>
         <input 
@@ -287,6 +339,12 @@
       const language = document.getElementById('language').value;
       const btnRegister = document.getElementById('btnRegister');
       
+      // NOUVEAU : Récupérer les champs métier
+      const nomAgence = document.getElementById('nomAgence').value.trim();
+      const nbCollaborateurs = document.getElementById('nbCollaborateurs').value;
+      const nbLogements = document.getElementById('nbLogements').value;
+      const siret = document.getElementById('siret').value.trim();
+      
       // Validation côté client
       if (password !== passwordConfirm) {
         showError('Les mots de passe ne correspondent pas');
@@ -295,6 +353,27 @@
       
       if (password.length < 6) {
         showError('Le mot de passe doit contenir au moins 6 caractères');
+        return;
+      }
+      
+      // NOUVEAU : Validation champs métier
+      if (!nomAgence || nomAgence.length < 3) {
+        showError('Le nom de l\'agence doit contenir au moins 3 caractères');
+        return;
+      }
+      
+      if (!nbCollaborateurs || nbCollaborateurs < 1) {
+        showError('Le nombre de collaborateurs doit être au moins 1');
+        return;
+      }
+      
+      if (!nbLogements || nbLogements < 1) {
+        showError('Le nombre de logements gérés doit être au moins 1');
+        return;
+      }
+      
+      if (siret && siret.length !== 14) {
+        showError('Le numéro SIRET doit contenir exactement 14 chiffres');
         return;
       }
       
@@ -308,21 +387,29 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ email, password, language })
+          body: JSON.stringify({ 
+            email, 
+            password, 
+            language,
+            nomAgence,
+            nbCollaborateurs,
+            nbLogements,
+            siret: siret || null
+          })
         });
         
         const data = await response.json();
         
         if (data.success) {
-          showSuccess('Compte créé avec succès ! Redirection vers la connexion...');
+          showSuccess('✅ Compte créé avec succès !\n\n⏳ Votre inscription est en attente de validation par l\'équipe JETC_IMMO.\nVous recevrez un email dès validation.\n\nRedirection...');
           
           // Sauvegarder la langue choisie
           setLanguage(language);
           
-          // Rediriger vers la page de connexion après 2 secondes
+          // Rediriger vers la page de connexion après 3 secondes
           setTimeout(() => {
-            window.location.href = '/login.html?registered=true';
-          }, 2000);
+            window.location.href = '/login.html?registered=true&pending=true';
+          }, 3000);
           
         } else {
           showError(data.error || 'Erreur lors de la création du compte');
