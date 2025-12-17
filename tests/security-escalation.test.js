@@ -60,8 +60,18 @@ describe('Tests sécurité - Escalation de rôle', () => {
     assert(!authError, 'Erreur création utilisateur');
     testUserId = authData.user.id;
     
-    // Attendre que le trigger crée le profil
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Créer le profil manuellement (le code métier crée le profil, pas un trigger SQL)
+    const { error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .insert({
+        id: testUserId,
+        email: testEmail,
+        role: 'regie',
+        language: 'fr',
+        is_demo: false
+      });
+    
+    assert(!profileError, 'Erreur création profil');
     
     // Vérifier le rôle initial
     const { data: initialProfile } = await supabaseAdmin

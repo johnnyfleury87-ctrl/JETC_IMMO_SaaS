@@ -163,25 +163,25 @@ test('La page de login redirige vers le bon dashboard selon le rôle', () => {
   );
 });
 
-test('Le fichier 04_users.sql contient le trigger de création de profil', () => {
+test('Le fichier 04_users.sql contient la table profiles', () => {
   const sqlPath = path.join(__dirname, '../supabase/schema/04_users.sql');
   assert(fs.existsSync(sqlPath), '04_users.sql devrait exister');
   
   const content = fs.readFileSync(sqlPath, 'utf8');
   
   assert(
-    content.includes('function public.handle_new_user'),
-    '04_users.sql devrait contenir la fonction handle_new_user()'
+    content.includes('create table') && content.includes('profiles'),
+    '04_users.sql devrait contenir la table profiles'
   );
   
   assert(
-    content.includes('trigger') && content.includes('on_auth_user_created'),
-    '04_users.sql devrait contenir le trigger on_auth_user_created'
+    content.includes('handle_updated_at'),
+    '04_users.sql devrait contenir la fonction handle_updated_at() pour updated_at'
   );
   
   assert(
-    content.includes('insert into profiles') || content.includes('insert into public.profiles'),
-    'La fonction handle_new_user() devrait insérer dans profiles'
+    content.includes('on_profile_updated'),
+    '04_users.sql devrait contenir le trigger on_profile_updated pour les mises à jour'
   );
 });
 

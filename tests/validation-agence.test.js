@@ -70,10 +70,20 @@ describe('Tests validation agence', () => {
     assert(!authError, 'Erreur création utilisateur');
     testProfileId = authData.user.id;
     
-    // Attendre que le trigger crée le profil
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Créer le profil manuellement (le code métier crée le profil, pas un trigger SQL)
+    const { error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .insert({
+        id: testProfileId,
+        email: testEmail,
+        role: 'regie',
+        language: 'fr',
+        is_demo: false
+      });
     
-    // Créer la régie manuellement
+    assert(!profileError, 'Erreur création profil');
+    
+    // Créer la régie
     const { data: regieData, error: regieError } = await supabaseAdmin
       .from('regies')
       .insert({

@@ -1,20 +1,20 @@
 /**
- * TABLE PROFILES & TRIGGER
+ * TABLE PROFILES
  * 
- * Création de la table profiles et du trigger automatique
+ * Table des profils utilisateurs
  * Chaque utilisateur Supabase Auth DOIT avoir un profil
  * 
  * Ordre d'exécution : 4
  * 
  * RÈGLES :
- * - Le trigger crée automatiquement un profil à l'inscription
+ * - Le profil est créé par le code métier (api/auth/register.js, api/install/create-admin.js)
  * - Le rôle par défaut est 'regie' (point d'entrée métier PRO)
  * - La langue par défaut est 'fr'
  * - Le profil est lié à auth.users via FK cascade
  * 
- * ⚠️ IMPORTANT - Configuration manuelle requise :
- * Le trigger sur auth.users DOIT être créé via l'interface Supabase Dashboard.
- * Voir le fichier SUPABASE_AUTH_TRIGGER_SETUP.md pour les instructions détaillées.
+ * ⚠️ ARCHITECTURE :
+ * La création du profil est une responsabilité du code métier, PAS du SQL.
+ * Cela garantit l'atomicité (rollback en cas d'erreur) et la testabilité.
  */
 
 -- Table profiles (référence auth.users)
@@ -44,46 +44,6 @@ create index if not exists idx_profiles_email on profiles(email);
 create index if not exists idx_profiles_role on profiles(role);
 create index if not exists idx_profiles_regie_id on profiles(regie_id);
 create index if not exists idx_profiles_entreprise_id on profiles(entreprise_id);
-
--- Fonction de création automatique du profil
-create or replace function public.handle_new_user()
-returns trigger
-language plpgsql
-security definer set search_path = public
-as $$
-begin
-  insert into public.profiles (id, email, role, language, is_demo)
-  values (
-    new.id,
-    new.email,
-    'regie',  -- Rôle par défaut (point d'entrée métier PRO)
-    coalesce(new.raw_user_meta_data->>'language', 'fr'),  -- Langue depuis metadata ou 'fr'
-    false  -- Toujours false pour les inscriptions réelles
-  );
-  return new;
-end;
-$$;
-
-comment on function public.handle_new_user() is 'JETC_IMMO - Crée automatiquement un profil lors de l''inscription';
-
--- ⚠️ TRIGGER SUR auth.users - CONFIGURATION MANUELLE REQUISE ⚠️
--- 
--- Supabase Cloud interdit la création de triggers sur auth.users via SQL Editor.
--- Le trigger doit être créé manuellement via l'interface Supabase Dashboard.
--- 
--- Configuration à appliquer dans l'UI :
---   Table : auth.users
---   Event : AFTER INSERT
---   For each : ROW
---   Function : public.handle_new_user()
--- 
--- Voir SUPABASE_AUTH_TRIGGER_SETUP.md pour les instructions complètes.
--- 
--- SQL équivalent (NON exécutable dans Supabase Cloud) :
--- drop trigger if exists on_auth_user_created on auth.users;
--- create trigger on_auth_user_created
---   after insert on auth.users
---   for each row execute function public.handle_new_user();
 
 -- Fonction de mise à jour du timestamp
 create or replace function public.handle_updated_at()

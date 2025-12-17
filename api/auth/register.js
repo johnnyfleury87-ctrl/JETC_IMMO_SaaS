@@ -4,20 +4,21 @@
  * Objectif : Créer un nouveau compte utilisateur
  * 
  * Méthode : POST
- * Body : { email, password, language? }
+ * Body : { email, password, language?, nomAgence, nbCollaborateurs, nbLogements, siret? }
  * 
- * Processus :
+ * Processus (transaction atomique avec rollback) :
  * 1. Validation des données
  * 2. Création utilisateur via Supabase Auth
- * 3. Le trigger crée automatiquement le profil
- * 4. Récupération du profil créé
- * 5. Retour des infos utilisateur
+ * 3. Création profil dans public.profiles (code métier)
+ * 4. Création régie dans public.regies (statut en_attente)
+ * 5. Rollback complet en cas d'erreur à n'importe quelle étape
  * 
  * Erreurs gérées :
  * - Email invalide
  * - Mot de passe trop faible
  * - Email déjà utilisé
- * - Erreur Supabase
+ * - Champs métier manquants/invalides
+ * - Erreur Supabase (avec rollback)
  */
 
 const { supabaseAdmin } = require('../_supabase');
@@ -134,67 +135,77 @@ module.exports = async (req, res) => {
       }));
     }
     
-    const user = authData.user;
-    console.log('[AUTH/REGISTER] Utilisateur créé:', user.id);
+    const userId = authData.user.id;
+    console.log('[AUTH/REGISTER] Utilisateur auth créé:', userId);
     
-    // Attendre un peu que le trigger crée le profil
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Récupération du profil créé par le trigger
-    const { data: profile, error: profileError } = await supabaseAdmin
+    // ============================================
+    // ÉTAPE 2 : Créer le profil (code métier)
+    // ============================================
+    const { error: profileError } = await supabaseAdmin
       .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
+      .insert({
+        id: userId,
+        email: email,
+        role: 'regie',
+        language: language,
+        is_demo: false
+      });
     
     if (profileError) {
-      console.error('[AUTH/REGISTER] Erreur récupération profil:', profileError);
-      // Profil devrait exister grâce au trigger
+      console.error('[AUTH/REGISTER] Erreur création profil:', profileError);
+      
+      // Rollback : supprimer l'utilisateur auth
+      await supabaseAdmin.auth.admin.deleteUser(userId);
+      
       res.writeHead(500, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({
         success: false,
-        error: 'Compte créé mais profil non trouvé',
-        userId: user.id
+        error: 'Erreur lors de la création du profil utilisateur'
       }));
     }
     
-    // NOUVEAU : Si le rôle est régie, créer l'entrée dans la table regies
-    if (profile.role === 'regie') {
-      console.log('[AUTH/REGISTER] Création de la régie pour le profil:', user.id);
+    console.log('[AUTH/REGISTER] Profil créé avec succès (role: regie)');
+    
+    // ============================================
+    // ÉTAPE 3 : Créer la régie
+    // ============================================
+    const { error: regieError } = await supabaseAdmin
+      .from('regies')
+      .insert({
+        profile_id: userId,
+        nom: nomAgence.trim(),
+        email: email,
+        nb_collaborateurs: parseInt(nbCollaborateurs),
+        nb_logements_geres: parseInt(nbLogements),
+        siret: siret || null,
+        statut_validation: 'en_attente'
+      });
+    
+    if (regieError) {
+      console.error('[AUTH/REGISTER] Erreur création régie:', regieError);
       
-      const { error: regieError } = await supabaseAdmin
-        .from('regies')
-        .insert({
-          profile_id: user.id,
-          nom: nomAgence.trim(),
-          email: email,
-          nb_collaborateurs: parseInt(nbCollaborateurs),
-          nb_logements_geres: parseInt(nbLogements),
-          siret: siret || null,
-          statut_validation: 'en_attente' // Par défaut en attente de validation
-        });
+      // Rollback : supprimer profil + utilisateur auth
+      await supabaseAdmin.from('profiles').delete().eq('id', userId);
+      await supabaseAdmin.auth.admin.deleteUser(userId);
       
-      if (regieError) {
-        console.error('[AUTH/REGISTER] Erreur création régie:', regieError);
-        
-        // Rollback : supprimer l'utilisateur créé
-        await supabaseAdmin.auth.admin.deleteUser(user.id);
-        
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({
-          success: false,
-          error: 'Erreur lors de la création de l\'agence',
-          details: regieError.message
-        }));
-      }
-      
-      console.log('[AUTH/REGISTER] Régie créée avec succès (statut: en_attente)');
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({
+        success: false,
+        error: 'Erreur lors de la création de l\'agence'
+      }));
     }
     
-    console.log('[AUTH/REGISTER] Inscription réussie:', {
-      userId: user.id,
-      email: user.email,
-      role: profile.role
+    console.log('[AUTH/REGISTER] Régie créée avec succès (statut: en_attente)');
+    
+    // ============================================
+    // ÉTAPE 4 : Succès complet
+    // ============================================
+    
+    console.log('[AUTH/REGISTER] ✅ Inscription complète:', {
+      userId: userId,
+      email: email,
+      role: 'regie',
+      statut: 'en_attente'
     });
     
     // Succès
@@ -202,15 +213,13 @@ module.exports = async (req, res) => {
     return res.end(JSON.stringify({
       success: true,
       user: {
-        id: user.id,
-        email: user.email,
-        role: profile.role,
-        language: profile.language,
-        created_at: user.created_at
+        id: userId,
+        email: email,
+        role: 'regie',
+        language: language,
+        created_at: authData.user.created_at
       },
-      message: profile.role === 'regie' 
-        ? 'Inscription réussie. Votre agence est en attente de validation par l\'équipe JETC_IMMO. Vous recevrez un email dès validation.'
-        : 'Inscription réussie. Vous pouvez maintenant vous connecter.'
+      message: 'Inscription réussie. Votre agence est en attente de validation par l\'équipe JETC_IMMO. Vous recevrez un email dès validation.'
     }));
     
   } catch (error) {

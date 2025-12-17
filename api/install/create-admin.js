@@ -163,23 +163,21 @@ module.exports = async (req, res) => {
   }
   
   // ============================================
-  // 6. Attendre que le trigger crée le profil
-  // ============================================
-  // Le trigger handle_new_user() va créer un profil avec role='regie' par défaut
-  // On attend un peu puis on le met à jour
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // ============================================
-  // 7. Mettre à jour le profil pour role admin_jtec
+  // 6. Créer le profil admin_jtec (code métier)
   // ============================================
   try {
-    const { error: updateError } = await supabaseAdmin
+    const { error: profileError } = await supabaseAdmin
       .from('profiles')
-      .update({ role: 'admin_jtec' })
-      .eq('id', userId);
+      .insert({
+        id: userId,
+        email: email,
+        role: 'admin_jtec',
+        language: 'fr',
+        is_demo: false
+      });
     
-    if (updateError) {
-      console.error('[INSTALL] Erreur mise à jour profil:', updateError);
+    if (profileError) {
+      console.error('[INSTALL] Erreur création profil admin:', profileError);
       
       // Rollback : supprimer le compte auth créé
       await supabaseAdmin.auth.admin.deleteUser(userId);
@@ -187,13 +185,13 @@ module.exports = async (req, res) => {
       res.writeHead(500, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({
         success: false,
-        error: 'Erreur lors de la promotion en admin. Compte supprimé. Réessayez.'
+        error: 'Erreur lors de la création du profil administrateur. Compte supprimé. Réessayez.'
       }));
     }
     
-    console.log('[INSTALL] ✅ Admin JTEC créé avec succès:', email);
+    console.log('[INSTALL] ✅ Profil admin_jtec créé avec succès');
   } catch (error) {
-    console.error('[INSTALL] Exception mise à jour profil:', error);
+    console.error('[INSTALL] Exception création profil:', error);
     
     // Rollback
     await supabaseAdmin.auth.admin.deleteUser(userId);
@@ -201,12 +199,12 @@ module.exports = async (req, res) => {
     res.writeHead(500, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({
       success: false,
-      error: 'Erreur serveur lors de la promotion en admin'
+      error: 'Erreur serveur lors de la création du profil administrateur'
     }));
   }
   
   // ============================================
-  // 8. Vérification finale
+  // 7. Vérification finale
   // ============================================
   try {
     const { data: profile } = await supabaseAdmin
@@ -223,12 +221,14 @@ module.exports = async (req, res) => {
         error: 'Le compte a été créé mais la vérification a échoué'
       }));
     }
+    
+    console.log('[INSTALL] ✅ Vérification finale réussie');
   } catch (error) {
     console.error('[INSTALL] Erreur vérification finale:', error);
   }
   
   // ============================================
-  // 9. Succès
+  // 8. Succès
   // ============================================
   console.log('[INSTALL] ========================================');
   console.log('[INSTALL] ✅ ADMIN JTEC CRÉÉ AVEC SUCCÈS');
