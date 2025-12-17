@@ -2,6 +2,7 @@
 -- ÉTAPE 20 : RÉALIGNEMENT OFFICIEL DES STATUTS
 -- =====================================================
 -- Date : 2025-12-16
+-- Ordre d'exécution : 22
 -- Objectif : Centraliser la logique métier des statuts
 -- Source de vérité : Ce fichier définit LA logique officielle
 --

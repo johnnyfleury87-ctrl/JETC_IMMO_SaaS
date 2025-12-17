@@ -4,7 +4,7 @@
  * Gestion des entreprises de maintenance/intervention
  * Les entreprises peuvent voir et accepter des tickets
  * 
- * Ordre d'exécution : 9
+ * Ordre d'exécution : 10
  * 
  * RÈGLES :
  * - Une entreprise a un profil utilisateur de type 'entreprise'

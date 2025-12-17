@@ -4,7 +4,7 @@
  * Regroupement de toutes les vues dépendant de plusieurs tables
  * À exécuter APRÈS la création de toutes les tables (01-15)
  * 
- * Ordre d'exécution : 16
+ * Ordre d'exécution : 17
  * 
  * RÈGLES :
  * - Toutes les tables nécessaires doivent exister (tickets, missions, entreprises, etc.)

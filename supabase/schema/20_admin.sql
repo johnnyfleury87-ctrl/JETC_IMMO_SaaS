@@ -1,6 +1,8 @@
 /**
  * ÉTAPE 9 - Administration JTEC
  * 
+ * Ordre d'exécution : 20
+ * 
  * Pilotage global de la plateforme :
  * - Vues SQL agrégées (sans données nominatives)
  * - Statistiques globales (régies, immeubles, logements, tickets)

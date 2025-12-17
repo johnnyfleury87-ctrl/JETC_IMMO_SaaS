@@ -1,6 +1,8 @@
 /**
  * ÉTAPE 8 - Storage & fichiers
  * 
+ * Ordre d'exécution : 19
+ * 
  * Gestion sécurisée des fichiers :
  * - Photos d'immeubles et logements
  * - Signatures de locataires et entreprises

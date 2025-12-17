@@ -2,6 +2,7 @@
 -- TRIGGER : Empêcher l'auto-escalation de rôle
 -- =====================================================
 -- Date: 17 décembre 2025
+-- Ordre d'exécution : 23
 -- Objectif: Bloquer toute tentative d'un utilisateur de modifier son propre rôle
 -- Sécurité: Seul un admin_jtec peut modifier le rôle d'un utilisateur
 

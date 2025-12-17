@@ -1,6 +1,7 @@
 -- ============================================================================
 -- ÉTAPE 15 : ABONNEMENTS & MODULES PAYANTS
 -- ============================================================================
+-- Ordre d'exécution : 21
 -- Objectif : Activer le modèle économique avec plans, abonnements et contrôles
 -- Critères : Accès selon plan, limites respectées
 -- ============================================================================

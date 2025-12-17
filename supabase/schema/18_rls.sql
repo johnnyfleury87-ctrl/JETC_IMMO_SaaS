@@ -7,6 +7,8 @@
  * - Aucun accès anonyme
  * - Pas de récursion RLS
  * 
+ * Ordre d'exécution : 18
+ * 
  * Rôles gérés :
  * - admin_jtec : accès global
  * - regie : accès à sa régie uniquement
@@ -109,31 +111,7 @@ create policy "Regie can insert own regie"
 -- 4. POLICIES POUR LA TABLE IMMEUBLES
 -- =====================================================
 
--- Fonction helper : récupérer la regie_id de l'utilisateur
-create or replace function get_user_regie_id()
-returns uuid
-language sql
-security definer
-stable
-as $$
-  select regie_id from (
-    -- Pour le rôle 'regie', prendre directement depuis regies
-    select r.id as regie_id
-    from regies r
-    where r.profile_id = auth.uid()
-    
-    union
-    
-    -- Pour le rôle 'locataire', remonter via logements → immeubles
-    select i.regie_id
-    from locataires l
-    join logements lg on lg.id = l.logement_id
-    join immeubles i on i.id = lg.immeuble_id
-    where l.profile_id = auth.uid()
-    
-    limit 1
-  ) as user_regie;
-$$;
+-- Note : La fonction get_user_regie_id() est définie dans 09b_helper_functions.sql
 
 -- Régie voit ses immeubles
 create policy "Regie can view own immeubles"
@@ -437,4 +415,4 @@ create index if not exists idx_entreprises_profile_id on entreprises(profile_id)
 -- COMMENTAIRES
 -- =====================================================
 
-comment on function get_user_regie_id is 'Retourne la regie_id de l''utilisateur connecté (pour rôles regie et locataire)';
+-- Note : Les commentaires des fonctions helper sont dans 09b_helper_functions.sql
