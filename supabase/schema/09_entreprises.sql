@@ -4,7 +4,7 @@
  * Gestion des entreprises de maintenance/intervention
  * Les entreprises peuvent voir et accepter des tickets
  * 
- * Ordre d'exécution : 10
+ * Ordre d'exécution : 9
  * 
  * RÈGLES :
  * - Une entreprise a un profil utilisateur de type 'entreprise'
@@ -39,9 +39,9 @@ create table if not exists entreprises (
 );
 
 comment on table entreprises is 'JETC_IMMO - Entreprises de maintenance et intervention';
-comment on column entreprises.nom is 'Nom de l\'entreprise';
-comment on column entreprises.profile_id is 'Profil utilisateur de l\'entreprise (role: entreprise)';
-comment on column entreprises.specialites is 'Domaines d\'intervention (plomberie, électricité, etc.)';
+comment on column entreprises.nom is $$Nom de l'entreprise$$;
+comment on column entreprises.profile_id is $$Profil utilisateur de l'entreprise (role: entreprise)$$;
+comment on column entreprises.specialites is $$Domaines d'intervention (plomberie, électricité, etc.)$$;
 
 -- Contraintes
 alter table entreprises add constraint unique_entreprise_nom unique(nom);
@@ -78,7 +78,7 @@ create table if not exists regies_entreprises (
 
 comment on table regies_entreprises is 'JETC_IMMO - Autorisations des entreprises par régie';
 comment on column regies_entreprises.mode_diffusion is 'Mode de diffusion : general (tous les tickets) ou restreint (sur assignation)';
-comment on column regies_entreprises.regie_id is 'Régie qui autorise l\'entreprise';
+comment on column regies_entreprises.regie_id is $$Régie qui autorise l'entreprise$$;
 comment on column regies_entreprises.entreprise_id is 'Entreprise autorisée';
 
 -- Contraintes

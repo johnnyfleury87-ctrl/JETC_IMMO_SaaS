@@ -45,7 +45,7 @@ create table if not exists tickets (
   updated_at timestamptz default now()
 );
 
-comment on table tickets is 'JETC_IMMO - Tickets d\'intervention créés par les locataires';
+comment on table tickets is $$JETC_IMMO - Tickets d'intervention créés par les locataires$$;
 comment on column tickets.titre is 'Titre court du problème';
 comment on column tickets.description is 'Description détaillée du problème';
 comment on column tickets.categorie is 'Type de problème (plomberie, électricité, etc.)';
@@ -109,7 +109,7 @@ create trigger set_ticket_regie_id_trigger
   before insert on tickets
   for each row execute function set_ticket_regie_id();
 
-comment on function set_ticket_regie_id is 'Calcule automatiquement la regie_id d\'un ticket via logement → immeuble → regie';
+comment on function set_ticket_regie_id is $$Calcule automatiquement la regie_id d'un ticket via logement → immeuble → regie$$;
 
 -- Vue pour faciliter les requêtes
 create or replace view tickets_complets as
