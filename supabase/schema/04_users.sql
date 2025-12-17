@@ -11,6 +11,10 @@
  * - Le rôle par défaut est 'regie' (point d'entrée métier PRO)
  * - La langue par défaut est 'fr'
  * - Le profil est lié à auth.users via FK cascade
+ * 
+ * ⚠️ IMPORTANT - Configuration manuelle requise :
+ * Le trigger sur auth.users DOIT être créé via l'interface Supabase Dashboard.
+ * Voir le fichier SUPABASE_AUTH_TRIGGER_SETUP.md pour les instructions détaillées.
  */
 
 -- Table profiles (référence auth.users)
@@ -62,14 +66,24 @@ $$;
 
 comment on function public.handle_new_user() is 'JETC_IMMO - Crée automatiquement un profil lors de l''inscription';
 
--- Trigger sur auth.users
-drop trigger if exists on_auth_user_created on auth.users;
-
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function public.handle_new_user();
-
-comment on trigger on_auth_user_created on auth.users is 'JETC_IMMO - Déclenche la création du profil';
+-- ⚠️ TRIGGER SUR auth.users - CONFIGURATION MANUELLE REQUISE ⚠️
+-- 
+-- Supabase Cloud interdit la création de triggers sur auth.users via SQL Editor.
+-- Le trigger doit être créé manuellement via l'interface Supabase Dashboard.
+-- 
+-- Configuration à appliquer dans l'UI :
+--   Table : auth.users
+--   Event : AFTER INSERT
+--   For each : ROW
+--   Function : public.handle_new_user()
+-- 
+-- Voir SUPABASE_AUTH_TRIGGER_SETUP.md pour les instructions complètes.
+-- 
+-- SQL équivalent (NON exécutable dans Supabase Cloud) :
+-- drop trigger if exists on_auth_user_created on auth.users;
+-- create trigger on_auth_user_created
+--   after insert on auth.users
+--   for each row execute function public.handle_new_user();
 
 -- Fonction de mise à jour du timestamp
 create or replace function public.handle_updated_at()
