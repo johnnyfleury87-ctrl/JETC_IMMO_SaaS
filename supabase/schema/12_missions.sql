@@ -26,6 +26,11 @@ create table if not exists missions (
   -- Références
   ticket_id uuid not null unique references tickets(id) on delete cascade,
   entreprise_id uuid not null references entreprises(id) on delete cascade,
+  technicien_id uuid references techniciens(id) on delete set null,
+  
+  -- Dates d'intervention
+  date_intervention_prevue timestamptz default null,
+  date_intervention_realisee timestamptz default null,
   
   -- Statut de la mission
   statut text not null default 'en_attente' check (statut in (
@@ -55,13 +60,18 @@ create table if not exists missions (
 -- Index pour performance
 create index if not exists idx_missions_ticket_id on missions(ticket_id);
 create index if not exists idx_missions_entreprise_id on missions(entreprise_id);
+create index if not exists idx_missions_technicien_id on missions(technicien_id);
 create index if not exists idx_missions_statut on missions(statut);
 create index if not exists idx_missions_created_at on missions(created_at);
+create index if not exists idx_missions_date_intervention_prevue on missions(date_intervention_prevue);
 
 -- Commentaires
 comment on table missions is 'Missions créées suite à l''acceptation d''un ticket par une entreprise';
 comment on column missions.ticket_id is 'ID du ticket (unique : 1 seule mission par ticket)';
 comment on column missions.entreprise_id is 'Entreprise qui réalise la mission';
+comment on column missions.technicien_id is 'Technicien assigné à la mission (optionnel)';
+comment on column missions.date_intervention_prevue is 'Date prévue de l''intervention';
+comment on column missions.date_intervention_realisee is 'Date réelle de l''intervention';
 comment on column missions.statut is 'Statut de la mission : en_attente, en_cours, terminee, validee, annulee';
 comment on column missions.devis_url is 'URL du devis dans Supabase Storage';
 comment on column missions.facture_url is 'URL de la facture dans Supabase Storage';
@@ -246,6 +256,28 @@ using (
     select 1 from profiles
     where id = auth.uid()
     and role = 'admin_jtec'
+  )
+);
+
+-- Policy : Technicien peut voir SES missions assignées
+create policy "Technicien can view assigned missions"
+on missions
+for select
+using (
+  technicien_id = (
+    select id from techniciens
+    where profile_id = auth.uid()
+  )
+);
+
+-- Policy : Technicien peut mettre à jour SES missions assignées
+create policy "Technicien can update assigned missions"
+on missions
+for update
+using (
+  technicien_id = (
+    select id from techniciens
+    where profile_id = auth.uid()
   )
 );
 

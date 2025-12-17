@@ -50,30 +50,11 @@ comment on column techniciens.entreprise_id is 'Entreprise à laquelle appartien
 comment on column techniciens.specialites is 'Liste des spécialités du technicien (plomberie, électricité, etc.)';
 comment on column techniciens.actif is 'Technicien actif ou désactivé';
 
--- =====================================================
--- 2. Ajout colonnes à missions
--- =====================================================
-
-alter table missions
-add column if not exists technicien_id uuid references techniciens(id) on delete set null;
-
-alter table missions
-add column if not exists date_intervention_prevue timestamptz default null;
-
-alter table missions
-add column if not exists date_intervention_realisee timestamptz default null;
-
--- Index pour performance
-create index if not exists idx_missions_technicien_id on missions(technicien_id);
-create index if not exists idx_missions_date_intervention_prevue on missions(date_intervention_prevue);
-
--- Commentaires
-comment on column missions.technicien_id is 'Technicien assigné à la mission (optionnel)';
-comment on column missions.date_intervention_prevue is 'Date prévue de l''intervention';
-comment on column missions.date_intervention_realisee is 'Date réelle de l''intervention';
+-- NOTE : Les colonnes technicien_id, date_intervention_prevue, date_intervention_realisee
+-- sont définies directement dans 12_missions.sql (pas d'ALTER TABLE après coup)
 
 -- =====================================================
--- 3. Trigger pour mettre à jour updated_at
+-- 2. Trigger pour mettre à jour updated_at
 -- =====================================================
 
 create or replace function update_techniciens_updated_at()
@@ -92,7 +73,7 @@ for each row
 execute function update_techniciens_updated_at();
 
 -- =====================================================
--- 4. Fonction helper pour obtenir l'ID du technicien
+-- 3. Fonction helper pour obtenir l'ID du technicien
 -- =====================================================
 
 create or replace function get_user_technicien_id()
@@ -109,8 +90,12 @@ $$;
 comment on function get_user_technicien_id is 'Retourne l''ID du technicien pour l''utilisateur connecté';
 
 -- =====================================================
--- 5. Fonction pour assigner technicien à mission
+-- 4. Fonction pour assigner technicien à mission
 -- =====================================================
+
+-- NOTE : Cette fonction manipule la table missions qui sera créée dans 12_missions.sql.
+-- C'est autorisé car c'est une définition de fonction (exécutée plus tard),
+-- pas une manipulation immédiate de la table.
 
 create or replace function assign_technicien_to_mission(
   p_mission_id uuid,
@@ -174,7 +159,7 @@ $$;
 comment on function assign_technicien_to_mission is 'Assigne un technicien à une mission (vérifie qu''ils appartiennent à la même entreprise)';
 
 -- =====================================================
--- 6. Row Level Security (RLS)
+-- 5. Row Level Security (RLS)
 -- =====================================================
 
 alter table techniciens enable row level security;
@@ -237,7 +222,6 @@ using (
     select 1 from regies_entreprises
     where regies_entreprises.entreprise_id = techniciens.entreprise_id
     and regies_entreprises.regie_id = get_user_regie_id()
-    and regies_entreprises.autorise = true
   )
 );
 
@@ -253,25 +237,5 @@ using (
   )
 );
 
--- =====================================================
--- 7. Policies RLS supplémentaires pour missions
--- =====================================================
-
--- Policy : Technicien peut voir SES missions assignées
-create policy "Technicien can view assigned missions"
-on missions
-for select
-using (
-  technicien_id = get_user_technicien_id()
-);
-
--- Policy : Technicien peut mettre à jour SES missions
-create policy "Technicien can update assigned missions"
-on missions
-for update
-using (
-  technicien_id = get_user_technicien_id()
-);
-
--- NOTE : Les vues 'planning_technicien' et 'missions_non_assignees' ont été déplacées vers 16_views.sql
--- pour respecter l'ordre des dépendances (elles nécessitent la table tickets créée en 11)
+-- NOTE : Les policies RLS pour missions liées aux techniciens sont définies dans 12_missions.sql
+-- NOTE : Les vues 'planning_technicien' et 'missions_non_assignees' sont dans 16_views.sql
