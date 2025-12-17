@@ -23,19 +23,10 @@ add column if not exists signature_locataire_url text default null;
 alter table missions
 add column if not exists signature_technicien_url text default null;
 
-alter table missions
-add column if not exists en_retard boolean generated always as (
-  date_intervention_prevue is not null 
-  and date_intervention_prevue < now()
-  and date_intervention_realisee is null
-  and statut in ('en_attente', 'en_cours')
-) stored;
-
 -- Commentaires
 comment on column missions.rapport_url is 'URL du rapport d''intervention (Storage)';
 comment on column missions.signature_locataire_url is 'URL de la signature du locataire (validation intervention)';
 comment on column missions.signature_technicien_url is 'URL de la signature du technicien (validation intervention)';
-comment on column missions.en_retard is 'Indicateur de retard (calculé automatiquement)';
 
 -- =====================================================
 -- 2. Fonction pour démarrer une mission
@@ -266,7 +257,32 @@ $$;
 comment on function cancel_mission is 'Annule une mission et déverrouille le ticket';
 
 -- =====================================================
--- 6. Vue pour missions en retard
+-- 6. Vue pour missions avec indicateur de retard
+-- =====================================================
+
+create or replace view missions_avec_status as
+select
+  m.*,
+  (
+    m.date_intervention_prevue is not null 
+    and m.date_intervention_prevue < now()
+    and m.date_intervention_realisee is null
+    and m.statut in ('en_attente', 'en_cours')
+  ) as en_retard,
+  case
+    when m.date_intervention_prevue is not null 
+         and m.date_intervention_prevue < now()
+         and m.date_intervention_realisee is null
+         and m.statut in ('en_attente', 'en_cours')
+    then extract(epoch from (now() - m.date_intervention_prevue))/3600
+    else 0
+  end as heures_retard
+from missions m;
+
+comment on view missions_avec_status is 'Missions avec calcul dynamique du retard (temps réel)';
+
+-- =====================================================
+-- 7. Vue pour missions en retard (détaillée)
 -- =====================================================
 
 create or replace view missions_en_retard as
@@ -310,13 +326,16 @@ join locataires loc on tk.locataire_id = loc.id
 join logements log on tk.logement_id = log.id
 join immeubles imm on log.immeuble_id = imm.id
 join regies r on imm.regie_id = r.id
-where m.en_retard = true
+where m.date_intervention_prevue is not null 
+  and m.date_intervention_prevue < now()
+  and m.date_intervention_realisee is null
+  and m.statut in ('en_attente', 'en_cours')
 order by m.date_intervention_prevue asc;
 
 comment on view missions_en_retard is 'Vue pour lister les missions en retard avec nombre d''heures de retard';
 
 -- =====================================================
--- 7. Vue pour statistiques missions
+-- 8. Vue pour statistiques missions
 -- =====================================================
 
 create or replace view missions_stats as
@@ -332,8 +351,13 @@ select
   count(*) filter (where m.statut = 'annulee') as missions_annulees,
   count(*) as missions_total,
   
-  -- Retards
-  count(*) filter (where m.en_retard = true) as missions_en_retard,
+  -- Retards (calcul dynamique)
+  count(*) filter (
+    where m.date_intervention_prevue is not null 
+      and m.date_intervention_prevue < now()
+      and m.date_intervention_realisee is null
+      and m.statut in ('en_attente', 'en_cours')
+  ) as missions_en_retard,
   
   -- Délais moyens (en heures)
   avg(extract(epoch from (m.started_at - m.created_at))/3600) 
@@ -359,15 +383,21 @@ order by missions_total desc;
 comment on view missions_stats is 'Statistiques des missions par entreprise';
 
 -- =====================================================
--- 8. Index supplémentaires pour performance
+-- 9. Index supplémentaires pour performance
 -- =====================================================
 
-create index if not exists idx_missions_en_retard on missions(en_retard) where en_retard = true;
+-- Index composite pour optimiser les requêtes sur missions en retard
+create index if not exists idx_missions_retard_lookup 
+  on missions(statut, date_intervention_prevue, date_intervention_realisee)
+  where statut in ('en_attente', 'en_cours') 
+    and date_intervention_prevue is not null
+    and date_intervention_realisee is null;
+
 create index if not exists idx_missions_completed_at on missions(completed_at);
 create index if not exists idx_missions_validated_at on missions(validated_at);
 
 -- =====================================================
--- 9. Trigger pour notifier changement statut
+-- 10. Trigger pour notifier changement statut
 -- =====================================================
 
 create or replace function notify_mission_status_change()
