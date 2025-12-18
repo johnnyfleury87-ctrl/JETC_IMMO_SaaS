@@ -204,6 +204,9 @@
     </div>
   </div>
 
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabaseClient.js"></script>
   <script src="/src/lib/i18n.js"></script>
   <script>
     // Appliquer les traductions (fonction robuste)
@@ -256,77 +259,89 @@
       const password = document.getElementById('password').value;
       const btnLogin = document.getElementById('btnLogin');
       
+      // Vérifier que Supabase est chargé
+      if (typeof supabase === 'undefined' || !supabase.auth) {
+        showError('Erreur technique: Client Supabase non chargé. Rechargez la page.');
+        return;
+      }
+      
       // Désactiver le bouton pendant le traitement
       btnLogin.disabled = true;
       btnLogin.textContent = 'Connexion...';
       
       try {
-        const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ email, password })
+        console.log('[LOGIN] Tentative de connexion avec Supabase:', email);
+        
+        // Connexion via Supabase (crée automatiquement la session)
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: email,
+          password: password
         });
         
-        const data = await response.json();
-        
-        if (data.success) {
-          console.log('[LOGIN] Connexion réussie', {
-            userId: data.user?.id,
-            role: data.user?.role,
-            email: data.user?.email
-          });
-
-          // Stocker les infos de session
-          localStorage.setItem('jetc_access_token', data.session.access_token);
-          localStorage.setItem('jetc_refresh_token', data.session.refresh_token);
-          localStorage.setItem('jetc_user', JSON.stringify(data.user));
-          
-          showSuccess('Connexion réussie ! Redirection...');
-          
-          // Rediriger vers le dashboard selon le rôle
-          const role = data.user.role;
-          const dashboardRoutes = {
-            locataire: '/locataire/dashboard.html',
-            regie: '/regie/dashboard.html',
-            entreprise: '/entreprise/dashboard.html',
-            technicien: '/technicien/dashboard.html',
-            proprietaire: '/proprietaire/dashboard.html',
-            admin_jtec: '/admin/dashboard.html'
-          };
-          
-          const targetRoute = dashboardRoutes[role] || '/locataire/dashboard.html';
-          
-          console.log('[LOGIN][REDIRECT]', {
-            role: role,
-            targetPath: targetRoute,
-            fullURL: window.location.origin + targetRoute
-          });
-          
-          // Redirection immédiate et forcée
-          setTimeout(() => {
-            console.log('[LOGIN][REDIRECT] Exécution redirection maintenant...');
-            window.location.replace(targetRoute);
-          }, 500);
-          
-        } else {
-          showError(data.error || 'Erreur de connexion');
+        if (signInError) {
+          console.error('[LOGIN] Erreur Supabase:', signInError);
+          showError(signInError.message || 'Erreur de connexion');
           btnLogin.disabled = false;
           btnLogin.textContent = 'Se connecter';
+          return;
         }
         
+        console.log('[LOGIN] ✅ Connexion Supabase réussie');
+        console.log('[LOGIN] User ID:', signInData.user.id);
+        console.log('[LOGIN] Session créée:', !!signInData.session);
+        
+        // Récupérer le profil pour avoir le rôle
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role, email')
+          .eq('id', signInData.user.id)
+          .single();
+        
+        if (profileError || !profile) {
+          console.error('[LOGIN] Erreur profil:', profileError);
+          showError('Profil non trouvé. Contactez l\'administrateur.');
+          btnLogin.disabled = false;
+          btnLogin.textContent = 'Se connecter';
+          return;
+        }
+        
+        console.log('[LOGIN] ✅ Profil récupéré - Rôle:', profile.role);
+        
+        showSuccess('Connexion réussie ! Redirection...');
+        
+        // Rediriger vers le dashboard selon le rôle
+        const role = profile.role;
+        const dashboardRoutes = {
+          locataire: '/locataire/dashboard.html',
+          regie: '/regie/dashboard.html',
+          entreprise: '/entreprise/dashboard.html',
+          technicien: '/technicien/dashboard.html',
+          proprietaire: '/proprietaire/dashboard.html',
+          admin_jtec: '/admin/dashboard.html'
+        };
+        
+        const targetRoute = dashboardRoutes[role] || '/locataire/dashboard.html';
+        
+        console.log('[LOGIN][REDIRECT] Rôle:', role);
+        console.log('[LOGIN][REDIRECT] Destination:', targetRoute);
+        
+        // Redirection immédiate
+        setTimeout(() => {
+          console.log('[LOGIN][REDIRECT] ✅ Exécution redirection...');
+          window.location.href = targetRoute;
+        }, 500);
+        
       } catch (error) {
-        console.error('[LOGIN] Erreur:', error);
-        showError('Erreur de connexion au serveur');
+        console.error('[LOGIN] Exception:', error);
+        showError('Erreur technique: ' + error.message);
         btnLogin.disabled = false;
         btnLogin.textContent = 'Se connecter';
       }
     });
 
-    // Initialisation
+    // Initialisation avec attente du client Supabase
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('[LOGIN] Page de connexion chargée');
+      console.log('[LOGIN] 🚀 Page de connexion chargée');
       
       // Initialiser les traductions (non bloquant)
       try {
@@ -335,8 +350,25 @@
         console.warn('[LOGIN] Erreur traductions (non bloquant):', error);
       }
       
+      // Attendre que Supabase soit chargé
+      let attempts = 0;
+      const maxAttempts = 50;
+      
+      const checkSupabase = () => {
+        attempts++;
+        if (typeof supabase !== 'undefined' && supabase.auth) {
+          console.log('[LOGIN] ✅ Supabase client prêt');
+        } else if (attempts < maxAttempts) {
+          setTimeout(checkSupabase, 100);
+        } else {
+          console.error('[LOGIN] ❌ Supabase client non chargé');
+        }
+      };
+      
+      checkSupabase();
       console.log('[LOGIN] Page de connexion prête');
     });
   </script>
 </body>
 </html>
+
