@@ -567,34 +567,87 @@
       <div id="agencesEnAttente" class="agences-container"></div>
     </section>  </div>
 
+  <script src="/src/lib/supabaseClient.js"></script>
   <script>
     // Vérifier l'authentification
     async function checkAuth() {
+      console.log('[DASHBOARD][AUTH] Démarrage vérification...');
+      
       const token = localStorage.getItem('jetc_access_token');
       const userStr = localStorage.getItem('jetc_user');
       
+      console.log('[DASHBOARD][AUTH] Token présent:', !!token);
+      console.log('[DASHBOARD][AUTH] User localStorage:', userStr);
+      
       if (!token || !userStr) {
-        console.log('[DASHBOARD] Non authentifié, redirection...');
+        console.log('[DASHBOARD][REDIRECT] Raison: Pas de token/user dans localStorage');
         window.location.href = '/login.html';
         return;
       }
       
-      const user = JSON.parse(userStr);
-      
-      // Vérifier le rôle (accepter aussi admin_jtec pour admin/)
-      const expectedRole = 'admin' === 'admin' ? 'admin_jtec' : 'admin';
-      if (user.role !== expectedRole) {
-        console.log('[DASHBOARD] Rôle incorrect:', user.role);
-        alert('Accès interdit : ce dashboard est réservé aux Administrateur JTEC');
+      try {
+        // Vérifier la session Supabase
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        console.log('[DASHBOARD][SESSION]', {
+          hasSession: !!session,
+          error: sessionError,
+          userId: session?.user?.id
+        });
+        
+        if (sessionError || !session) {
+          console.log('[DASHBOARD][REDIRECT] Raison: Session Supabase invalide');
+          localStorage.removeItem('jetc_access_token');
+          localStorage.removeItem('jetc_refresh_token');
+          localStorage.removeItem('jetc_user');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        // Récupérer le profil DEPUIS Supabase (source de vérité)
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, email, role')
+          .eq('id', session.user.id)
+          .single();
+        
+        console.log('[DASHBOARD][PROFILE]', {
+          data: profile,
+          error: profileError
+        });
+        
+        if (profileError || !profile) {
+          console.log('[DASHBOARD][REDIRECT] Raison: Profil introuvable dans Supabase');
+          alert('Erreur: Profil introuvable. Reconnexion requise.');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        console.log('[DASHBOARD][ROLE]', {
+          role: profile.role,
+          expected: 'admin_jtec'
+        });
+        
+        // Vérifier le rôle admin_jtec
+        if (profile.role !== 'admin_jtec') {
+          console.log('[DASHBOARD][REDIRECT] Raison: Rôle incorrect', profile.role);
+          alert('Accès interdit : ce dashboard est réservé aux Administrateur JTEC');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        console.log('[DASHBOARD][AUTH] ✅ Authentification validée');
+        
+        // Afficher les infos utilisateur
+        document.getElementById('userEmail').textContent = profile.email;
+        document.getElementById('userEmailDisplay').textContent = profile.email;
+        
+      } catch (error) {
+        console.error('[DASHBOARD][ERROR]', error);
+        console.log('[DASHBOARD][REDIRECT] Raison: Exception', error.message);
+        alert('Erreur technique. Reconnexion requise.');
         window.location.href = '/login.html';
-        return;
       }
-      
-      // Afficher les infos utilisateur
-      document.getElementById('userEmail').textContent = user.email;
-      document.getElementById('userEmailDisplay').textContent = user.email;
-      
-      console.log('[DASHBOARD] Utilisateur connecté:', user);
     }
 
     // Déconnexion
