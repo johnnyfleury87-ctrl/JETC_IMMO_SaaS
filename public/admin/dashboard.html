@@ -328,7 +328,10 @@
     </div>
   </div>
 
-  <script src="/src/lib/supabaseClient.js"></script>
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabaseClient.js"></script>
+  
   <script>
     // ============================================
     // AUTHENTIFICATION SUPABASE UNIQUEMENT
@@ -336,19 +339,15 @@
     async function checkAuth() {
       console.log('[DASHBOARD][AUTH] Démarrage vérification...');
       
-      const token = localStorage.getItem('jetc_access_token');
-      const userStr = localStorage.getItem('jetc_user');
-      
-      console.log('[DASHBOARD][AUTH] Token présent:', !!token);
-      
-      if (!token || !userStr) {
-        console.log('[DASHBOARD][REDIRECT] Raison: Pas de token dans localStorage');
-        window.location.href = '/login.html';
+      // HARD GUARD: Vérifier que Supabase est chargé
+      if (typeof supabase === 'undefined') {
+        console.error('[DASHBOARD][FATAL] Supabase client not loaded');
+        alert('Erreur technique: Client Supabase non chargé. Rechargez la page.');
         return;
       }
       
       try {
-        // Vérifier la session Supabase (source de vérité)
+        // Vérifier la session Supabase (SOURCE DE VÉRITÉ)
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         console.log('[DASHBOARD][SESSION]', {
@@ -358,10 +357,7 @@
         });
         
         if (sessionError || !session) {
-          console.log('[DASHBOARD][REDIRECT] Raison: Session Supabase invalide');
-          localStorage.removeItem('jetc_access_token');
-          localStorage.removeItem('jetc_refresh_token');
-          localStorage.removeItem('jetc_user');
+          console.log('[DASHBOARD][REDIRECT] Raison: Pas de session Supabase valide');
           window.location.href = '/login.html';
           return;
         }
@@ -416,17 +412,18 @@
     }
 
     // Déconnexion
-    function logout() {
-      localStorage.removeItem('jetc_access_token');
-      localStorage.removeItem('jetc_refresh_token');
-      localStorage.removeItem('jetc_user');
+    async function logout() {
+      await supabase.auth.signOut();
       console.log('[DASHBOARD] Déconnexion');
       window.location.href = '/index.html';
     }
 
     // Initialisation
     document.addEventListener('DOMContentLoaded', () => {
-      checkAuth();
+      // Attendre que Supabase soit initialisé
+      setTimeout(() => {
+        checkAuth();
+      }, 100);
     });
   </script>
 </body>
