@@ -1,18 +1,48 @@
 /**
- * CLIENT SUPABASE BACKEND
+ * ======================================================
+ * CLIENT SUPABASE BACKEND (ADMIN)
+ * ======================================================
+ * 
+ * 🎯 OBJECTIF :
+ * Client Supabase avec privilèges administrateur
+ * 
+ * 🔥 SÉCURITÉ CRITIQUE :
+ * - Utilise la clé SERVICE_ROLE (bypass TOUS les RLS)
+ * - Ne JAMAIS exposer ce module au frontend
+ * - Ne JAMAIS importer dans src/lib/supabaseClient.js
+ * - Utilisé UNIQUEMENT dans les routes /api/* (backend)
+ * 
+ * 📍 VARIABLES D'ENVIRONNEMENT REQUISES :
+ * - SUPABASE_URL : URL du projet Supabase
+ * - SUPABASE_SERVICE_ROLE_KEY : Clé admin secrète
  * 
  * ⚠️ RÈGLES STRICTES :
- * - Utilise UNIQUEMENT la clé SERVICE_ROLE
- * - Ne JAMAIS exposer ce client au frontend
- * - Utilisé uniquement dans les routes /api/*
- * - Contourne les RLS (responsabilité = vérifications manuelles)
+ * - Ce client BYPASS tous les RLS
+ * - Vous êtes responsable des vérifications manuelles
+ * - Vérifier TOUJOURS le rôle de l'utilisateur avant toute opération
+ * - Logger toutes les opérations sensibles
+ * 
+ * 🚫 INTERDICTIONS :
+ * - Ne JAMAIS exposer cette clé dans les logs
+ * - Ne JAMAIS commit cette clé dans Git
+ * - Ne JAMAIS utiliser ce client côté frontend
+ * 
+ * 📚 Documentation : https://supabase.com/docs/guides/auth/auth-helpers/auth-ui
+ * ======================================================
  */
 
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
-// Vérification des variables d'environnement
+// ======================================================
+// CONFIGURATION - Lecture variables d'environnement
+// ======================================================
+
+// 1️⃣ URL du projet Supabase
 const supabaseUrl = process.env.SUPABASE_URL;
+
+// 2️⃣ Clé SERVICE_ROLE (admin, bypass RLS)
+// ❌ Cette clé est SECRÈTE et ne doit JAMAIS être exposée
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseServiceKey) {

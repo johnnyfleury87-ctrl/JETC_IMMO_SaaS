@@ -1,17 +1,42 @@
 /**
+ * ======================================================
  * CLIENT SUPABASE FRONTEND
+ * ======================================================
+ * 
+ * 🎯 OBJECTIF :
+ * Client Supabase pour le navigateur (frontend)
+ * 
+ * 🔐 SÉCURITÉ :
+ * - Utilise UNIQUEMENT la clé ANON (publique)
+ * - Ne JAMAIS utiliser SUPABASE_SERVICE_ROLE_KEY ici
+ * - Ce client est exposé au navigateur
+ * - Toutes les opérations sont protégées par les Row Level Security (RLS)
+ * 
+ * 📍 VARIABLES D'ENVIRONNEMENT REQUISES :
+ * - NEXT_PUBLIC_SUPABASE_ANON_KEY : Clé publique (obligatoire)
+ * - SUPABASE_URL ou NEXT_PUBLIC_SUPABASE_URL : URL du projet
  * 
  * ⚠️ RÈGLES STRICTES :
- * - Utilise UNIQUEMENT la clé ANON (publique)
- * - Ne JAMAIS utiliser la service_role_key ici
- * - Ce client est exposé au navigateur
- * - Toutes les opérations sensibles passent par les RLS
+ * - Toute modification de données doit respecter les RLS
+ * - Les opérations admin passent par les routes /api/* backend
+ * - Aucun bypass RLS possible depuis ce client
+ * 
+ * 📚 Documentation : https://supabase.com/docs/reference/javascript
+ * ======================================================
  */
 
 import { createClient } from '@supabase/supabase-js';
 
-// Vérification des variables d'environnement
+// ======================================================
+// CONFIGURATION - Lecture variables d'environnement
+// ======================================================
+
+// 1️⃣ URL du projet Supabase
+// Fallback : SUPABASE_URL si NEXT_PUBLIC_SUPABASE_URL absent
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+
+// 2️⃣ Clé publique ANON (exposée au navigateur)
+// ✅ Cette clé est publique et protégée par RLS
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {

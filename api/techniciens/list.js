@@ -12,8 +12,9 @@ const http = require('http');
 const { authenticateUser } = require('../middleware/auth');
 const { createClient } = require('@supabase/supabase-js');
 
+// ⚠️ BACKEND ONLY - Utilise la clé SERVICE_ROLE (bypass RLS)
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function handleGetTechniciens(req, res) {
@@ -76,4 +77,5 @@ async function handleGetTechniciens(req, res) {
   res.end(JSON.stringify({ techniciens }));
 }
 
-module.exports = { handleGetTechniciens };
+// Export direct pour compatibilité Vercel
+module.exports = handleGetTechniciens;
