@@ -206,18 +206,23 @@
 
   <script src="/src/lib/i18n.js"></script>
   <script>
-    // Appliquer les traductions
+    // Appliquer les traductions (fonction robuste)
     function initLanguage() {
-      const translations = getAllTranslations();
-      
-      document.getElementById('proMode').textContent = translations.proMode || 'Mode Professionnel';
-      document.getElementById('labelEmail').textContent = 'Email';
-      document.getElementById('labelPassword').textContent = translations.password || 'Mot de passe';
-      document.getElementById('btnLogin').textContent = translations.login || 'Se connecter';
-      document.getElementById('linkRegister').textContent = translations.register || 'Créer un compte';
-      document.getElementById('backToHome').textContent = translations.backToHome || '← Retour à l\'accueil';
-      
-      document.documentElement.lang = getCurrentLanguage();
+      try {
+        const translations = getAllTranslations();
+        
+        document.getElementById('proMode').textContent = translations.proMode || 'Mode Professionnel';
+        document.getElementById('labelEmail').textContent = 'Email';
+        document.getElementById('labelPassword').textContent = translations.password || 'Mot de passe';
+        document.getElementById('btnLogin').textContent = translations.login || 'Se connecter';
+        document.getElementById('linkRegister').textContent = translations.register || 'Créer un compte';
+        document.getElementById('backToHome').textContent = translations.backToHome || '← Retour à l\'accueil';
+        
+        document.documentElement.lang = getCurrentLanguage();
+      } catch (error) {
+        console.warn('[LOGIN] Traductions non disponibles, utilisation des valeurs par défaut');
+        // Ne pas bloquer le flow si i18n échoue
+      }
     }
 
     // Afficher un message d'erreur
@@ -267,6 +272,12 @@
         const data = await response.json();
         
         if (data.success) {
+          console.log('[LOGIN] Connexion réussie', {
+            userId: data.user?.id,
+            role: data.user?.role,
+            email: data.user?.email
+          });
+
           // Stocker les infos de session
           localStorage.setItem('jetc_access_token', data.session.access_token);
           localStorage.setItem('jetc_refresh_token', data.session.refresh_token);
@@ -287,6 +298,7 @@
             };
             
             const route = dashboardRoutes[role] || '/locataire/dashboard.html';
+            console.log('[LOGIN] Redirection vers', route);
             window.location.href = route;
           }, 1500);
           
@@ -306,7 +318,15 @@
 
     // Initialisation
     document.addEventListener('DOMContentLoaded', () => {
-      initLanguage();
+      console.log('[LOGIN] Page de connexion chargée');
+      
+      // Initialiser les traductions (non bloquant)
+      try {
+        initLanguage();
+      } catch (error) {
+        console.warn('[LOGIN] Erreur traductions (non bloquant):', error);
+      }
+      
       console.log('[LOGIN] Page de connexion prête');
     });
   </script>
