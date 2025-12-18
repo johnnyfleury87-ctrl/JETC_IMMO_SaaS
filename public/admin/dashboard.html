@@ -230,6 +230,7 @@
       margin-bottom: 20px;
       font-size: 20px;
     }
+    }
   </style>
 </head>
 <body>
@@ -336,83 +337,64 @@
     // AUTHENTIFICATION SUPABASE UNIQUEMENT
     // ============================================
     async function checkAuth() {
-      console.log('[DASHBOARD][AUTH] 🔍 Démarrage vérification...');
+      console.log('[DASHBOARD][AUTH] Démarrage vérification...');
       
-      // GARDE CRITIQUE 1: Vérifier que Supabase est chargé
+      // HARD GUARD: Vérifier que Supabase est chargé
       if (typeof supabase === 'undefined') {
-        console.error('[DASHBOARD][FATAL] ❌ Supabase client not loaded');
-        console.error('[DASHBOARD][FATAL] window.supabase =', typeof window.supabase);
+        console.error('[DASHBOARD][FATAL] Supabase client not loaded');
         alert('Erreur technique: Client Supabase non chargé. Rechargez la page.');
         return;
       }
       
-      // GARDE CRITIQUE 2: Vérifier que c'est une instance valide
-      if (typeof supabase.auth === 'undefined' || typeof supabase.auth.getSession !== 'function') {
-        console.error('[DASHBOARD][FATAL] ❌ Supabase client invalide - méthodes auth manquantes');
-        console.error('[DASHBOARD][FATAL] supabase.auth =', supabase.auth);
-        alert('Erreur technique: Client Supabase mal initialisé. Rechargez la page.');
-        return;
-      }
-      
-      console.log('[DASHBOARD] ✅ Supabase loaded:', typeof supabase !== 'undefined');
-      console.log('[DASHBOARD] ✅ Supabase.auth disponible:', typeof supabase.auth !== 'undefined');
-      
       try {
-        // Vérifier la session Supabase (SOURCE DE VÉRITÉ UNIQUE)
+        // Vérifier la session Supabase (SOURCE DE VÉRITÉ)
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        console.log('[DASHBOARD] session:', session ? 'Présente' : 'Absente');
-        console.log('[DASHBOARD] session error:', sessionError);
+        console.log('[DASHBOARD][SESSION]', {
+          hasSession: !!session,
+          error: sessionError,
+          userId: session?.user?.id
+        });
         
-        if (sessionError) {
-          console.error('[DASHBOARD][SESSION] Erreur:', sessionError);
-          console.log('[DASHBOARD][REDIRECT] Raison: Erreur session');
-          alert('Session invalide. Reconnectez-vous.');
+        if (sessionError || !session) {
+          console.log('[DASHBOARD][REDIRECT] Raison: Pas de session Supabase valide');
           window.location.href = '/login.html';
           return;
         }
         
-        if (!session) {
-          console.log('[DASHBOARD][REDIRECT] Raison: Pas de session');
-          window.location.href = '/login.html';
-          return;
-        }
-        
-        console.log('[DASHBOARD][SESSION] ✅ Session valide pour:', session.user.email);
-        console.log('[DASHBOARD][SESSION] User ID:', session.user.id);
-        
-        // Récupérer le profil depuis Supabase (avec RLS)
+        // Récupérer le profil depuis Supabase
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('*')
+          .select('id, email, role')
           .eq('id', session.user.id)
           .single();
         
-        console.log('[DASHBOARD] profile:', profile);
-        console.log('[DASHBOARD] profile error:', profileError);
+        console.log('[DASHBOARD][PROFILE]', {
+          data: profile,
+          error: profileError
+        });
         
         if (profileError || !profile) {
-          console.error('[DASHBOARD][PROFILE] Erreur:', profileError);
-          console.log('[DASHBOARD][REDIRECT] Raison: Profil non trouvé');
-          alert('Profil non trouvé. Contactez l\'administrateur.');
+          console.log('[DASHBOARD][REDIRECT] Raison: Profil introuvable');
+          alert('Erreur: Profil introuvable. Reconnexion requise.');
           window.location.href = '/login.html';
           return;
         }
         
-        console.log('[DASHBOARD][ROLE] ✅ Rôle détecté:', profile.role);
-        console.log('[DASHBOARD][ROLE] Attendu: admin_jtec');
+        console.log('[DASHBOARD][ROLE]', {
+          role: profile.role,
+          expected: 'admin_jtec'
+        });
         
         // Vérifier le rôle admin_jtec
         if (profile.role !== 'admin_jtec') {
-          console.log('[DASHBOARD][REDIRECT] ❌ Raison: Rôle incorrect', profile.role);
+          console.log('[DASHBOARD][REDIRECT] Raison: Rôle incorrect', profile.role);
           alert('Accès interdit : ce dashboard est réservé aux Administrateur JTEC');
           window.location.href = '/login.html';
           return;
         }
         
         console.log('[DASHBOARD][AUTH] ✅ Authentification validée');
-        console.log('[DASHBOARD][AUTH] Email:', profile.email);
-        console.log('[DASHBOARD][AUTH] Rôle:', profile.role);
         
         // Afficher les infos utilisateur
         document.getElementById('user-email').textContent = profile.email;
@@ -422,52 +404,27 @@
         document.getElementById('content').style.display = 'block';
         
       } catch (error) {
-        console.error('[DASHBOARD][ERROR] ❌ Exception capturée:', error);
-        console.error('[DASHBOARD][ERROR] Message:', error.message);
-        console.error('[DASHBOARD][ERROR] Stack:', error.stack);
+        console.error('[DASHBOARD][ERROR]', error);
         console.log('[DASHBOARD][REDIRECT] Raison: Exception', error.message);
-        alert('Erreur technique: ' + error.message);
+        alert('Erreur technique. Reconnexion requise.');
         window.location.href = '/login.html';
       }
     }
 
     // Déconnexion
     async function logout() {
-      if (typeof supabase !== 'undefined' && supabase.auth) {
-        await supabase.auth.signOut();
-        console.log('[DASHBOARD] ✅ Déconnexion réussie');
-      }
+      await supabase.auth.signOut();
+      console.log('[DASHBOARD] Déconnexion');
       window.location.href = '/index.html';
-    }
-
-    // Initialisation avec vérification du chargement de Supabase
-    function waitForSupabase(callback, maxAttempts = 50, interval = 100) {
-      let attempts = 0;
-      
-      const checkSupabase = () => {
-        attempts++;
-        console.log(`[DASHBOARD][INIT] Tentative ${attempts}/${maxAttempts} - Vérification Supabase...`);
-        
-        if (typeof supabase !== 'undefined' && supabase.auth && typeof supabase.auth.getSession === 'function') {
-          console.log('[DASHBOARD][INIT] ✅ Supabase prêt');
-          callback();
-        } else if (attempts >= maxAttempts) {
-          console.error('[DASHBOARD][INIT] ❌ Timeout - Supabase non chargé après', maxAttempts * interval, 'ms');
-          alert('Erreur: Le client Supabase n\'a pas pu se charger. Rechargez la page.');
-        } else {
-          setTimeout(checkSupabase, interval);
-        }
-      };
-      
-      checkSupabase();
     }
 
     // Initialisation
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('[DASHBOARD][INIT] 🚀 DOM chargé, attente du client Supabase...');
-      waitForSupabase(checkAuth);
+      // Attendre que Supabase soit initialisé
+      setTimeout(() => {
+        checkAuth();
+      }, 100);
     });
   </script>
 </body>
 </html>
-
