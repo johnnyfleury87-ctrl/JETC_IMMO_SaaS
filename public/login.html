@@ -286,21 +286,29 @@
           showSuccess('Connexion réussie ! Redirection...');
           
           // Rediriger vers le dashboard selon le rôle
+          const role = data.user.role;
+          const dashboardRoutes = {
+            locataire: '/locataire/dashboard.html',
+            regie: '/regie/dashboard.html',
+            entreprise: '/entreprise/dashboard.html',
+            technicien: '/technicien/dashboard.html',
+            proprietaire: '/proprietaire/dashboard.html',
+            admin_jtec: '/admin/dashboard.html'
+          };
+          
+          const targetRoute = dashboardRoutes[role] || '/locataire/dashboard.html';
+          
+          console.log('[LOGIN][REDIRECT]', {
+            role: role,
+            targetPath: targetRoute,
+            fullURL: window.location.origin + targetRoute
+          });
+          
+          // Redirection immédiate et forcée
           setTimeout(() => {
-            const role = data.user.role;
-            const dashboardRoutes = {
-              locataire: '/locataire/dashboard.html',
-              regie: '/regie/dashboard.html',
-              entreprise: '/entreprise/dashboard.html',
-              technicien: '/technicien/dashboard.html',
-              proprietaire: '/proprietaire/dashboard.html',
-              admin_jtec: '/admin/dashboard.html'
-            };
-            
-            const route = dashboardRoutes[role] || '/locataire/dashboard.html';
-            console.log('[LOGIN] Redirection vers', route);
-            window.location.href = route;
-          }, 1500);
+            console.log('[LOGIN][REDIRECT] Exécution redirection maintenant...');
+            window.location.replace(targetRoute);
+          }, 500);
           
         } else {
           showError(data.error || 'Erreur de connexion');
