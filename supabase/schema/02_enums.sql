@@ -30,22 +30,26 @@ create type plan_type as enum (
 
 comment on type plan_type is 'JETC_IMMO - Plans d''abonnement avec limites associées';
 
--- Statuts des tickets
+-- Statuts des tickets (COMPLET - toutes les valeurs nécessaires)
 create type ticket_status as enum (
-  'ouvert',
-  'en_cours',
-  'termine',
-  'annule'
+  'nouveau',       -- Ticket créé par locataire
+  'ouvert',        -- Ticket validé par régie
+  'en_attente',    -- En attente d'assignation
+  'en_cours',      -- Mission en cours
+  'termine',       -- Intervention terminée
+  'clos',          -- Ticket clôturé et validé
+  'annule'         -- Ticket annulé
 );
 
-comment on type ticket_status is 'JETC_IMMO - Cycle de vie d''un ticket d''intervention';
+comment on type ticket_status is 'JETC_IMMO - Cycle de vie complet d''un ticket (locataire → régie → entreprise → clôture)';
 
--- Statuts des missions
+-- Statuts des missions (COMPLET - toutes les valeurs nécessaires)
 create type mission_status as enum (
-  'en_attente',
-  'planifiee',
-  'en_cours',
-  'terminee'
+  'en_attente',    -- Mission créée, en attente
+  'en_cours',      -- Mission en cours d'exécution
+  'terminee',      -- Mission terminée par l'entreprise
+  'validee',       -- Mission validée par la régie
+  'annulee'        -- Mission annulée
 );
 
-comment on type mission_status is 'JETC_IMMO - Cycle de vie d''une mission technique';
+comment on type mission_status is 'JETC_IMMO - Cycle de vie complet d''une mission (exécution opérationnelle)';

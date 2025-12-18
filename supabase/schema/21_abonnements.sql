@@ -343,11 +343,11 @@ BEGIN
     IF p_quota_type = 'utilisateurs' THEN
         IF p_entreprise_id IS NOT NULL THEN
             SELECT COUNT(*) INTO v_utilisation
-            FROM public.auth_users
+            FROM profiles
             WHERE entreprise_id = p_entreprise_id;
         ELSIF p_regie_id IS NOT NULL THEN
             SELECT COUNT(*) INTO v_utilisation
-            FROM public.auth_users
+            FROM profiles
             WHERE regie_id = p_regie_id;
         END IF;
         
@@ -562,8 +562,8 @@ SELECT
     
     -- Utilisateurs
     CASE 
-        WHEN a.entreprise_id IS NOT NULL THEN (SELECT COUNT(*) FROM public.auth_users WHERE entreprise_id = a.entreprise_id)
-        ELSE (SELECT COUNT(*) FROM public.auth_users WHERE regie_id = a.regie_id)
+        WHEN a.entreprise_id IS NOT NULL THEN (SELECT COUNT(*) FROM profiles WHERE entreprise_id = a.entreprise_id)
+        ELSE (SELECT COUNT(*) FROM profiles WHERE regie_id = a.regie_id)
     END as utilisateurs_utilises,
     p.limite_utilisateurs as utilisateurs_limite,
     
@@ -656,7 +656,7 @@ CREATE POLICY plans_admin_all ON public.plans
     FOR ALL
     USING (
         EXISTS (
-            SELECT 1 FROM public.auth_users
+            SELECT 1 FROM profiles
             WHERE id = auth.uid()
             AND role = 'admin_jtec'
         )
@@ -667,7 +667,7 @@ CREATE POLICY abonnements_select_admin ON public.abonnements
     FOR SELECT
     USING (
         EXISTS (
-            SELECT 1 FROM public.auth_users
+            SELECT 1 FROM profiles
             WHERE id = auth.uid()
             AND role = 'admin_jtec'
         )
@@ -677,7 +677,7 @@ CREATE POLICY abonnements_select_entreprise ON public.abonnements
     FOR SELECT
     USING (
         EXISTS (
-            SELECT 1 FROM public.auth_users
+            SELECT 1 FROM profiles
             WHERE id = auth.uid()
             AND entreprise_id = abonnements.entreprise_id
         )
@@ -687,7 +687,7 @@ CREATE POLICY abonnements_select_regie ON public.abonnements
     FOR SELECT
     USING (
         EXISTS (
-            SELECT 1 FROM public.auth_users
+            SELECT 1 FROM profiles
             WHERE id = auth.uid()
             AND regie_id = abonnements.regie_id
         )
@@ -697,7 +697,7 @@ CREATE POLICY abonnements_admin_all ON public.abonnements
     FOR ALL
     USING (
         EXISTS (
-            SELECT 1 FROM public.auth_users
+            SELECT 1 FROM profiles
             WHERE id = auth.uid()
             AND role = 'admin_jtec'
         )

@@ -68,7 +68,7 @@ create index idx_factures_numero on factures (numero);
 create trigger factures_updated_at
   before update on factures
   for each row
-  execute function update_updated_at();
+  execute function handle_updated_at();
 
 -- =====================================================
 -- Fonction : generate_facture_from_mission
@@ -366,8 +366,8 @@ create policy factures_entreprise_select
   for select
   to authenticated
   using (
-    entreprise_id = (select entreprise_id from auth_users where user_id = auth.uid())
-    and (select role from auth_users where user_id = auth.uid()) = 'entreprise'
+    entreprise_id = (select entreprise_id from profiles where id = auth.uid())
+    and (select role from profiles where id = auth.uid()) = 'entreprise'
   );
 
 -- Politique pour régies : voient les factures des missions sur leurs biens
@@ -376,8 +376,8 @@ create policy factures_regie_select
   for select
   to authenticated
   using (
-    regie_id = (select regie_id from auth_users where user_id = auth.uid())
-    and (select role from auth_users where user_id = auth.uid()) = 'regie'
+    regie_id = (select regie_id from profiles where id = auth.uid())
+    and (select role from profiles where id = auth.uid()) = 'regie'
   );
 
 -- Politique pour admin JTEC : voient toutes les factures
@@ -386,7 +386,7 @@ create policy factures_admin_jtec_all
   for all
   to authenticated
   using (
-    (select role from auth_users where user_id = auth.uid()) = 'admin_jtec'
+    (select role from profiles where id = auth.uid()) = 'admin_jtec'
   );
 
 -- Politique INSERT : seules les entreprises peuvent créer leurs factures
@@ -395,8 +395,8 @@ create policy factures_entreprise_insert
   for insert
   to authenticated
   with check (
-    entreprise_id = (select entreprise_id from auth_users where user_id = auth.uid())
-    and (select role from auth_users where user_id = auth.uid()) = 'entreprise'
+    entreprise_id = (select entreprise_id from profiles where id = auth.uid())
+    and (select role from profiles where id = auth.uid()) = 'entreprise'
   );
 
 -- Politique UPDATE : entreprises et régies peuvent mettre à jour le statut
@@ -406,16 +406,16 @@ create policy factures_update
   to authenticated
   using (
     (
-      entreprise_id = (select entreprise_id from auth_users where user_id = auth.uid())
-      and (select role from auth_users where user_id = auth.uid()) = 'entreprise'
+      entreprise_id = (select entreprise_id from profiles where id = auth.uid())
+      and (select role from profiles where id = auth.uid()) = 'entreprise'
     )
     or
     (
-      regie_id = (select regie_id from auth_users where user_id = auth.uid())
-      and (select role from auth_users where user_id = auth.uid()) = 'regie'
+      regie_id = (select regie_id from profiles where id = auth.uid())
+      and (select role from profiles where id = auth.uid()) = 'regie'
     )
     or
-    (select role from auth_users where user_id = auth.uid()) = 'admin_jtec'
+    (select role from profiles where id = auth.uid()) = 'admin_jtec'
   );
 
 -- =====================================================

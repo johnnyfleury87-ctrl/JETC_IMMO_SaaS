@@ -99,17 +99,17 @@ security definer
 as $$
 begin
   return query
-  select distinct au.user_id, au.role
+  select distinct au.id, au.role
   from missions m
     join tickets t on m.ticket_id = t.id
-    join auth_users au on (
+    join profiles au on (
       -- Entreprise
       au.entreprise_id = m.entreprise_id
       -- Technicien assigné
       or (m.technicien_id is not null and exists (
         select 1 from techniciens tech 
         where tech.id = m.technicien_id 
-        and tech.user_id = au.user_id
+        and tech.profile_id = au.id
       ))
       -- Régie
       or au.regie_id = t.regie_id
@@ -145,7 +145,7 @@ security definer
 as $$
 declare
   v_message messages;
-  v_sender auth_users;
+  v_sender profiles;
   v_actor record;
   v_mission_ref text;
 begin
@@ -155,7 +155,7 @@ begin
   end if;
   
   -- Récupérer les infos de l'expéditeur
-  select * into v_sender from auth_users where user_id = p_sender_user_id;
+  select * into v_sender from profiles where id = p_sender_user_id;
   
   if not found then
     raise exception 'Utilisateur non trouvé';
@@ -292,7 +292,7 @@ begin
   )
   values (
     p_mission_id,
-    (select user_id from auth_users where role = 'admin_jtec' limit 1),  -- Système
+    (select id from profiles where role = 'admin_jtec' limit 1),  -- Système
     'Système',
     'system',
     p_content,
@@ -424,7 +424,7 @@ declare
 begin
   -- Notifier la régie et le locataire
   for v_actor in 
-    select user_id from auth_users 
+    select id from profiles 
     where regie_id = NEW.regie_id or locataire_id = NEW.locataire_id
   loop
     insert into notifications (
@@ -466,7 +466,7 @@ create policy messages_access
   using (
     exists (
       select 1 from get_mission_actors(mission_id)
-      where user_id = auth.uid()
+      where id = auth.uid()
     )
   );
 

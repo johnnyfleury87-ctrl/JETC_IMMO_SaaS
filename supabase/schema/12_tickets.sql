@@ -20,7 +20,7 @@ create table if not exists tickets (
   description text not null,
   categorie text not null,
   priorite text not null default 'normale',
-  statut ticket_status not null default 'ouvert',
+  statut ticket_status not null default 'nouveau',
   
   -- Relations
   logement_id uuid not null references logements(id) on delete cascade,

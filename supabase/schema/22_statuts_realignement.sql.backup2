@@ -15,17 +15,35 @@
 comment on column tickets.statut is
 'État officiel du ticket (source métier unique)';
 
-
 -- =====================================================
 -- 2. ALIGNEMENT TABLE MISSIONS (TEXT → ENUM)
 -- =====================================================
--- ATTENTION : Conversion déplacée vers 22b_fix_enum_dependencies.sql
--- Raison : PostgreSQL ERROR "cannot alter type of a column used by a view or rule"
--- Les vues dépendant de missions.statut doivent être DROP avant l'ALTER TYPE
--- Voir 22b pour la séquence complète : DROP views → ALTER TYPE → RECREATE views
 
--- Cette section est intentionnellement vide - traitement en 22b
+alter table missions
+  alter column statut drop default;
 
+alter table missions
+  alter column statut drop default;
+
+alter table missions
+  alter column statut type mission_status
+  using (
+    case statut::text
+      when 'planifiee' then 'en_attente'::mission_status
+      when 'en_attente' then 'en_attente'::mission_status
+      when 'en_cours' then 'en_cours'::mission_status
+      when 'terminee' then 'terminee'::mission_status
+      when 'validee' then 'validee'::mission_status
+      when 'annulee' then 'annulee'::mission_status
+      else 'en_attente'::mission_status
+    end
+  );
+
+alter table missions
+  alter column statut set default 'en_attente';
+
+comment on column missions.statut is
+'État officiel de la mission (exécution terrain)';
 
 -- =====================================================
 -- 3. FONCTION : TRANSITION STATUT TICKET

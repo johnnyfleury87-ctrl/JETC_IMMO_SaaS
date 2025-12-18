@@ -66,17 +66,6 @@ create index if not exists idx_regies_profile_id on regies(profile_id);
 create index if not exists idx_regies_nom on regies(nom);
 create index if not exists idx_regies_ville on regies(ville);
 
--- Fonction de mise à jour du timestamp
-create or replace function handle_updated_at()
-returns trigger
-language plpgsql
-as $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$;
-
 -- Trigger de mise à jour automatique
 create trigger set_updated_at_regies
   before update on regies

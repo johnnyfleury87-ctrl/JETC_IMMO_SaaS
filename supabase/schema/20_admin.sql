@@ -99,12 +99,13 @@ comment on view admin_stats_tickets is 'Statistiques globales sur les tickets (a
 create or replace view admin_stats_entreprises as
 select
   count(*) as total_entreprises,
-  count(*) filter (where created_at >= current_date - interval '30 days') as entreprises_30_jours,
-  count(*) filter (where created_at >= current_date - interval '7 days') as entreprises_7_jours,
+  count(*) filter (where e.created_at >= current_date - interval '30 days') as entreprises_30_jours,
+  count(*) filter (where e.created_at >= current_date - interval '7 days') as entreprises_7_jours,
   count(distinct re.regie_id) as regies_avec_entreprises,
   count(distinct re.entreprise_id) as entreprises_autorisees
 from entreprises e
 left join regies_entreprises re on re.entreprise_id = e.id;
+
 
 comment on view admin_stats_entreprises is 'Statistiques globales sur les entreprises (admin_jtec)';
 
