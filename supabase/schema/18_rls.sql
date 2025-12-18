@@ -27,6 +27,28 @@ alter table regies_entreprises enable row level security;
 -- 2. PROFILES
 -- =====================================================
 
+-- Fonction helper pour éviter la récursion RLS
+-- Vérifie le rôle admin_jtec via auth.users (pas de RLS sur auth.users)
+create or replace function public.is_admin_jtec()
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  return exists (
+    select 1
+    from profiles
+    where id = auth.uid()
+      and role = 'admin_jtec'
+  );
+end;
+$$;
+
+comment on function public.is_admin_jtec is 
+  'Vérifie si l''utilisateur est admin_jtec sans déclencher de récursion RLS (SECURITY DEFINER bypass RLS)';
+
 create policy "Users can view own profile"
 on profiles for select
 using (auth.uid() = id);
@@ -37,13 +59,7 @@ using (auth.uid() = id);
 
 create policy "Admin JTEC can manage all profiles"
 on profiles for all
-using (
-  exists (
-    select 1 from profiles
-    where id = auth.uid()
-      and role = 'admin_jtec'
-  )
-);
+using (public.is_admin_jtec());
 
 -- =====================================================
 -- 3. REGIES
@@ -63,13 +79,7 @@ with check (profile_id = auth.uid());
 
 create policy "Admin JTEC can manage all regies"
 on regies for all
-using (
-  exists (
-    select 1 from profiles
-    where id = auth.uid()
-      and role = 'admin_jtec'
-  )
-);
+using (public.is_admin_jtec());
 
 -- =====================================================
 -- 4. IMMEUBLES
@@ -87,13 +97,7 @@ using (regie_id = get_user_regie_id());
 
 create policy "Admin JTEC can view all immeubles"
 on immeubles for select
-using (
-  exists (
-    select 1 from profiles
-    where id = auth.uid()
-      and role = 'admin_jtec'
-  )
-);
+using (public.is_admin_jtec());
 
 -- =====================================================
 -- 5. LOGEMENTS
@@ -134,13 +138,7 @@ using (
 
 create policy "Admin JTEC can view all logements"
 on logements for select
-using (
-  exists (
-    select 1 from profiles
-    where id = auth.uid()
-      and role = 'admin_jtec'
-  )
-);
+using (public.is_admin_jtec());
 
 -- =====================================================
 -- 6. LOCATAIRES
@@ -180,13 +178,7 @@ using (
 
 create policy "Admin JTEC can view all locataires"
 on locataires for select
-using (
-  exists (
-    select 1 from profiles
-    where id = auth.uid()
-      and role = 'admin_jtec'
-  )
-);
+using (public.is_admin_jtec());
 
 -- =====================================================
 -- 7. TICKETS
@@ -256,13 +248,7 @@ using (
 
 create policy "Admin JTEC can view all tickets"
 on tickets for select
-using (
-  exists (
-    select 1 from profiles
-    where id = auth.uid()
-      and role = 'admin_jtec'
-  )
-);
+using (public.is_admin_jtec());
 
 -- =====================================================
 -- 8. ENTREPRISES
@@ -293,13 +279,7 @@ using (
 
 create policy "Admin JTEC can view all entreprises"
 on entreprises for select
-using (
-  exists (
-    select 1 from profiles
-    where id = auth.uid()
-      and role = 'admin_jtec'
-  )
-);
+using (public.is_admin_jtec());
 
 -- =====================================================
 -- 9. REGIES_ENTREPRISES
@@ -334,13 +314,7 @@ using (
 
 create policy "Admin JTEC can view all authorizations"
 on regies_entreprises for select
-using (
-  exists (
-    select 1 from profiles
-    where id = auth.uid()
-      and role = 'admin_jtec'
-  )
-);
+using (public.is_admin_jtec());
 
 -- =====================================================
 -- 10. INDEX POUR PERFORMANCE RLS
