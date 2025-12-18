@@ -22,25 +22,13 @@
 
   console.log('[SUPABASE] Configuration détectée');
 
-  // Promise pour attendre que le client soit prêt
-  let resolveReady;
-  window.__supabaseReadyPromise = new Promise(resolve => { resolveReady = resolve; });
-
-  // Initialisation du client avec retry si CDN pas encore chargé
-  function initSupabase(attempt = 0) {
-    const maxAttempts = 10;
-    
+  // Initialisation du client
+  function initSupabase() {
     // Vérifier que le CDN a chargé la bibliothèque
     if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') {
-      if (attempt < maxAttempts) {
-        console.log(`[SUPABASE] CDN non encore prêt, retry ${attempt + 1}/${maxAttempts}...`);
-        setTimeout(() => initSupabase(attempt + 1), 100);
-        return;
-      } else {
-        console.error('[SUPABASE] ❌ CDN non chargé après', maxAttempts, 'tentatives');
-        console.error('[SUPABASE] Assurez-vous que le script CDN est présent AVANT supabaseClient.js');
-        return;
-      }
+      console.error('[SUPABASE] ❌ CDN non chargé - window.supabase.createClient introuvable');
+      console.error('[SUPABASE] Assurez-vous que le script CDN est présent AVANT supabaseClient.js');
+      return;
     }
 
     console.log('[SUPABASE] ✅ CDN détecté, création du client...');
@@ -62,9 +50,6 @@
       console.log('[SUPABASE] ✅ Client initialisé avec succès');
       console.log('[SUPABASE] Type:', typeof window.supabase);
       console.log('[SUPABASE] Méthodes disponibles:', Object.keys(window.supabase).slice(0, 5));
-
-      // Résoudre la promise pour signaler que le client est prêt
-      resolveReady(client);
 
     } catch (error) {
       console.error('[SUPABASE] ❌ Erreur lors de la création du client:', error);

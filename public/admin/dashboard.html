@@ -335,45 +335,6 @@
     // ============================================
     // AUTHENTIFICATION SUPABASE UNIQUEMENT
     // ============================================
-    
-    /**
-     * Attendre que la session soit restaurée du localStorage
-     * Écoute onAuthStateChange pour détecter INITIAL_SESSION ou SIGNED_IN
-     */
-    async function waitForSessionReady(timeoutMs = 3000) {
-      console.log('[DASHBOARD][AUTH] ⏳ Attente restauration session...');
-      
-      return new Promise((resolve, reject) => {
-        const timeoutId = setTimeout(() => {
-          subscription?.unsubscribe?.();
-          console.log('[DASHBOARD][AUTH] ⚠️ Timeout restauration session après', timeoutMs, 'ms');
-          reject(new Error('session_restore_timeout'));
-        }, timeoutMs);
-        
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-          console.log('[DASHBOARD][AUTH] 📡 Auth event:', event, 'session:', !!session);
-          
-          if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
-            clearTimeout(timeoutId);
-            subscription.unsubscribe();
-            console.log('[DASHBOARD][AUTH] ✅ Session restaurée via event:', event);
-            resolve(session);
-          }
-        });
-        
-        // Fallback: vérifier getSession() après 150ms au cas où l'event serait déjà passé
-        setTimeout(async () => {
-          const { data } = await supabase.auth.getSession();
-          if (data?.session) {
-            clearTimeout(timeoutId);
-            subscription.unsubscribe();
-            console.log('[DASHBOARD][AUTH] ✅ Session restaurée via fallback getSession()');
-            resolve(data.session);
-          }
-        }, 150);
-      });
-    }
-    
     async function checkAuth() {
       console.log('[DASHBOARD][AUTH] 🔍 Démarrage vérification...');
       
@@ -397,22 +358,10 @@
       console.log('[DASHBOARD] ✅ Supabase.auth disponible:', typeof supabase.auth !== 'undefined');
       
       try {
-        // ATTENDRE que la session soit restaurée du localStorage
-        let session;
-        try {
-          session = await waitForSessionReady();
-        } catch (error) {
-          // Timeout: la session n'a pas pu être restaurée
-          console.log('[DASHBOARD][REDIRECT] ❌ Session non restaurée après timeout');
-          console.log('[DASHBOARD][REDIRECT] Raison: session_restore_timeout');
-          window.location.href = '/login.html';
-          return;
-        }
-        
         // Vérifier la session Supabase (SOURCE DE VÉRITÉ UNIQUE)
-        const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        console.log('[DASHBOARD] session:', currentSession ? 'Présente' : 'Absente');
+        console.log('[DASHBOARD] session:', session ? 'Présente' : 'Absente');
         console.log('[DASHBOARD] session error:', sessionError);
         
         if (sessionError) {
@@ -423,20 +372,20 @@
           return;
         }
         
-        if (!currentSession) {
-          console.log('[DASHBOARD][REDIRECT] ❌ Raison: Pas de session APRÈS restauration');
+        if (!session) {
+          console.log('[DASHBOARD][REDIRECT] Raison: Pas de session');
           window.location.href = '/login.html';
           return;
         }
         
-        console.log('[DASHBOARD][SESSION] ✅ Session valide pour:', currentSession.user.email);
-        console.log('[DASHBOARD][SESSION] User ID:', currentSession.user.id);
+        console.log('[DASHBOARD][SESSION] ✅ Session valide pour:', session.user.email);
+        console.log('[DASHBOARD][SESSION] User ID:', session.user.id);
         
         // Récupérer le profil depuis Supabase (avec RLS)
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('*')
-          .eq('id', currentSession.user.id)
+          .eq('id', session.user.id)
           .single();
         
         console.log('[DASHBOARD] profile:', profile);
@@ -492,22 +441,7 @@
     }
 
     // Initialisation avec vérification du chargement de Supabase
-    async function waitForSupabase(callback, maxAttempts = 50, interval = 100) {
-      console.log('[DASHBOARD][INIT] ⏳ Attente client Supabase...');
-      
-      // Utiliser la promise exposée par supabaseClient.js si disponible
-      if (typeof window.__supabaseReadyPromise !== 'undefined') {
-        try {
-          await window.__supabaseReadyPromise;
-          console.log('[DASHBOARD][INIT] ✅ Supabase prêt (via __supabaseReadyPromise)');
-          callback();
-          return;
-        } catch (error) {
-          console.error('[DASHBOARD][INIT] ❌ Erreur __supabaseReadyPromise:', error);
-        }
-      }
-      
-      // Fallback: polling classique
+    function waitForSupabase(callback, maxAttempts = 50, interval = 100) {
       let attempts = 0;
       
       const checkSupabase = () => {
@@ -515,7 +449,7 @@
         console.log(`[DASHBOARD][INIT] Tentative ${attempts}/${maxAttempts} - Vérification Supabase...`);
         
         if (typeof supabase !== 'undefined' && supabase.auth && typeof supabase.auth.getSession === 'function') {
-          console.log('[DASHBOARD][INIT] ✅ Supabase prêt (via polling)');
+          console.log('[DASHBOARD][INIT] ✅ Supabase prêt');
           callback();
         } else if (attempts >= maxAttempts) {
           console.error('[DASHBOARD][INIT] ❌ Timeout - Supabase non chargé après', maxAttempts * interval, 'ms');
