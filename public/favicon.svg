@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Fond -->
+  <rect width="100" height="100" rx="20" fill="url(#grad)"/>
+  <!-- Maison stylisée -->
+  <path d="M 30 50 L 50 30 L 70 50 L 70 75 L 30 75 Z" fill="white" opacity="0.9"/>
+  <!-- Toit -->
+  <path d="M 25 50 L 50 25 L 75 50" stroke="white" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <!-- Outil (clé) -->
+  <circle cx="50" cy="60" r="8" fill="#667eea"/>
+  <rect x="48" y="60" width="4" height="12" fill="#667eea"/>
+</svg>
