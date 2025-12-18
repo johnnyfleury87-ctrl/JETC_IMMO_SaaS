@@ -71,7 +71,8 @@
     <div class="welcome-card">
       <h2>🎉 Bienvenue sur votre dashboard</h2>
       <p><strong>Rôle :</strong> Régie immobilière</p>
-      <p>Vous êtes connecté en tant que <strong id="userEmailDisplay">utilisateur</strong></p>
+      <p>Agence : <strong id="agenceName">Chargement...</strong></p>
+      <p>Email : <strong id="userEmailDisplay">Chargement...</strong></p>
       
       <div class="info-box">
         <h3>📋 Fonctionnalités à venir (ÉTAPES suivantes)</h3>
@@ -84,53 +85,147 @@
       </div>
 
       <p style="margin-top: 30px; color: #999;">
-        <small>ÉTAPE 2 - Authentification fonctionnelle ✅</small>
+        <small>✅ ÉTAPE 2 - Authentification Supabase fonctionnelle</small><br>
+        <small>✅ ÉTAPE 3 - Validation admin JTEC fonctionnelle</small>
       </p>
     </div>
   </div>
 
+  <!-- 🔴 ACTION 2 : Charger Supabase (SOURCE DE VÉRITÉ) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabaseClient.js"></script>
+  
   <script>
-    // Vérifier l'authentification
+    // ============================================
+    // 🔴 ACTION 2 : AUTHENTIFICATION SUPABASE UNIQUEMENT
+    // ============================================
     async function checkAuth() {
-      const token = localStorage.getItem('jetc_access_token');
-      const userStr = localStorage.getItem('jetc_user');
+      console.log('[REGIE][AUTH] Démarrage vérification...');
       
-      if (!token || !userStr) {
-        console.log('[DASHBOARD] Non authentifié, redirection...');
-        window.location.href = '/login.html';
+      // HARD GUARD: Vérifier que Supabase est chargé
+      if (typeof supabase === 'undefined') {
+        console.error('[REGIE][FATAL] Supabase client not loaded');
+        alert('Erreur technique: Client Supabase non chargé. Rechargez la page.');
         return;
       }
       
-      const user = JSON.parse(userStr);
-      
-      // Vérifier le rôle (accepter aussi admin_jtec pour admin/)
-      const expectedRole = 'regie' === 'admin' ? 'admin_jtec' : 'regie';
-      if (user.role !== expectedRole) {
-        console.log('[DASHBOARD] Rôle incorrect:', user.role);
-        alert('Accès interdit : ce dashboard est réservé aux Régie immobilière');
+      try {
+        // 1️⃣ Vérifier la session Supabase (SOURCE DE VÉRITÉ)
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        console.log('[REGIE][SESSION]', {
+          hasSession: !!session,
+          error: sessionError,
+          userId: session?.user?.id
+        });
+        
+        if (sessionError || !session) {
+          console.log('[REGIE][REDIRECT] Raison: Pas de session Supabase valide');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        // 2️⃣ Récupérer le profil + régie depuis Supabase
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, email, role, regie:regies(id, nom, statut_validation)')
+          .eq('id', session.user.id)
+          .single();
+        
+        console.log('[REGIE][PROFILE]', {
+          data: profile,
+          error: profileError
+        });
+        
+        if (profileError || !profile) {
+          console.log('[REGIE][REDIRECT] Raison: Profil introuvable');
+          alert('Erreur: Profil introuvable. Reconnexion requise.');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        // 3️⃣ Vérifier le rôle
+        if (profile.role !== 'regie') {
+          console.log('[REGIE][REDIRECT] Raison: Rôle incorrect', profile.role);
+          alert('Accès interdit : ce dashboard est réservé aux Régies immobilières');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        // 4️⃣ Vérifier que la régie existe
+        if (!profile.regie || !profile.regie.length || profile.regie.length === 0) {
+          console.log('[REGIE][REDIRECT] Raison: Aucune régie associée au profil');
+          alert('Erreur: Aucune régie associée à ce compte. Contactez l\'administrateur.');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        const regie = profile.regie[0];
+        
+        // 5️⃣ Vérifier le statut de validation
+        console.log('[REGIE][VALIDATION]', {
+          statut: regie.statut_validation,
+          expected: 'valide'
+        });
+        
+        if (regie.statut_validation === 'en_attente') {
+          console.log('[REGIE][REDIRECT] Raison: Régie en attente de validation');
+          alert('⏳ Votre agence est en attente de validation par l\'équipe JETC_IMMO.\n\nVous recevrez un email dès validation.');
+          await supabase.auth.signOut();
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        if (regie.statut_validation === 'refuse') {
+          console.log('[REGIE][REDIRECT] Raison: Régie refusée');
+          alert('❌ Votre inscription a été refusée.\n\nContactez l\'équipe JETC_IMMO pour plus d\'informations.');
+          await supabase.auth.signOut();
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        if (regie.statut_validation !== 'valide') {
+          console.log('[REGIE][REDIRECT] Raison: Statut de validation invalide', regie.statut_validation);
+          alert('Erreur: Statut de validation invalide. Contactez l\'administrateur.');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        console.log('[REGIE][AUTH] ✅ Authentification validée');
+        
+        // 6️⃣ Afficher les infos utilisateur
+        document.getElementById('userEmail').textContent = profile.email;
+        document.getElementById('userEmailDisplay').textContent = profile.email;
+        document.getElementById('agenceName').textContent = regie.nom;
+        
+        console.log('[REGIE] Dashboard chargé pour:', {
+          email: profile.email,
+          agence: regie.nom,
+          statut: regie.statut_validation
+        });
+        
+      } catch (error) {
+        console.error('[REGIE][ERROR]', error);
+        console.log('[REGIE][REDIRECT] Raison: Exception', error.message);
+        alert('Erreur technique. Reconnexion requise.');
         window.location.href = '/login.html';
-        return;
       }
-      
-      // Afficher les infos utilisateur
-      document.getElementById('userEmail').textContent = user.email;
-      document.getElementById('userEmailDisplay').textContent = user.email;
-      
-      console.log('[DASHBOARD] Utilisateur connecté:', user);
     }
 
-    // Déconnexion
-    function logout() {
-      localStorage.removeItem('jetc_access_token');
-      localStorage.removeItem('jetc_refresh_token');
-      localStorage.removeItem('jetc_user');
-      console.log('[DASHBOARD] Déconnexion');
+    // 🔴 ACTION 2 : Déconnexion avec Supabase
+    async function logout() {
+      console.log('[REGIE] Déconnexion en cours...');
+      await supabase.auth.signOut();
+      console.log('[REGIE] Déconnexion effectuée');
       window.location.href = '/index.html';
     }
 
     // Initialisation
     document.addEventListener('DOMContentLoaded', () => {
-      checkAuth();
+      // Attendre que Supabase soit initialisé
+      setTimeout(() => {
+        checkAuth();
+      }, 100);
     });
   </script>
 </body>

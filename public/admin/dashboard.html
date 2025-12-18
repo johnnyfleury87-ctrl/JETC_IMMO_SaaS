@@ -246,6 +246,19 @@
     <div id="error" class="error" style="display: none;"></div>
 
     <div id="content" style="display: none;">
+      <!-- 🔴 ACTION 1 : Interface validation régies -->
+      <div class="admin-section">
+        <h2>🏢 Régies en attente de validation</h2>
+        <div id="regies-loading" class="loading" style="display: none; color: #667eea;">
+          Chargement des régies...
+        </div>
+        <div id="regies-error" class="error" style="display: none;"></div>
+        <div id="regies-container" class="agences-container"></div>
+        <div id="regies-empty" class="empty-state" style="display: none;">
+          <p>✅ Aucune régie en attente de validation</p>
+        </div>
+      </div>
+
       <!-- Statistiques globales -->
       <div class="stats-grid">
         <div class="stat-card">
@@ -402,11 +415,175 @@
         document.getElementById('loading').style.display = 'none';
         document.getElementById('content').style.display = 'block';
         
+        // 🔴 ACTION 1 : Charger les régies en attente
+        await loadRegiesEnAttente();
+        
       } catch (error) {
         console.error('[DASHBOARD][ERROR]', error);
         console.log('[DASHBOARD][REDIRECT] Raison: Exception', error.message);
         alert('Erreur technique. Reconnexion requise.');
         window.location.href = '/login.html';
+      }
+    }
+
+    // ============================================
+    // 🔴 ACTION 1 : GESTION VALIDATION RÉGIES
+    // ============================================
+    
+    async function loadRegiesEnAttente() {
+      console.log('[REGIES] Chargement des régies en attente...');
+      
+      const container = document.getElementById('regies-container');
+      const loading = document.getElementById('regies-loading');
+      const error = document.getElementById('regies-error');
+      const empty = document.getElementById('regies-empty');
+      
+      loading.style.display = 'block';
+      error.style.display = 'none';
+      empty.style.display = 'none';
+      container.innerHTML = '';
+      
+      try {
+        const { data: regies, error: fetchError } = await supabase
+          .from('regies')
+          .select('id, nom, email, nb_collaborateurs, nb_logements_geres, siret, created_at, profile_id, profiles(email)')
+          .eq('statut_validation', 'en_attente')
+          .order('created_at', { ascending: false });
+        
+        loading.style.display = 'none';
+        
+        if (fetchError) {
+          console.error('[REGIES][ERROR]', fetchError);
+          error.textContent = 'Erreur lors du chargement des régies : ' + fetchError.message;
+          error.style.display = 'block';
+          return;
+        }
+        
+        console.log('[REGIES] Régies trouvées:', regies?.length || 0);
+        
+        if (!regies || regies.length === 0) {
+          empty.style.display = 'block';
+          return;
+        }
+        
+        // Afficher les régies
+        regies.forEach(regie => {
+          const card = document.createElement('div');
+          card.className = 'agence-card';
+          card.innerHTML = `
+            <h3>${regie.nom}</h3>
+            <p><strong>Email:</strong> ${regie.email || regie.profiles?.email || 'N/A'}</p>
+            <p><strong>Collaborateurs:</strong> ${regie.nb_collaborateurs}</p>
+            <p><strong>Logements gérés:</strong> ${regie.nb_logements_geres}</p>
+            ${regie.siret ? `<p><strong>SIRET:</strong> ${regie.siret}</p>` : ''}
+            <p><strong>Inscription:</strong> ${new Date(regie.created_at).toLocaleDateString('fr-FR')}</p>
+            <div class="actions">
+              <button class="btn-valider" onclick="validerRegie('${regie.id}', '${regie.nom}')">
+                ✅ Valider
+              </button>
+              <button class="btn-refuser" onclick="refuserRegie('${regie.id}', '${regie.nom}')">
+                ❌ Refuser
+              </button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+        
+      } catch (error) {
+        loading.style.display = 'none';
+        console.error('[REGIES][EXCEPTION]', error);
+        error.textContent = 'Erreur technique : ' + error.message;
+        error.style.display = 'block';
+      }
+    }
+    
+    async function validerRegie(regieId, regieNom) {
+      if (!confirm(`Confirmer la validation de la régie "${regieNom}" ?`)) {
+        return;
+      }
+      
+      console.log('[REGIES][VALIDER]', regieId);
+      
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          alert('Session expirée. Reconnexion requise.');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        const response = await fetch('/api/admin/valider-agence', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            regie_id: regieId,
+            action: 'valider'
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          alert(`✅ Régie "${regieNom}" validée avec succès !`);
+          await loadRegiesEnAttente(); // Rafraîchir la liste
+        } else {
+          alert(`❌ Erreur : ${result.error || 'Impossible de valider la régie'}`);
+        }
+        
+      } catch (error) {
+        console.error('[REGIES][VALIDER][ERROR]', error);
+        alert('Erreur technique lors de la validation : ' + error.message);
+      }
+    }
+    
+    async function refuserRegie(regieId, regieNom) {
+      const commentaire = prompt(`Indiquer la raison du refus de la régie "${regieNom}" :`);
+      
+      if (!commentaire || commentaire.trim() === '') {
+        alert('Le commentaire est obligatoire pour refuser une régie.');
+        return;
+      }
+      
+      console.log('[REGIES][REFUSER]', regieId);
+      
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          alert('Session expirée. Reconnexion requise.');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        const response = await fetch('/api/admin/valider-agence', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            regie_id: regieId,
+            action: 'refuser',
+            commentaire: commentaire.trim()
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          alert(`❌ Régie "${regieNom}" refusée.`);
+          await loadRegiesEnAttente(); // Rafraîchir la liste
+        } else {
+          alert(`❌ Erreur : ${result.error || 'Impossible de refuser la régie'}`);
+        }
+        
+      } catch (error) {
+        console.error('[REGIES][REFUSER][ERROR]', error);
+        alert('Erreur technique lors du refus : ' + error.message);
       }
     }
 
