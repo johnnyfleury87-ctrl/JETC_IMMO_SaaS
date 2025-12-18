@@ -204,7 +204,11 @@
     </div>
   </div>
 
+  <!-- ✅ CORRECTION AUTH : Charger Supabase (SOURCE DE VÉRITÉ) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabaseClient.js"></script>
   <script src="/src/lib/i18n.js"></script>
+  
   <script>
     // Appliquer les traductions (fonction robuste)
     function initLanguage() {
@@ -221,7 +225,6 @@
         document.documentElement.lang = getCurrentLanguage();
       } catch (error) {
         console.warn('[LOGIN] Traductions non disponibles, utilisation des valeurs par défaut');
-        // Ne pas bloquer le flow si i18n échoue
       }
     }
 
@@ -247,7 +250,9 @@
       document.getElementById('successAlert').classList.add('hidden');
     }
 
-    // Gérer la soumission du formulaire
+    // ============================================
+    // ✅ CORRECTION AUTH : LOGIN DIRECT SUPABASE
+    // ============================================
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       hideMessages();
@@ -256,69 +261,130 @@
       const password = document.getElementById('password').value;
       const btnLogin = document.getElementById('btnLogin');
       
-      // Désactiver le bouton pendant le traitement
+      // Vérifier que Supabase est chargé
+      if (typeof supabase === 'undefined') {
+        showError('Erreur technique: Client Supabase non chargé. Rechargez la page.');
+        return;
+      }
+      
       btnLogin.disabled = true;
       btnLogin.textContent = 'Connexion...';
       
       try {
-        const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ email, password })
+        console.log('[LOGIN][SUPABASE] Tentative connexion pour:', email);
+        
+        // ✅ CORRECTION : Login DIRECT via Supabase (crée session côté client)
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email: email,
+          password: password
         });
         
-        const data = await response.json();
-        
-        if (data.success) {
-          console.log('[LOGIN] Connexion réussie', {
-            userId: data.user?.id,
-            role: data.user?.role,
-            email: data.user?.email
-          });
-
-          // Stocker les infos de session
-          localStorage.setItem('jetc_access_token', data.session.access_token);
-          localStorage.setItem('jetc_refresh_token', data.session.refresh_token);
-          localStorage.setItem('jetc_user', JSON.stringify(data.user));
-          
-          showSuccess('Connexion réussie ! Redirection...');
-          
-          // Rediriger vers le dashboard selon le rôle
-          const role = data.user.role;
-          const dashboardRoutes = {
-            locataire: '/locataire/dashboard.html',
-            regie: '/regie/dashboard.html',
-            entreprise: '/entreprise/dashboard.html',
-            technicien: '/technicien/dashboard.html',
-            proprietaire: '/proprietaire/dashboard.html',
-            admin_jtec: '/admin/dashboard.html'
-          };
-          
-          const targetRoute = dashboardRoutes[role] || '/locataire/dashboard.html';
-          
-          console.log('[LOGIN][REDIRECT]', {
-            role: role,
-            targetPath: targetRoute,
-            fullURL: window.location.origin + targetRoute
-          });
-          
-          // Redirection immédiate et forcée
-          setTimeout(() => {
-            console.log('[LOGIN][REDIRECT] Exécution redirection maintenant...');
-            window.location.replace(targetRoute);
-          }, 500);
-          
-        } else {
-          showError(data.error || 'Erreur de connexion');
+        if (authError) {
+          console.error('[LOGIN][SUPABASE][ERROR]', authError);
+          showError('Email ou mot de passe incorrect');
           btnLogin.disabled = false;
           btnLogin.textContent = 'Se connecter';
+          return;
         }
         
+        console.log('[LOGIN][SUPABASE] ✅ Authentification réussie, session créée côté client');
+        console.log('[LOGIN][SESSION]', {
+          userId: authData.user.id,
+          email: authData.user.email,
+          hasSession: !!authData.session
+        });
+        
+        // Récupérer le profil pour vérifier le rôle
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, email, role')
+          .eq('id', authData.user.id)
+          .single();
+        
+        if (profileError || !profile) {
+          console.error('[LOGIN][PROFILE][ERROR]', profileError);
+          showError('Erreur lors de la récupération du profil');
+          await supabase.auth.signOut();
+          btnLogin.disabled = false;
+          btnLogin.textContent = 'Se connecter';
+          return;
+        }
+        
+        console.log('[LOGIN][PROFILE]', {
+          role: profile.role,
+          email: profile.email
+        });
+        
+        // ✅ VÉRIFICATION SPÉCIFIQUE : Si régie, vérifier statut_validation
+        if (profile.role === 'regie') {
+          const { data: regie, error: regieError } = await supabase
+            .from('regies')
+            .select('statut_validation, commentaire_refus, nom')
+            .eq('profile_id', authData.user.id)
+            .single();
+          
+          if (regieError) {
+            console.error('[LOGIN][REGIE][ERROR]', regieError);
+            showError('Erreur lors de la vérification de votre agence');
+            await supabase.auth.signOut();
+            btnLogin.disabled = false;
+            btnLogin.textContent = 'Se connecter';
+            return;
+          }
+          
+          // Bloquer si en_attente
+          if (regie.statut_validation === 'en_attente') {
+            console.log('[LOGIN][REGIE] Statut en_attente, blocage');
+            showError('⏳ Votre inscription est en attente de validation par l\'équipe JETC_IMMO.\n\nVous recevrez un email dès validation.');
+            await supabase.auth.signOut();
+            btnLogin.disabled = false;
+            btnLogin.textContent = 'Se connecter';
+            return;
+          }
+          
+          // Bloquer si refuse
+          if (regie.statut_validation === 'refuse') {
+            console.log('[LOGIN][REGIE] Statut refuse, blocage');
+            const message = regie.commentaire_refus 
+              ? `❌ Votre inscription a été refusée:\n${regie.commentaire_refus}` 
+              : '❌ Votre inscription a été refusée.';
+            showError(message);
+            await supabase.auth.signOut();
+            btnLogin.disabled = false;
+            btnLogin.textContent = 'Se connecter';
+            return;
+          }
+          
+          console.log('[LOGIN][REGIE] ✅ Statut valide, accès autorisé');
+        }
+        
+        // ✅ SESSION CRÉÉE - Redirection selon rôle
+        showSuccess('Connexion réussie ! Redirection...');
+        
+        const dashboardRoutes = {
+          locataire: '/locataire/dashboard.html',
+          regie: '/regie/dashboard.html',
+          entreprise: '/entreprise/dashboard.html',
+          technicien: '/technicien/dashboard.html',
+          proprietaire: '/proprietaire/dashboard.html',
+          admin_jtec: '/admin/dashboard.html'
+        };
+        
+        const targetRoute = dashboardRoutes[profile.role] || '/locataire/dashboard.html';
+        
+        console.log('[LOGIN][REDIRECT]', {
+          role: profile.role,
+          targetPath: targetRoute
+        });
+        
+        // Redirection immédiate
+        setTimeout(() => {
+          window.location.replace(targetRoute);
+        }, 500);
+        
       } catch (error) {
-        console.error('[LOGIN] Erreur:', error);
-        showError('Erreur de connexion au serveur');
+        console.error('[LOGIN][EXCEPTION]', error);
+        showError('Erreur technique lors de la connexion');
         btnLogin.disabled = false;
         btnLogin.textContent = 'Se connecter';
       }
@@ -326,7 +392,34 @@
 
     // Initialisation
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('[LOGIN] Page de connexion chargée');
+      console.log('[LOGIN] ✅ Page de connexion chargée (Auth Supabase Direct)');
+      
+      // Vérifier si déjà connecté
+      setTimeout(async () => {
+        if (typeof supabase !== 'undefined') {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            console.log('[LOGIN] Session existante détectée, redirection...');
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('role')
+              .eq('id', session.user.id)
+              .single();
+            
+            if (profile) {
+              const dashboardRoutes = {
+                locataire: '/locataire/dashboard.html',
+                regie: '/regie/dashboard.html',
+                entreprise: '/entreprise/dashboard.html',
+                technicien: '/technicien/dashboard.html',
+                proprietaire: '/proprietaire/dashboard.html',
+                admin_jtec: '/admin/dashboard.html'
+              };
+              window.location.replace(dashboardRoutes[profile.role] || '/locataire/dashboard.html');
+            }
+          }
+        }
+      }, 100);
       
       // Initialiser les traductions (non bloquant)
       try {
@@ -334,8 +427,6 @@
       } catch (error) {
         console.warn('[LOGIN] Erreur traductions (non bloquant):', error);
       }
-      
-      console.log('[LOGIN] Page de connexion prête');
     });
   </script>
 </body>
