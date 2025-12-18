@@ -444,9 +444,10 @@
       container.innerHTML = '';
       
       try {
+        // ✅ CORRECTION ERREUR FK : Pas de join profiles (ambiguïté profile_id vs admin_validateur_id)
         const { data: regies, error: fetchError } = await supabase
           .from('regies')
-          .select('id, nom, email, nb_collaborateurs, nb_logements_geres, siret, created_at, profile_id, profiles(email)')
+          .select('id, nom, email, nb_collaborateurs, nb_logements_geres, siret, created_at, statut_validation')
           .eq('statut_validation', 'en_attente')
           .order('created_at', { ascending: false });
         
@@ -472,7 +473,7 @@
           card.className = 'agence-card';
           card.innerHTML = `
             <h3>${regie.nom}</h3>
-            <p><strong>Email:</strong> ${regie.email || regie.profiles?.email || 'N/A'}</p>
+            <p><strong>Email:</strong> ${regie.email}</p>
             <p><strong>Collaborateurs:</strong> ${regie.nb_collaborateurs}</p>
             <p><strong>Logements gérés:</strong> ${regie.nb_logements_geres}</p>
             ${regie.siret ? `<p><strong>SIRET:</strong> ${regie.siret}</p>` : ''}
