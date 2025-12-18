@@ -15,17 +15,35 @@ require('dotenv').config();
  * @body {string} password - Mot de passe de l'admin
  */
 module.exports = async (req, res) => {
+  console.log('[INSTALL_ADMIN] API called - Method:', req.method);
+  console.log('[INSTALL_ADMIN] Environment check:', {
+    hasSupabaseUrl: !!process.env.SUPABASE_URL,
+    hasServiceRole: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    hasInstallKey: !!process.env.INSTALL_ADMIN_KEY
+  });
+
+  // Vérifier la méthode HTTP
+  if (req.method !== 'POST') {
+    console.warn('[INSTALL_ADMIN] Méthode non autorisée:', req.method);
+    res.writeHead(405, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({
+      success: false,
+      error: 'Méthode non autorisée. Utilisez POST.'
+    }));
+  }
+
   // ============================================
   // 1. Vérification de la clé d'installation
   // ============================================
   const INSTALL_KEY = process.env.INSTALL_ADMIN_KEY;
   
   if (!INSTALL_KEY || INSTALL_KEY.length < 32) {
-    console.error('[INSTALL] Configuration serveur invalide - INSTALL_ADMIN_KEY manquante ou trop courte');
+    console.error('[INSTALL_ADMIN] Configuration serveur invalide - INSTALL_ADMIN_KEY manquante ou trop courte');
     res.writeHead(500, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({
       success: false,
-      error: 'Configuration serveur invalide. INSTALL_ADMIN_KEY manquante ou incorrecte.'
+      error: 'Configuration serveur invalide. INSTALL_ADMIN_KEY manquante ou incorrecte.',
+      details: 'Vérifiez que INSTALL_ADMIN_KEY est configurée dans les variables d\'environnement Vercel'
     }));
   }
   
