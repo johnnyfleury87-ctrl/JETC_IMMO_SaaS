@@ -328,248 +328,11 @@
     </div>
   </div>
 
-  <script>
-    // Vérifier l'authentification
-    const token = localStorage.getItem('token');
-    if (!token) {
-      window.location.href = '/login.html';
-    }
-
-    // Récupérer les informations utilisateur
-    async function checkAuth() {
-      try {
-        const response = await fetch('/api/auth/me', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (!response.ok) {
-          throw new Error('Non authentifié');
-        }
-
-        const data = await response.json();
-        
-        // Vérifier que c'est un admin_jtec
-        if (data.profile.role !== 'admin_jtec') {
-          alert('Accès réservé aux administrateurs JTEC');
-          window.location.href = '/';
-          return;
-        }
-
-        document.getElementById('user-email').textContent = data.user.email;
-        
-        // Charger les stats
-        loadStats();
-      } catch (error) {
-        console.error('Erreur auth:', error);
-        localStorage.removeItem('token');
-        window.location.href = '/login.html';
-      }
-    }
-
-    // Charger les statistiques
-    async function loadStats() {
-      try {
-        const response = await fetch('/api/admin/stats', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (!response.ok) {
-          throw new Error('Erreur chargement stats');
-        }
-
-        const data = await response.json();
-        
-        // Afficher les stats
-        displayStats(data);
-
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('content').style.display = 'block';
-      } catch (error) {
-        console.error('Erreur stats:', error);
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('error').style.display = 'block';
-        document.getElementById('error').textContent = 'Erreur lors du chargement des statistiques: ' + error.message;
-      }
-    }
-
-    // Afficher les statistiques
-    function displayStats(data) {
-      const { dashboard, categories, priorites } = data;
-
-      // Stats globales
-      document.getElementById('stat-regies').textContent = dashboard.total_regies || 0;
-      document.getElementById('stat-regies-30j').textContent = dashboard.regies_30_jours || 0;
-      
-      document.getElementById('stat-immeubles').textContent = dashboard.total_immeubles || 0;
-      document.getElementById('stat-immeubles-30j').textContent = dashboard.immeubles_30_jours || 0;
-      
-      document.getElementById('stat-logements').textContent = dashboard.total_logements || 0;
-      document.getElementById('stat-logements-30j').textContent = dashboard.logements_30_jours || 0;
-      
-      document.getElementById('stat-locataires').textContent = dashboard.total_locataires || 0;
-      document.getElementById('stat-locataires-30j').textContent = dashboard.locataires_30_jours || 0;
-      
-      document.getElementById('stat-tickets').textContent = dashboard.total_tickets || 0;
-      document.getElementById('stat-tickets-30j').textContent = dashboard.tickets_30_jours || 0;
-      
-      document.getElementById('stat-entreprises').textContent = dashboard.total_entreprises || 0;
-      document.getElementById('stat-entreprises-30j').textContent = dashboard.entreprises_30_jours || 0;
-
-      // Tickets par statut
-      const totalTickets = dashboard.total_tickets || 1;
-      const statutHtml = `
-        <div style="margin-bottom: 15px;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-            <span>Ouverts</span>
-            <span><strong>${dashboard.tickets_ouverts || 0}</strong></span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill" style="width: ${((dashboard.tickets_ouverts || 0) / totalTickets * 100)}%;"></div>
-          </div>
-        </div>
-        <div style="margin-bottom: 15px;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-            <span>En cours</span>
-            <span><strong>${dashboard.tickets_en_cours || 0}</strong></span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill" style="width: ${((dashboard.tickets_en_cours || 0) / totalTickets * 100)}%;"></div>
-          </div>
-        </div>
-        <div style="margin-bottom: 15px;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-            <span>Terminés</span>
-            <span><strong>${dashboard.tickets_termines || 0}</strong></span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill" style="width: ${((dashboard.tickets_termines || 0) / totalTickets * 100)}%;"></div>
-          </div>
-        </div>
-      `;
-      document.getElementById('tickets-statut').innerHTML = statutHtml;
-
-      // Tickets par catégorie
-      const categoriesHtml = (categories || []).map(cat => `
-        <tr>
-          <td><strong>${cat.categorie || 'Non définie'}</strong></td>
-          <td>${cat.total || 0}</td>
-          <td><span class="status-badge status-ouvert">${cat.ouverts || 0}</span></td>
-          <td><span class="status-badge status-en_cours">${cat.en_cours || 0}</span></td>
-          <td><span class="status-badge status-termine">${cat.termines || 0}</span></td>
-        </tr>
-      `).join('');
-      document.getElementById('table-categories').innerHTML = categoriesHtml || '<tr><td colspan="5">Aucune donnée</td></tr>';
-
-      // Tickets par priorité
-      const prioritesHtml = (priorites || []).map(prio => `
-        <tr>
-          <td><strong>${prio.priorite || 'Non définie'}</strong></td>
-          <td>${prio.total || 0}</td>
-          <td><span class="status-badge status-ouvert">${prio.ouverts || 0}</span></td>
-          <td><span class="status-badge status-en_cours">${prio.en_cours || 0}</span></td>
-          <td><span class="status-badge status-termine">${prio.termines || 0}</span></td>
-        </tr>
-      `).join('');
-      document.getElementById('table-priorites').innerHTML = prioritesHtml || '<tr><td colspan="5">Aucune donnée</td></tr>';
-    }
-
-    // Déconnexion
-    function logout() {
-      localStorage.removeItem('token');
-      window.location.href = '/login.html';
-    }
-
-    // Initialiser
-    checkAuth();
-  </script>
-</body>
-</html>
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    .logout-btn:hover {
-      background: #cc0000;
-    }
-
-    .progress-bar {
-      width: 100%;
-      height: 8px;
-      background: #eee;
-      border-radius: 4px;
-      overflow: hidden;
-      margin-top: 10px;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #667eea, #764ba2);
-      transition: width 0.3s;
-    }
-
-    .status-badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: bold;
-    }
-
-    .status-ouvert { background: #ffeb3b; color: #000; }
-    .status-en_cours { background: #2196f3; color: white; }
-    .status-termine { background: #4caf50; color: white; }
-    .status-annule { background: #9e9e9e; color: white;
-      border-left: 4px solid #1890ff;
-      padding: 20px;
-      border-radius: 8px;
-      margin: 30px 0;
-    }
-    .info-box h3 { color: #0050b3; margin-bottom: 10px; }
-    .info-box ul { margin-left: 20px; color: #666; }
-    .info-box li { margin: 8px 0; }
-  </style>
-</head>
-<body>
-  <nav class="navbar">
-    <h1>⚙️ JETC_IMMO - Admin JTEC</h1>
-    <div class="user-info">
-      <span id="userEmail">Chargement...</span>
-      <button class="btn-logout" onclick="logout()">Déconnexion</button>
-    </div>
-  </nav>
-
-  <div class="container">
-    <div class="welcome-card">
-      <h2>🎉 Bienvenue sur votre dashboard</h2>
-      <p><strong>Rôle :</strong> Administrateur JTEC</p>
-      <p>Vous êtes connecté en tant que <strong id="userEmailDisplay">utilisateur</strong></p>
-      
-      <div class="info-box">
-        <h3>📋 Fonctionnalités à venir (ÉTAPES suivantes)</h3>
-        <ul style="text-align: left;">
-          <li><strong>ÉTAPE 9</strong> : Vue globale plateforme</li>
-          <li><strong>ÉTAPE 9</strong> : Statistiques agrégées</li>
-          <li><strong>ÉTAPE 15</strong> : Gestion abonnements</li>
-          <li><strong>ÉTAPE 15</strong> : Suivi revenus et commissions</li>
-        </ul>
-      </div>
-
-      <p style="margin-top: 30px; color: #999;">
-        <small>ÉTAPE 2 - Authentification fonctionnelle ✅</small>
-      </p>
-    </div>
-    <!-- SECTION : Validation agences en attente -->
-    <section class="admin-section" id="section-validation">
-      <h2>🏢 Agences en attente de validation</h2>
-      <div id="agencesEnAttente" class="agences-container"></div>
-    </section>  </div>
-
   <script src="/src/lib/supabaseClient.js"></script>
   <script>
-    // Vérifier l'authentification
+    // ============================================
+    // AUTHENTIFICATION SUPABASE UNIQUEMENT
+    // ============================================
     async function checkAuth() {
       console.log('[DASHBOARD][AUTH] Démarrage vérification...');
       
@@ -577,16 +340,15 @@
       const userStr = localStorage.getItem('jetc_user');
       
       console.log('[DASHBOARD][AUTH] Token présent:', !!token);
-      console.log('[DASHBOARD][AUTH] User localStorage:', userStr);
       
       if (!token || !userStr) {
-        console.log('[DASHBOARD][REDIRECT] Raison: Pas de token/user dans localStorage');
+        console.log('[DASHBOARD][REDIRECT] Raison: Pas de token dans localStorage');
         window.location.href = '/login.html';
         return;
       }
       
       try {
-        // Vérifier la session Supabase
+        // Vérifier la session Supabase (source de vérité)
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         console.log('[DASHBOARD][SESSION]', {
@@ -604,7 +366,7 @@
           return;
         }
         
-        // Récupérer le profil DEPUIS Supabase (source de vérité)
+        // Récupérer le profil depuis Supabase
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('id, email, role')
@@ -617,7 +379,7 @@
         });
         
         if (profileError || !profile) {
-          console.log('[DASHBOARD][REDIRECT] Raison: Profil introuvable dans Supabase');
+          console.log('[DASHBOARD][REDIRECT] Raison: Profil introuvable');
           alert('Erreur: Profil introuvable. Reconnexion requise.');
           window.location.href = '/login.html';
           return;
@@ -639,8 +401,11 @@
         console.log('[DASHBOARD][AUTH] ✅ Authentification validée');
         
         // Afficher les infos utilisateur
-        document.getElementById('userEmail').textContent = profile.email;
-        document.getElementById('userEmailDisplay').textContent = profile.email;
+        document.getElementById('user-email').textContent = profile.email;
+        
+        // Masquer le loading et afficher le contenu
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('content').style.display = 'block';
         
       } catch (error) {
         console.error('[DASHBOARD][ERROR]', error);
@@ -662,180 +427,7 @@
     // Initialisation
     document.addEventListener('DOMContentLoaded', () => {
       checkAuth();
-      loadAgencesEnAttente();
-      // Recharger les agences toutes les 30 secondes
-      setInterval(loadAgencesEnAttente, 30000);
     });
-
-    // Charger les agences en attente
-    async function loadAgencesEnAttente() {
-      try {
-        const token = localStorage.getItem('jetc_access_token');
-        
-        if (!token) {
-          console.error('[VALIDATION] Token non trouvé');
-          return;
-        }
-        
-        // Créer un client Supabase avec le token
-        const { createClient } = supabase;
-        const supabaseClient = createClient(
-          SUPABASE_URL,
-          SUPABASE_ANON_KEY
-        );
-        
-        // Charger les agences en attente via la vue SQL
-        const { data, error } = await supabaseClient
-          .from('admin_agences_en_attente')
-          .select('*')
-          .order('date_inscription', { ascending: false });
-        
-        if (error) {
-          console.error('[VALIDATION] Erreur chargement agences:', error);
-          document.getElementById('agencesEnAttente').innerHTML = `
-            <div class="empty-state">
-              <p>❌ Erreur lors du chargement des agences</p>
-              <small>${error.message}</small>
-            </div>
-          `;
-          return;
-        }
-        
-        const container = document.getElementById('agencesEnAttente');
-        
-        if (!data || data.length === 0) {
-          container.innerHTML = `
-            <div class="empty-state">
-              <p>✅ Aucune agence en attente de validation</p>
-              <small>Toutes les demandes ont été traitées</small>
-            </div>
-          `;
-          return;
-        }
-        
-        // Afficher les agences
-        container.innerHTML = data.map(agence => `
-          <div class="agence-card" id="agence-${agence.id}">
-            <h3>${escapeHtml(agence.nom_agence)}</h3>
-            <p><strong>Email :</strong> ${escapeHtml(agence.email_contact)}</p>
-            <p><strong>SIRET :</strong> ${agence.siret || 'Non fourni'}</p>
-            <p><strong>Collaborateurs :</strong> ${agence.nb_collaborateurs}</p>
-            <p><strong>Logements gérés :</strong> ${agence.nb_logements_geres}</p>
-            <p><strong>Inscription :</strong> ${new Date(agence.date_inscription).toLocaleDateString('fr-FR', {
-              day: '2-digit',
-              month: 'long',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}</p>
-            
-            <div class="actions">
-              <button onclick="validerAgence('${agence.id}', '${escapeHtml(agence.nom_agence)}')" class="btn-valider">
-                ✅ Valider
-              </button>
-              <button onclick="refuserAgence('${agence.id}', '${escapeHtml(agence.nom_agence)}')" class="btn-refuser">
-                ❌ Refuser
-              </button>
-            </div>
-          </div>
-        `).join('');
-        
-        console.log(`[VALIDATION] ${data.length} agence(s) en attente`);
-        
-      } catch (error) {
-        console.error('[VALIDATION] Exception:', error);
-      }
-    }
-
-    // Valider une agence
-    async function validerAgence(regieId, regieNom) {
-      if (!confirm(`Confirmer la validation de l'agence "${regieNom}" ?`)) {
-        return;
-      }
-      
-      try {
-        const token = localStorage.getItem('jetc_access_token');
-        
-        const response = await fetch('/api/admin/valider-agence', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            regie_id: regieId,
-            action: 'valider'
-          })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-          alert(`✅ Agence "${regieNom}" validée avec succès !\n\nL'agence peut maintenant se connecter à la plateforme.`);
-          loadAgencesEnAttente();
-        } else {
-          alert(`❌ Erreur lors de la validation :\n${result.error}`);
-        }
-        
-      } catch (error) {
-        console.error('[VALIDATION] Erreur validation:', error);
-        alert('❌ Erreur de connexion au serveur');
-      }
-    }
-
-    // Refuser une agence
-    async function refuserAgence(regieId, regieNom) {
-      const commentaire = prompt(
-        `Refuser l'agence "${regieNom}"\n\n` +
-        `Raison du refus (sera envoyée à l'agence) :`
-      );
-      
-      if (!commentaire || commentaire.trim().length === 0) {
-        alert('Refus annulé : un commentaire est obligatoire');
-        return;
-      }
-      
-      if (!confirm(`Confirmer le refus de l'agence "${regieNom}" ?`)) {
-        return;
-      }
-      
-      try {
-        const token = localStorage.getItem('jetc_access_token');
-        
-        const response = await fetch('/api/admin/valider-agence', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            regie_id: regieId,
-            action: 'refuser',
-            commentaire: commentaire.trim()
-          })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-          alert(`✅ Agence "${regieNom}" refusée\n\nL'agence a été notifiée du refus.`);
-          loadAgencesEnAttente();
-        } else {
-          alert(`❌ Erreur lors du refus :\n${result.error}`);
-        }
-        
-      } catch (error) {
-        console.error('[VALIDATION] Erreur refus:', error);
-        alert('❌ Erreur de connexion au serveur');
-      }
-    }
-
-    // Fonction utilitaire pour échapper le HTML
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
   </script>
 </body>
 </html>
