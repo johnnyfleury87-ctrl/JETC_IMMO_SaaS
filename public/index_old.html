@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JETC_IMMO - Gestion des interventions techniques immobilières</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #2d3748;
+      background: linear-gradient(180deg, #f7fafc 0%, #edf2f7 100%);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Header moderne */
+    header {
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: 700;
+      color: #667eea;
+    }
+
+    .language-selector {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .lang-btn {
+      padding: 8px 16px;
+      border: 2px solid #667eea;
+      background: white;
+      color: #667eea;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .lang-btn:hover {
+      background: #667eea;
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .lang-btn.active {
+      background: #667eea;
+      color: white;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 80px 20px 60px;
+      color: white;
+    }
+
+    .hero h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .hero p {
+      font-size: 20px;
+      margin-bottom: 40px;
+      opacity: 0.95;
+    }
+
+    /* Mode Selection Cards */
+    .mode-selection {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      max-width: 900px;
+      margin: 0 auto 60px;
+    }
+
+    .mode-card {
+      background: white;
+      border-radius: 12px;
+      padding: 40px 30px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .mode-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .mode-card h2 {
+      font-size: 28px;
+      margin-bottom: 15px;
+      color: #667eea;
+    }
+
+    .mode-card p {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 15px 40px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: #48bb78;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #38a169;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
+    }
+
+    /* Features Section */
+    .features {
+      background: white;
+      border-radius: 12px;
+      padding: 60px 40px;
+      margin-bottom: 40px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .features h2 {
+      text-align: center;
+      font-size: 36px;
+      margin-bottom: 50px;
+      color: #667eea;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 40px;
+    }
+
+    .feature {
+      text-align: center;
+    }
+
+    .feature-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+
+    .feature h3 {
+      font-size: 22px;
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .feature p {
+      color: #666;
+      line-height: 1.6;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 30px 20px;
+      color: white;
+      opacity: 0.9;
+    }
+
+    footer a {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 32px;
+      }
+
+      .hero p {
+        font-size: 16px;
+      }
+
+      .mode-selection {
+        grid-template-columns: 1fr;
+      }
+
+      .header-content {
+        flex-direction: column;
+        gap: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header avec sélecteur de langue -->
+  <header>
+    <div class="header-content">
+      <div class="logo" data-i18n="appName">JETC_IMMO</div>
+      <div class="language-selector">
+        <button class="lang-btn" onclick="changeLanguage('fr')" id="lang-fr">🇫🇷 FR</button>
+        <button class="lang-btn" onclick="changeLanguage('en')" id="lang-en">🇬🇧 EN</button>
+        <button class="lang-btn" onclick="changeLanguage('de')" id="lang-de">🇩🇪 DE</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Hero Section -->
+    <section class="hero">
+      <h1 data-i18n="welcomeTitle">Bienvenue sur JETC_IMMO</h1>
+      <p data-i18n="welcomeDescription">Gérez efficacement vos interventions techniques immobilières en Suisse.</p>
+    </section>
+
+    <!-- Mode Selection -->
+    <section class="mode-selection">
+      <!-- Mode DEMO -->
+      <div class="mode-card">
+        <h2 data-i18n="demoMode">🎮 Mode Démo</h2>
+        <p data-i18n="demoDescription">Découvrez la plateforme sans créer de compte</p>
+        <a href="/demo-hub.html" class="btn btn-primary" data-i18n="tryDemo">Essayer en démo</a>
+      </div>
+
+      <!-- Mode PRO -->
+      <div class="mode-card">
+        <h2 data-i18n="proMode">🔐 Mode Professionnel</h2>
+        <p data-i18n="proDescription">Accédez à vos données réelles</p>
+        <div style="display: flex; gap: 10px; flex-direction: column;">
+          <a href="/login.html" class="btn btn-secondary" data-i18n="login">Se connecter</a>
+          <a href="/register.html" class="btn btn-primary" data-i18n="requestAdhesion" style="background: #48bb78;">Demander une adhésion</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Packs Tarifaires CHF -->
+    <section class="features" style="margin-bottom: 60px;">
+      <h2 data-i18n="packsTitle" style="color: #667eea; text-align: center; margin-bottom: 40px;">Nos Forfaits</h2>
+      <div class="features-grid">
+        <!-- Pack Essentiel -->
+        <div class="feature" style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 30px;">
+          <div class="feature-icon">💼</div>
+          <h3 data-i18n="packEssentiel" style="color: #667eea;">Pack Essentiel</h3>
+          <p data-i18n="packEssentielPrice" style="font-size: 24px; font-weight: bold; color: #333; margin: 15px 0;">99 CHF/mois</p>
+          <p data-i18n="packEssentielDesc" style="color: #666; margin-bottom: 20px;">Pour les petites agences</p>
+          <ul style="text-align: left; color: #666; line-height: 2;">
+            <li>✓ Jusqu'à 100 logements</li>
+            <li>✓ 5 utilisateurs</li>
+            <li>✓ Support email</li>
+          </ul>
+        </div>
+        
+        <!-- Pack Pro -->
+        <div class="feature" style="border: 3px solid #667eea; border-radius: 12px; padding: 30px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);">
+          <div class="feature-icon">🚀</div>
+          <h3 data-i18n="packPro" style="color: #667eea;">Pack Pro</h3>
+          <p data-i18n="packProPrice" style="font-size: 24px; font-weight: bold; color: #333; margin: 15px 0;">199 CHF/mois</p>
+          <p data-i18n="packProDesc" style="color: #666; margin-bottom: 20px;">Pour les agences en croissance</p>
+          <ul style="text-align: left; color: #666; line-height: 2;">
+            <li>✓ Jusqu'à 500 logements</li>
+            <li>✓ 20 utilisateurs</li>
+            <li>✓ Support prioritaire</li>
+          </ul>
+        </div>
+        
+        <!-- Pack Premium -->
+        <div class="feature" style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 30px;">
+          <div class="feature-icon">👑</div>
+          <h3 data-i18n="packPremium" style="color: #667eea;">Pack Premium</h3>
+          <p data-i18n="packPremiumPrice" style="font-size: 24px; font-weight: bold; color: #333; margin: 15px 0;">399 CHF/mois</p>
+          <p data-i18n="packPremiumDesc" style="color: #666; margin-bottom: 20px;">Pour les grandes agences</p>
+          <ul style="text-align: left; color: #666; line-height: 2;">
+            <li>✓ Logements illimités</li>
+            <li>✓ Utilisateurs illimités</li>
+            <li>✓ Support 24/7</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+      <h2 data-i18n="featuresTitle">Fonctionnalités</h2>
+      <div class="features-grid">
+        <div class="feature">
+          <div class="feature-icon">🎫</div>
+          <h3 data-i18n="feature1Title">Gestion des tickets</h3>
+          <p data-i18n="feature1Desc">Déclaration et suivi des interventions</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔧</div>
+          <h3 data-i18n="feature2Title">Missions techniques</h3>
+          <p data-i18n="feature2Desc">Assignation et suivi des techniciens</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">💰</div>
+          <h3 data-i18n="feature3Title">Facturation automatique</h3>
+          <p data-i18n="feature3Desc">Génération des factures et commissions</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 <span data-i18n="appName">JETC_IMMO</span> - <span data-i18n="allRightsReserved">Tous droits réservés</span></p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/languageManager.js"></script>
+  <script>
+    // Initialisation de la langue
+    function initLanguage() {
+      const currentLang = getCurrentLanguage();
+      console.log('[LANDING] Langue active:', currentLang);
+      
+      // Marquer le bouton actif
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.getElementById(`lang-${currentLang}`)?.classList.add('active');
+      
+      // Appliquer les traductions
+      applyTranslations();
+    }
+
+    // Initialisation au chargement
+    document.addEventListener('DOMContentLoaded', () => {
+      initLanguage();
+      console.log('[LANDING] Page initialisée');
+    });
+  </script>
+</body>
+</html>
