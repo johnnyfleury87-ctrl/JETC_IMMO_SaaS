@@ -250,7 +250,7 @@
   <!-- Header avec sélecteur de langue -->
   <header>
     <div class="header-content">
-      <div class="logo" id="appName">JETC_IMMO</div>
+      <div class="logo" data-i18n="appName">JETC_IMMO</div>
       <div class="language-selector">
         <button class="lang-btn" onclick="changeLanguage('fr')" id="lang-fr">🇫🇷 FR</button>
         <button class="lang-btn" onclick="changeLanguage('en')" id="lang-en">🇬🇧 EN</button>
@@ -262,48 +262,93 @@
   <div class="container">
     <!-- Hero Section -->
     <section class="hero">
-      <h1 id="welcomeTitle">Bienvenue sur JETC_IMMO</h1>
-      <p id="welcomeDescription">Gérez efficacement vos interventions techniques, de la déclaration à la facturation.</p>
+      <h1 data-i18n="welcomeTitle">Bienvenue sur JETC_IMMO</h1>
+      <p data-i18n="welcomeDescription">Gérez efficacement vos interventions techniques immobilières en Suisse.</p>
     </section>
 
     <!-- Mode Selection -->
     <section class="mode-selection">
       <!-- Mode DEMO -->
       <div class="mode-card">
-        <h2 id="demoMode">🎮 Mode Démo</h2>
-        <p id="demoDescription">Découvrez la plateforme sans créer de compte</p>
-        <a href="/demo-hub.html" class="btn btn-primary" id="tryDemo">Essayer en démo</a>
+        <h2 data-i18n="demoMode">🎮 Mode Démo</h2>
+        <p data-i18n="demoDescription">Découvrez la plateforme sans créer de compte</p>
+        <a href="/demo-hub.html" class="btn btn-primary" data-i18n="tryDemo">Essayer en démo</a>
       </div>
 
       <!-- Mode PRO -->
       <div class="mode-card">
-        <h2 id="proMode">🔐 Mode Professionnel</h2>
-        <p id="proDescription">Accédez à vos données réelles</p>
+        <h2 data-i18n="proMode">🔐 Mode Professionnel</h2>
+        <p data-i18n="proDescription">Accédez à vos données réelles</p>
         <div style="display: flex; gap: 10px; flex-direction: column;">
-          <a href="/login.html" class="btn btn-secondary" id="login">Se connecter</a>
-          <a href="/register.html" class="btn btn-primary" id="register" style="background: #48bb78;">Créer un compte</a>
+          <a href="/login.html" class="btn btn-secondary" data-i18n="login">Se connecter</a>
+          <a href="/register.html" class="btn btn-primary" data-i18n="requestAdhesion" style="background: #48bb78;">Demander une adhésion</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Packs Tarifaires CHF -->
+    <section class="features" style="margin-bottom: 60px;">
+      <h2 data-i18n="packsTitle" style="color: #667eea; text-align: center; margin-bottom: 40px;">Nos Forfaits</h2>
+      <div class="features-grid">
+        <!-- Pack Essentiel -->
+        <div class="feature" style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 30px;">
+          <div class="feature-icon">💼</div>
+          <h3 data-i18n="packEssentiel" style="color: #667eea;">Pack Essentiel</h3>
+          <p data-i18n="packEssentielPrice" style="font-size: 24px; font-weight: bold; color: #333; margin: 15px 0;">99 CHF/mois</p>
+          <p data-i18n="packEssentielDesc" style="color: #666; margin-bottom: 20px;">Pour les petites agences</p>
+          <ul style="text-align: left; color: #666; line-height: 2;">
+            <li>✓ Jusqu'à 100 logements</li>
+            <li>✓ 5 utilisateurs</li>
+            <li>✓ Support email</li>
+          </ul>
+        </div>
+        
+        <!-- Pack Pro -->
+        <div class="feature" style="border: 3px solid #667eea; border-radius: 12px; padding: 30px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);">
+          <div class="feature-icon">🚀</div>
+          <h3 data-i18n="packPro" style="color: #667eea;">Pack Pro</h3>
+          <p data-i18n="packProPrice" style="font-size: 24px; font-weight: bold; color: #333; margin: 15px 0;">199 CHF/mois</p>
+          <p data-i18n="packProDesc" style="color: #666; margin-bottom: 20px;">Pour les agences en croissance</p>
+          <ul style="text-align: left; color: #666; line-height: 2;">
+            <li>✓ Jusqu'à 500 logements</li>
+            <li>✓ 20 utilisateurs</li>
+            <li>✓ Support prioritaire</li>
+          </ul>
+        </div>
+        
+        <!-- Pack Premium -->
+        <div class="feature" style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 30px;">
+          <div class="feature-icon">👑</div>
+          <h3 data-i18n="packPremium" style="color: #667eea;">Pack Premium</h3>
+          <p data-i18n="packPremiumPrice" style="font-size: 24px; font-weight: bold; color: #333; margin: 15px 0;">399 CHF/mois</p>
+          <p data-i18n="packPremiumDesc" style="color: #666; margin-bottom: 20px;">Pour les grandes agences</p>
+          <ul style="text-align: left; color: #666; line-height: 2;">
+            <li>✓ Logements illimités</li>
+            <li>✓ Utilisateurs illimités</li>
+            <li>✓ Support 24/7</li>
+          </ul>
         </div>
       </div>
     </section>
 
     <!-- Features -->
     <section class="features">
-      <h2 id="featuresTitle">Fonctionnalités</h2>
+      <h2 data-i18n="featuresTitle">Fonctionnalités</h2>
       <div class="features-grid">
         <div class="feature">
           <div class="feature-icon">🎫</div>
-          <h3 id="feature1Title">Gestion des tickets</h3>
-          <p id="feature1Desc">Déclaration et suivi des interventions</p>
+          <h3 data-i18n="feature1Title">Gestion des tickets</h3>
+          <p data-i18n="feature1Desc">Déclaration et suivi des interventions</p>
         </div>
         <div class="feature">
           <div class="feature-icon">🔧</div>
-          <h3 id="feature2Title">Missions techniques</h3>
-          <p id="feature2Desc">Assignation et suivi des techniciens</p>
+          <h3 data-i18n="feature2Title">Missions techniques</h3>
+          <p data-i18n="feature2Desc">Assignation et suivi des techniciens</p>
         </div>
         <div class="feature">
           <div class="feature-icon">💰</div>
-          <h3 id="feature3Title">Facturation automatique</h3>
-          <p id="feature3Desc">Génération des factures et commissions</p>
+          <h3 data-i18n="feature3Title">Facturation automatique</h3>
+          <p data-i18n="feature3Desc">Génération des factures et commissions</p>
         </div>
       </div>
     </section>
@@ -311,11 +356,11 @@
 
   <!-- Footer -->
   <footer>
-    <p>&copy; 2025 <span id="appName2">JETC_IMMO</span> - <span id="allRightsReserved">Tous droits réservés</span></p>
+    <p>&copy; 2025 <span data-i18n="appName">JETC_IMMO</span> - <span data-i18n="allRightsReserved">Tous droits réservés</span></p>
   </footer>
 
   <!-- Scripts -->
-  <script src="/src/lib/i18n.js"></script>
+  <script src="/js/languageManager.js"></script>
   <script>
     // Initialisation de la langue
     function initLanguage() {
@@ -332,45 +377,9 @@
       applyTranslations();
     }
 
-    // Appliquer les traductions à tous les éléments
-    function applyTranslations() {
-      const translations = getAllTranslations();
-      
-      // Mettre à jour tous les éléments avec ID correspondant
-      Object.keys(translations).forEach(key => {
-        const element = document.getElementById(key);
-        if (element) {
-          element.textContent = translations[key];
-        }
-      });
-      
-      // Mettre à jour la langue du document
-      document.documentElement.lang = getCurrentLanguage();
-    }
-
-    // Changer la langue
-    function changeLanguage(lang) {
-      console.log('[LANDING] Changement de langue:', lang);
-      setLanguage(lang);
-      // La page va se recharger automatiquement
-    }
-
-    // Vérifier si l'utilisateur est connecté
-    function checkAuthStatus() {
-      // TODO: À implémenter à l'ÉTAPE 2
-      // Si utilisateur connecté ET essaye d'accéder à DEMO
-      // → rediriger vers dashboard PRO
-      
-      const isDemoActive = isDemoMode();
-      if (isDemoActive) {
-        console.log('[LANDING] Mode DEMO actif détecté');
-      }
-    }
-
     // Initialisation au chargement
     document.addEventListener('DOMContentLoaded', () => {
       initLanguage();
-      checkAuthStatus();
       console.log('[LANDING] Page initialisée');
     });
   </script>

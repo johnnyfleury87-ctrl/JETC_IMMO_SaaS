@@ -162,13 +162,13 @@
   <div class="register-container">
     <div class="logo">
       <h1>✨ JETC_IMMO</h1>
-      <p id="createAccount">Créer votre compte</p>
+      <p id="createAccount">Demande d'adhésion</p>
     </div>
 
     <!-- Message d'info -->
     <div class="alert alert-info">
-      <strong>ℹ️ Inscription Régie Immobilière</strong><br>
-      <small>Créez votre compte régie. Les locataires, entreprises et techniciens seront rattachés à votre régie.</small>
+      <strong>📋 Demande d'adhésion</strong><br>
+      <small>Votre demande sera examinée par notre équipe. Vous recevrez un email dès validation.</small>
     </div>
 
     <!-- Message d'erreur -->
@@ -280,7 +280,7 @@
       </div>
 
       <button type="submit" class="btn btn-primary" id="btnRegister">
-        Créer mon compte
+        Envoyer ma demande d'adhésion
       </button>
     </form>
 
@@ -297,7 +297,7 @@
     </div>
   </div>
 
-  <script src="/src/lib/i18n.js"></script>
+  <script src="/js/languageManager.js"></script>
   <script>
     // Initialiser la langue sélectionnée
     function initLanguage() {
@@ -379,7 +379,7 @@
       
       // Désactiver le bouton pendant le traitement
       btnRegister.disabled = true;
-      btnRegister.textContent = 'Création en cours...';
+      btnRegister.textContent = 'Envoi en cours...';
       
       try {
         const response = await fetch('/api/auth/register', {
@@ -401,34 +401,34 @@
         const data = await response.json();
         
         if (data.success) {
-          showSuccess('✅ Compte créé avec succès !\n\n⏳ Votre inscription est en attente de validation par l\'équipe JETC_IMMO.\nVous recevrez un email dès validation.\n\nRedirection...');
+          showSuccess('✅ Demande d\'adhésion envoyée avec succès !\n\n⏳ Votre demande est en attente de validation par l\'équipe JETC_IMMO.\n\nVous recevrez un email de confirmation.\n\nRedirection...');
           
           // Sauvegarder la langue choisie
           setLanguage(language);
           
-          // Rediriger vers la page de connexion après 3 secondes
+          // Rediriger vers la page de connexion après 4 secondes
           setTimeout(() => {
-            window.location.href = '/login.html?registered=true&pending=true';
-          }, 3000);
+            window.location.href = '/index.html?adhesion=pending';
+          }, 4000);
           
         } else {
-          showError(data.error || 'Erreur lors de la création du compte');
+          showError(data.error || 'Erreur lors de l\'envoi de la demande');
           btnRegister.disabled = false;
-          btnRegister.textContent = 'Créer mon compte';
+          btnRegister.textContent = 'Envoyer ma demande d\'adhésion';
         }
         
       } catch (error) {
         console.error('[REGISTER] Erreur:', error);
         showError('Erreur de connexion au serveur');
         btnRegister.disabled = false;
-        btnRegister.textContent = 'Créer mon compte';
+        btnRegister.textContent = 'Envoyer ma demande d\'adhésion';
       }
     });
 
     // Initialisation
     document.addEventListener('DOMContentLoaded', () => {
       initLanguage();
-      console.log('[REGISTER] Page d\'inscription prête');
+      console.log('[REGISTER] Page de demande d\'adhésion prête');
     });
   </script>
 </body>

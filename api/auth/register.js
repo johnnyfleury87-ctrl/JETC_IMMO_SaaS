@@ -22,6 +22,7 @@
  */
 
 const { supabaseAdmin } = require('../_supabase');
+const { sendEmail } = require('../services/emailService');
 require('dotenv').config();
 
 module.exports = async (req, res) => {
@@ -198,7 +199,32 @@ module.exports = async (req, res) => {
     console.log('[AUTH/REGISTER] Régie créée avec succès (statut: en_attente)');
     
     // ============================================
-    // ÉTAPE 4 : Succès complet
+    // ÉTAPE 4 : Envoyer l'email de confirmation
+    // ============================================
+    console.log('[AUTH/REGISTER] Envoi email de confirmation...');
+    
+    const emailResult = await sendEmail(
+      email,
+      'adhesion_demande',
+      {
+        email: email,
+        nomAgence: nomAgence.trim(),
+        nbCollaborateurs: parseInt(nbCollaborateurs),
+        nbLogements: parseInt(nbLogements),
+        siret: siret || null
+      },
+      language
+    );
+    
+    if (!emailResult.success) {
+      console.warn('[AUTH/REGISTER] ⚠️ Erreur envoi email (non bloquant):', emailResult.error);
+      // On ne bloque pas l'inscription si l'email échoue
+    } else {
+      console.log('[AUTH/REGISTER] ✅ Email de confirmation envoyé');
+    }
+    
+    // ============================================
+    // ÉTAPE 5 : Succès complet
     // ============================================
     
     console.log('[AUTH/REGISTER] ✅ Inscription complète:', {

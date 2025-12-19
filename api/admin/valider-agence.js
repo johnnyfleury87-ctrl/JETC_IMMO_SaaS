@@ -1,4 +1,5 @@
 const { supabaseAdmin } = require('../_supabase');
+const { sendEmail } = require('../services/emailService');
 
 /**
  * API de validation/refus des agences par admin JTEC
@@ -146,6 +147,38 @@ module.exports = async (req, res) => {
       
       result = data;
       
+      // ============================================
+      // ENVOI EMAIL DE VALIDATION
+      // ============================================
+      if (result && result.success) {
+        console.log('[ADMIN/VALIDATION] Envoi email de validation...');
+        
+        // Récupérer la langue de la régie
+        const { data: profileData } = await supabaseAdmin
+          .from('profiles')
+          .select('language')
+          .eq('email', result.regie_email)
+          .single();
+        
+        const language = profileData?.language || 'fr';
+        
+        const emailResult = await sendEmail(
+          result.regie_email,
+          'adhesion_validee',
+          {
+            nomAgence: result.regie_nom,
+            email: result.regie_email
+          },
+          language
+        );
+        
+        if (!emailResult.success) {
+          console.warn('[ADMIN/VALIDATION] ⚠️ Erreur envoi email (non bloquant):', emailResult.error);
+        } else {
+          console.log('[ADMIN/VALIDATION] ✅ Email de validation envoyé');
+        }
+      }
+      
     } else if (action === 'refuser') {
       console.log('[ADMIN/VALIDATION] Refus de la régie:', regie_id);
       
@@ -174,6 +207,39 @@ module.exports = async (req, res) => {
       }
       
       result = data;
+      
+      // ============================================
+      // ENVOI EMAIL DE REFUS
+      // ============================================
+      if (result && result.success) {
+        console.log('[ADMIN/VALIDATION] Envoi email de refus...');
+        
+        // Récupérer la langue de la régie
+        const { data: profileData } = await supabaseAdmin
+          .from('profiles')
+          .select('language')
+          .eq('email', result.regie_email)
+          .single();
+        
+        const language = profileData?.language || 'fr';
+        
+        const emailResult = await sendEmail(
+          result.regie_email,
+          'adhesion_refusee',
+          {
+            nomAgence: result.regie_nom,
+            email: result.regie_email,
+            commentaire: commentaire.trim()
+          },
+          language
+        );
+        
+        if (!emailResult.success) {
+          console.warn('[ADMIN/VALIDATION] ⚠️ Erreur envoi email (non bloquant):', emailResult.error);
+        } else {
+          console.log('[ADMIN/VALIDATION] ✅ Email de refus envoyé');
+        }
+      }
     }
     
     // ============================================
