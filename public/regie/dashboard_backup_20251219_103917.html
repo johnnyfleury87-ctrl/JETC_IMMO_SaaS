@@ -4,270 +4,70 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Régie immobilière - JETC_IMMO</title>
-  <link rel="stylesheet" href="/css/design-system.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--gray-50);
+      background: #f5f7fa;
       min-height: 100vh;
     }
-
-    .container {
-      display: flex;
-      min-height: 100vh;
-    }
-
-    /* Sidebar */
-    .sidebar {
-      width: 280px;
-      background: white;
-      box-shadow: var(--shadow-lg);
-      display: flex;
-      flex-direction: column;
-      position: fixed;
-      height: 100vh;
-      z-index: 1000;
-    }
-
-    .sidebar-header {
-      padding: 30px 20px;
-      border-bottom: 1px solid var(--gray-200);
-    }
-
-    .logo-dashboard {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 10px;
-    }
-
-    .logo-dashboard img {
-      height: 42px;
-      width: auto;
-    }
-
-    .logo-dashboard h1 {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--gray-900);
-      margin: 0;
-    }
-
-    .sidebar-subtitle {
-      font-size: 13px;
-      color: var(--gray-600);
-      margin-top: 5px;
-      padding-left: 54px;
-    }
-
-    .sidebar-menu {
-      flex: 1;
-      padding: 20px 0;
-      overflow-y: auto;
-    }
-
-    .menu-item {
-      padding: 12px 20px;
-      color: var(--gray-700);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transition: all 0.2s;
-      cursor: pointer;
-      border-left: 3px solid transparent;
-    }
-
-    .menu-item:hover {
-      background: var(--gray-50);
-      color: var(--primary-blue);
-    }
-
-    .menu-item.active {
-      background: var(--blue-50);
-      color: var(--primary-blue);
-      border-left-color: var(--primary-blue);
-      font-weight: 600;
-    }
-
-    .sidebar-footer {
-      padding: 20px;
-      border-top: 1px solid var(--gray-200);
-    }
-
-    .user-info-sidebar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-
-    .user-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue));
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .navbar {
+      background: #667eea;
       color: white;
-      font-weight: 600;
-      font-size: 16px;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-
-    .user-details {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .user-email {
-      font-size: 13px;
-      color: var(--gray-700);
-      font-weight: 500;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .user-role {
-      font-size: 11px;
-      color: var(--gray-500);
-    }
-
+    .navbar h1 { font-size: 24px; }
+    .navbar .user-info { display: flex; gap: 20px; align-items: center; }
     .btn-logout {
-      width: 100%;
-      padding: 10px;
-      background: var(--gray-100);
-      color: var(--gray-700);
+      background: rgba(255,255,255,0.2);
+      color: white;
       border: none;
-      border-radius: var(--radius-md);
+      padding: 8px 20px;
+      border-radius: 6px;
       cursor: pointer;
-      transition: all 0.2s;
-      font-weight: 500;
-      font-size: 14px;
+      font-weight: 600;
     }
-
-    .btn-logout:hover {
-      background: var(--gray-200);
-      color: var(--gray-900);
+    .btn-logout:hover { background: rgba(255,255,255,0.3); }
+    .container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 20px;
     }
-
-    /* Main Content */
-    .main-content {
-      flex: 1;
-      margin-left: 280px;
-      padding: 30px 40px;
-    }
-
     .welcome-card {
       background: white;
       padding: 40px;
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-sm);
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
       text-align: center;
     }
-
-    .welcome-card h2 {
-      color: var(--primary-blue);
-      margin-bottom: 20px;
-      font-size: 32px;
-      font-weight: 700;
-    }
-
-    .welcome-card p {
-      color: var(--gray-600);
-      line-height: 1.6;
-      margin-bottom: 15px;
-    }
-
+    .welcome-card h2 { color: #667eea; margin-bottom: 20px; font-size: 32px; }
+    .welcome-card p { color: #666; line-height: 1.6; margin-bottom: 15px; }
     .info-box {
-      background: var(--blue-50);
-      border-left: 4px solid var(--primary-blue);
+      background: #e6f7ff;
+      border-left: 4px solid #1890ff;
       padding: 20px;
-      border-radius: var(--radius-md);
+      border-radius: 8px;
       margin: 30px 0;
     }
-
-    .info-box h3 {
-      color: var(--primary-blue);
-      margin-bottom: 10px;
-      font-weight: 600;
-    }
-
-    .info-box ul {
-      margin-left: 20px;
-      color: var(--gray-600);
-    }
-
-    .info-box li {
-      margin: 8px 0;
-    }
-
-    @media (max-width: 768px) {
-      .sidebar {
-        display: none;
-      }
-      .main-content {
-        margin-left: 0;
-        padding: 15px;
-      }
-    }
+    .info-box h3 { color: #0050b3; margin-bottom: 10px; }
+    .info-box ul { margin-left: 20px; color: #666; }
+    .info-box li { margin: 8px 0; }
   </style>
 </head>
 <body>
+  <nav class="navbar">
+    <h1>🏢 JETC_IMMO - Régie</h1>
+    <div class="user-info">
+      <span id="userEmail">Chargement...</span>
+      <button class="btn-logout" onclick="logout()">Déconnexion</button>
+    </div>
+  </nav>
+
   <div class="container">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <div class="logo-dashboard">
-          <img src="/logo_moi.png" alt="JETC_IMMO Logo">
-          <h1>JETC_IMMO</h1>
-        </div>
-        <div class="sidebar-subtitle">Régie immobilière</div>
-      </div>
-
-      <nav class="sidebar-menu">
-        <a href="#" class="menu-item active">
-          <span>🏠</span>
-          <span>Dashboard</span>
-        </a>
-        <a href="#" class="menu-item">
-          <span>🏢</span>
-          <span>Immeubles</span>
-        </a>
-        <a href="#" class="menu-item">
-          <span>🏠</span>
-          <span>Logements</span>
-        </a>
-        <a href="#" class="menu-item">
-          <span>🎫</span>
-          <span>Tickets</span>
-        </a>
-        <a href="#" class="menu-item">
-          <span>🛠️</span>
-          <span>Missions</span>
-        </a>
-        <a href="#" class="menu-item">
-          <span>📄</span>
-          <span>Factures</span>
-        </a>
-      </nav>
-
-      <div class="sidebar-footer">
-        <div class="user-info-sidebar">
-          <div class="user-avatar" id="userAvatar">R</div>
-          <div class="user-details">
-            <div class="user-email" id="userEmail">Chargement...</div>
-            <div class="user-role" id="agenceName">Régie</div>
-          </div>
-        </div>
-        <button class="btn-logout" onclick="logout()">Déconnexion</button>
-      </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-content">
     <div class="welcome-card">
       <h2>🎉 Bienvenue sur votre dashboard</h2>
       <p><strong>Rôle :</strong> Régie immobilière</p>
@@ -289,7 +89,6 @@
         <small>✅ ÉTAPE 3 - Validation admin JTEC fonctionnelle</small>
       </p>
     </div>
-    </main>
   </div>
 
   <!-- 🔴 ACTION 2 : Charger Supabase (SOURCE DE VÉRITÉ) -->
@@ -395,13 +194,9 @@
         console.log('[REGIE][AUTH] ✅ Authentification validée');
         
         // 6️⃣ Afficher les infos utilisateur
-        const email = profile.email;
-        document.getElementById('userEmail').textContent = email;
+        document.getElementById('userEmail').textContent = profile.email;
+        document.getElementById('userEmailDisplay').textContent = profile.email;
         document.getElementById('agenceName').textContent = regie.nom;
-        
-        // Première lettre pour l'avatar
-        const firstLetter = email.charAt(0).toUpperCase();
-        document.getElementById('userAvatar').textContent = firstLetter;
         
         console.log('[REGIE] Dashboard chargé pour:', {
           email: profile.email,
@@ -433,8 +228,5 @@
       }, 100);
     });
   </script>
-
-  <!-- Mobile Menu Handler -->
-  <script src="/js/mobile-menu.js"></script>
 </body>
 </html>

@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Administration JETC_IMMO - Dashboard</title>
-  <link rel="stylesheet" href="/css/design-system.css">
+  <title>Administration JTEC - Dashboard</title>
   <style>
     * {
       margin: 0;
@@ -14,175 +13,35 @@
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: var(--gray-50);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
+      padding: 20px;
     }
 
     .container {
-      display: flex;
-      min-height: 100vh;
+      max-width: 1400px;
+      margin: 0 auto;
     }
 
-    /* Sidebar */
-    .sidebar {
-      width: 280px;
+    header {
       background: white;
-      box-shadow: var(--shadow-lg);
-      display: flex;
-      flex-direction: column;
-      position: fixed;
-      height: 100vh;
-      z-index: 1000;
-    }
-
-    .sidebar-header {
-      padding: 30px 20px;
-      border-bottom: 1px solid var(--gray-200);
-    }
-
-    .logo-dashboard {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 10px;
-    }
-
-    .logo-dashboard img {
-      height: 42px;
-      width: auto;
-    }
-
-    .logo-dashboard h1 {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--gray-900);
-      margin: 0;
-    }
-
-    .sidebar-subtitle {
-      font-size: 13px;
-      color: var(--gray-600);
-      margin-top: 5px;
-      padding-left: 54px;
-    }
-
-    .sidebar-menu {
-      flex: 1;
-      padding: 20px 0;
-      overflow-y: auto;
-    }
-
-    .menu-item {
-      padding: 12px 20px;
-      color: var(--gray-700);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transition: all 0.2s;
-      cursor: pointer;
-      border-left: 3px solid transparent;
-    }
-
-    .menu-item:hover {
-      background: var(--gray-50);
-      color: var(--primary-blue);
-    }
-
-    .menu-item.active {
-      background: var(--blue-50);
-      color: var(--primary-blue);
-      border-left-color: var(--primary-blue);
-      font-weight: 600;
-    }
-
-    .sidebar-footer {
-      padding: 20px;
-      border-top: 1px solid var(--gray-200);
-    }
-
-    .user-info-sidebar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-
-    .user-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 600;
-      font-size: 16px;
-    }
-
-    .user-details {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .user-email {
-      font-size: 13px;
-      color: var(--gray-700);
-      font-weight: 500;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .user-role {
-      font-size: 11px;
-      color: var(--gray-500);
-    }
-
-    .logout-btn {
-      width: 100%;
-      padding: 10px;
-      background: var(--gray-100);
-      color: var(--gray-700);
-      border: none;
-      border-radius: var(--radius-md);
-      cursor: pointer;
-      transition: all 0.2s;
-      font-weight: 500;
-      font-size: 14px;
-    }
-
-    .logout-btn:hover {
-      background: var(--gray-200);
-      color: var(--gray-900);
-    }
-
-    /* Main Content */
-    .main-content {
-      flex: 1;
-      margin-left: 280px;
-      padding: 30px 40px;
-    }
-
-    .page-header {
-      background: white;
-      padding: 25px 30px;
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-sm);
+      padding: 20px 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    .page-header h2 {
-      color: var(--gray-900);
+    h1 {
+      color: #667eea;
       font-size: 28px;
-      margin: 0;
     }
 
-    .page-header p {
-      color: var(--gray-600);
+    .user-info {
       font-size: 14px;
-      margin-top: 5px;
+      color: #666;
     }
 
     .stats-grid {
@@ -195,50 +54,46 @@
     .stat-card {
       background: white;
       padding: 25px;
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-sm);
-      transition: transform 0.2s, box-shadow 0.2s;
-      border-left: 4px solid var(--primary-blue);
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s;
     }
 
     .stat-card:hover {
       transform: translateY(-5px);
-      box-shadow: var(--shadow-lg);
     }
 
     .stat-card h3 {
-      color: var(--gray-600);
+      color: #666;
       font-size: 14px;
       text-transform: uppercase;
       margin-bottom: 10px;
-      font-weight: 600;
     }
 
     .stat-card .value {
       font-size: 36px;
       font-weight: bold;
-      color: var(--primary-blue);
+      color: #667eea;
       margin-bottom: 5px;
     }
 
     .stat-card .sub-value {
       font-size: 14px;
-      color: var(--gray-500);
+      color: #999;
     }
 
     .chart-section {
       background: white;
       padding: 30px;
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-sm);
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       margin-bottom: 30px;
     }
 
     .chart-section h2 {
-      color: var(--gray-900);
+      color: #667eea;
       margin-bottom: 20px;
       font-size: 20px;
-      font-weight: 600;
     }
 
     table {
@@ -253,29 +108,28 @@
     }
 
     th {
-      background-color: var(--gray-50);
-      color: var(--primary-blue);
+      background-color: #f8f9fa;
+      color: #667eea;
       font-weight: 600;
     }
 
     tr:hover {
-      background-color: var(--gray-50);
+      background-color: #f8f9fa;
     }
 
     .loading {
       text-align: center;
       padding: 50px;
-      color: var(--gray-600);
+      color: white;
       font-size: 18px;
     }
 
     .error {
-      background: var(--red-50);
-      color: var(--red-700);
+      background: #ff4444;
+      color: white;
       padding: 15px;
-      border-radius: var(--radius-md);
+      border-radius: 5px;
       margin-bottom: 20px;
-      border-left: 4px solid var(--red-500);
     }
 
     .agences-container {
@@ -287,32 +141,31 @@
 
     .agence-card {
       background: white;
-      border: 2px solid var(--gray-200);
-      border-radius: var(--radius-lg);
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
       padding: 20px;
       transition: all 0.3s ease;
     }
 
     .agence-card:hover {
-      border-color: var(--primary-blue);
-      box-shadow: var(--shadow-md);
+      border-color: #667eea;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
     }
 
     .agence-card h3 {
-      color: var(--gray-900);
+      color: #333;
       margin-bottom: 15px;
       font-size: 18px;
-      font-weight: 600;
     }
 
     .agence-card p {
-      color: var(--gray-600);
+      color: #666;
       margin-bottom: 8px;
       font-size: 14px;
     }
 
     .agence-card strong {
-      color: var(--gray-900);
+      color: #333;
       font-weight: 600;
     }
 
@@ -326,7 +179,7 @@
       flex: 1;
       padding: 10px 15px;
       border: none;
-      border-radius: var(--radius-md);
+      border-radius: 6px;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
@@ -334,31 +187,29 @@
     }
 
     .btn-valider {
-      background: var(--green-500);
+      background: #10b981;
       color: white;
     }
 
     .btn-valider:hover {
-      background: var(--green-600);
+      background: #059669;
       transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
     }
 
     .btn-refuser {
-      background: var(--red-500);
+      background: #ef4444;
       color: white;
     }
 
     .btn-refuser:hover {
-      background: var(--red-600);
+      background: #dc2626;
       transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
     }
 
     .empty-state {
       text-align: center;
       padding: 40px;
-      color: var(--gray-500);
+      color: #999;
     }
 
     .empty-state p {
@@ -369,99 +220,32 @@
     .admin-section {
       background: white;
       padding: 30px;
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-sm);
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       margin-bottom: 30px;
     }
 
     .admin-section h2 {
-      color: var(--gray-900);
+      color: #667eea;
       margin-bottom: 20px;
       font-size: 20px;
-      font-weight: 600;
-    }
-
-    /* Responsive */
-    @media (max-width: 1024px) {
-      .sidebar {
-        width: 240px;
-      }
-
-      .main-content {
-        margin-left: 240px;
-        padding: 20px;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .sidebar {
-        display: none; /* TODO: Add mobile menu */
-      }
-
-      .main-content {
-        margin-left: 0;
-        padding: 15px;
-      }
-
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <div class="logo-dashboard">
-          <img src="/logo_moi.png" alt="JETC_IMMO Logo">
-          <h1>JETC_IMMO</h1>
-        </div>
-        <div class="sidebar-subtitle">Administration</div>
-      </div>
-
-      <nav class="sidebar-menu">
-        <a href="#" class="menu-item active">
-          <span>📊</span>
-          <span>Dashboard</span>
-        </a>
-        <a href="#" class="menu-item">
-          <span>🏢</span>
-          <span>Régies</span>
-        </a>
-        <a href="#" class="menu-item">
-          <span>🏗️</span>
-          <span>Entreprises</span>
-        </a>
-        <a href="#" class="menu-item">
-          <span>🎫</span>
-          <span>Tickets</span>
-        </a>
-        <a href="#" class="menu-item">
-          <span>📈</span>
-          <span>Statistiques</span>
-        </a>
-      </nav>
-
-      <div class="sidebar-footer">
-        <div class="user-info-sidebar">
-          <div class="user-avatar" id="user-avatar">A</div>
-          <div class="user-details">
-            <div class="user-email" id="user-email">admin@jetc.ch</div>
-            <div class="user-role">Administrateur</div>
-          </div>
-        </div>
+    <header>
+      <h1>🔧 Administration JTEC</h1>
+      <div>
+        <span class="user-info" id="user-email"></span>
         <button class="logout-btn" onclick="logout()">Déconnexion</button>
       </div>
-    </aside>
+    </header>
 
-    <!-- Main Content -->
-    <main class="main-content">
-      <div id="loading" class="loading">Chargement des statistiques...</div>
-      <div id="error" class="error" style="display: none;"></div>
+    <div id="loading" class="loading">Chargement des statistiques...</div>
+    <div id="error" class="error" style="display: none;"></div>
 
-      <div id="content" style="display: none;">
+    <div id="content" style="display: none;">
       <!-- 🔴 ACTION 1 : Interface validation régies -->
       <div class="admin-section">
         <h2>🏢 Régies en attente de validation</h2>
@@ -554,7 +338,6 @@
         </table>
       </div>
     </div>
-    </main>
   </div>
 
   <!-- Supabase CDN -->
@@ -626,12 +409,7 @@
         console.log('[DASHBOARD][AUTH] ✅ Authentification validée');
         
         // Afficher les infos utilisateur
-        const email = profile.email;
-        document.getElementById('user-email').textContent = email;
-        
-        // Première lettre pour l'avatar
-        const firstLetter = email.charAt(0).toUpperCase();
-        document.getElementById('user-avatar').textContent = firstLetter;
+        document.getElementById('user-email').textContent = profile.email;
         
         // Masquer le loading et afficher le contenu
         document.getElementById('loading').style.display = 'none';
@@ -656,7 +434,8 @@
       console.log('[REGIES] Chargement des régies en attente...');
       
       const container = document.getElementById('regies-container');
-      const loading = document.getElementById('regies-loading');        loading.style.color = 'var(--gray-600)';      const error = document.getElementById('regies-error');
+      const loading = document.getElementById('regies-loading');
+      const error = document.getElementById('regies-error');
       const empty = document.getElementById('regies-empty');
       
       loading.style.display = 'block';
@@ -824,8 +603,5 @@
       }, 100);
     });
   </script>
-
-  <!-- Mobile Menu Handler -->
-  <script src="/js/mobile-menu.js"></script>
 </body>
 </html>

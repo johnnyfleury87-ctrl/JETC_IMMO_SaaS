@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hub DEMO - JETC_IMMO</title>
-  <link rel="stylesheet" href="/css/design-system.css">
   <style>
     * {
       margin: 0;
@@ -14,7 +13,7 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, var(--primary-blue) 0%, var(--accent-blue) 100%);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
       padding: 20px;
     }
@@ -24,27 +23,6 @@
       margin: 0 auto;
     }
 
-    /* Logo */
-    .logo-demo {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .logo-demo img {
-      height: 48px;
-      width: auto;
-    }
-
-    .logo-demo h1 {
-      font-size: 28px;
-      font-weight: 700;
-      color: white;
-      margin: 0;
-    }
-
     /* Header */
     .header {
       text-align: center;
@@ -52,7 +30,7 @@
       margin-bottom: 40px;
     }
 
-    .header h2 {
+    .header h1 {
       font-size: 42px;
       margin-bottom: 10px;
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
@@ -99,7 +77,7 @@
       left: 0;
       right: 0;
       height: 5px;
-      background: linear-gradient(90deg, var(--primary-blue), var(--accent-blue));
+      background: linear-gradient(90deg, #667eea, #764ba2);
       transform: scaleX(0);
       transition: transform 0.3s ease;
     }
@@ -121,7 +99,7 @@
     .role-card h3 {
       font-size: 24px;
       margin-bottom: 12px;
-      color: var(--primary-blue);
+      color: #667eea;
     }
 
     .role-card p {
@@ -133,22 +111,22 @@
     }
 
     .role-btn {
-      background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue));
+      background: #667eea;
       color: white;
       border: none;
       padding: 12px 30px;
-      border-radius: var(--radius-md);
+      border-radius: 6px;
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
       width: 100%;
-      box-shadow: var(--shadow-sm);
     }
 
     .role-btn:hover {
+      background: #5568d3;
       transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
     }
 
     /* Actions */
@@ -204,15 +182,7 @@
 
     /* Responsive */
     @media (max-width: 768px) {
-      .logo-demo h1 {
-        font-size: 22px;
-      }
-
-      .logo-demo img {
-        height: 36px;
-      }
-
-      .header h2 {
+      .header h1 {
         font-size: 28px;
       }
 
@@ -224,15 +194,9 @@
 </head>
 <body>
   <div class="container">
-    <!-- Logo -->
-    <div class="logo-demo">
-      <img src="/logo_moi.png" alt="JETC_IMMO Logo">
-      <h1>JETC_IMMO</h1>
-    </div>
-
     <!-- Header -->
     <div class="header">
-      <h2 id="chooseRole">Choisissez votre rôle</h2>
+      <h1 id="chooseRole">Choisissez votre rôle</h1>
       <p>Explorez JETC_IMMO sous différentes perspectives</p>
       <span class="demo-badge">🎮 <span id="demoMode">MODE DEMO</span></span>
     </div>

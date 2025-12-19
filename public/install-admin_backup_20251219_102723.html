@@ -3,11 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🔐 Installation Admin JETC</title>
-  <link rel="stylesheet" href="/css/design-system.css">
+  <title>🔐 Installation Admin JTEC</title>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
     body {
-      background: var(--gray-50);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
       display: flex;
       justify-content: center;
@@ -16,54 +22,113 @@
     }
     
     .install-container {
-      background: var(--white);
-      padding: 48px;
-      border-radius: var(--radius-2xl);
-      box-shadow: var(--shadow-xl);
-      max-width: 540px;
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      max-width: 500px;
       width: 100%;
-      animation: fadeInUp 0.6s ease-out;
     }
     
     h1 {
       font-size: 28px;
-      margin-bottom: 12px;
-      color: var(--gray-900);
+      margin-bottom: 10px;
+      color: #333;
       text-align: center;
-      font-weight: 700;
-    }
-    
-    .logo-container {
-      text-align: center;
-      margin-bottom: 28px;
-    }
-    
-    .logo-img {
-      height: 48px;
-      width: auto;
-      margin-bottom: 16px;
     }
     
     .warning {
-      background: var(--warning-light);
-      border: 1px solid var(--warning);
-      color: #92400e;
-      padding: 16px;
-      border-radius: var(--radius-md);
-      margin-bottom: 28px;
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      color: #856404;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 25px;
       font-size: 14px;
-      line-height: 1.6;
+      line-height: 1.5;
     }
     
     .warning strong {
       display: block;
+      margin-bottom: 5px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      font-weight: 600;
       margin-bottom: 8px;
-      font-weight: 700;
+      color: #555;
+    }
+    
+    input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    .help-text {
+      font-size: 13px;
+      color: #777;
+      margin-top: 5px;
+    }
+    
+    button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
     }
     
     .status-message {
       margin-top: 20px;
+      padding: 15px;
+      border-radius: 5px;
       display: none;
+    }
+    
+    .status-message.success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+    
+    .status-message.error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
     }
     
     .spinner {
@@ -80,21 +145,11 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-
-    @media (max-width: 640px) {
-      .install-container {
-        padding: 32px 24px;
-      }
-    }
   </style>
 </head>
 <body>
   <div class="install-container">
-    <div class="logo-container">
-      <img src="/logo_moi.png" alt="JETC_IMMO Logo" class="logo-img">
-    </div>
-    
-    <h1>🔐 Installation Admin JETC</h1>
+    <h1>🔐 Installation Admin JTEC</h1>
     
     <div class="warning">
       <strong>⚠️ IMPORTANT</strong>
@@ -161,8 +216,8 @@
         >
       </div>
       
-      <button type="submit" id="submitBtn" class="btn btn-primary btn-block btn-lg">
-        Créer Admin JETC
+      <button type="submit" id="submitBtn">
+        Créer Admin JTEC
       </button>
     </form>
     
@@ -220,7 +275,7 @@
         
         if (data.success) {
           showMessage('success', 
-            '✅ Admin JETC créé avec succès !\n\n' +
+            '✅ Admin JTEC créé avec succès !\n\n' +
             'Vous allez être redirigé vers la page de connexion dans 3 secondes...'
           );
           
@@ -231,18 +286,18 @@
         } else {
           showMessage('error', '❌ Erreur : ' + data.error);
           submitBtn.disabled = false;
-          submitBtn.innerHTML = 'Créer Admin JETC';
+          submitBtn.innerHTML = 'Créer Admin JTEC';
         }
       } catch (error) {
         console.error('Erreur création admin:', error);
         showMessage('error', '❌ Erreur de connexion au serveur. Vérifiez que le backend est démarré.');
         submitBtn.disabled = false;
-        submitBtn.innerHTML = 'Créer Admin JETC';
+        submitBtn.innerHTML = 'Créer Admin JTEC';
       }
     });
     
     function showMessage(type, message) {
-      statusMessage.className = 'alert alert-' + type;
+      statusMessage.className = 'status-message ' + type;
       statusMessage.textContent = message;
       statusMessage.style.display = 'block';
       

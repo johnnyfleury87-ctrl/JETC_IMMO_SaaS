@@ -1,0 +1,117 @@
+/* ========================================
+   BURGER MENU MOBILE - JETC_IMMO
+   À inclure dans design-system.css
+   ======================================== */
+
+/* Burger Button */
+.burger-btn {
+  display: none; /* Caché sur desktop */
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 2000;
+  width: 44px;
+  height: 44px;
+  background: white;
+  border: none;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  padding: 10px;
+  transition: all 0.3s ease;
+}
+
+.burger-btn:hover {
+  box-shadow: var(--shadow-lg);
+  transform: scale(1.05);
+}
+
+.burger-btn:active {
+  transform: scale(0.95);
+}
+
+/* Burger Icon (3 lignes) */
+.burger-icon {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 24px;
+  height: 18px;
+}
+
+.burger-line {
+  width: 100%;
+  height: 3px;
+  background: var(--gray-700);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+/* Animation burger → X */
+.burger-btn.active .burger-line:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.burger-btn.active .burger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.burger-btn.active .burger-line:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Overlay (fond sombre semi-transparent) */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1500;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+  opacity: 1;
+}
+
+/* Sidebar mobile animation */
+@media (max-width: 768px) {
+  /* Afficher le burger button */
+  .burger-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Sidebar cachée par défaut sur mobile */
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  /* Sidebar visible quand active */
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  /* Afficher l'overlay quand sidebar ouverte */
+  body.sidebar-open .sidebar-overlay {
+    display: block;
+  }
+
+  /* Empêcher le scroll du body quand sidebar ouverte */
+  body.sidebar-open {
+    overflow: hidden;
+  }
+}
+
+/* Smooth transitions */
+.sidebar,
+.burger-btn,
+.sidebar-overlay {
+  will-change: transform, opacity;
+}
