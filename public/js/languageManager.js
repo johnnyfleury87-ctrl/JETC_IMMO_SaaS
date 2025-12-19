@@ -18,48 +18,87 @@ const STORAGE_KEY = 'jetc_language';
  */
 const translations = {
   fr: {
-    // Landing page
+    // Meta
+    pageTitle: 'JETC_IMMO - Gestion immobilière intelligente',
     appName: 'JETC_IMMO',
-    welcomeTitle: 'Bienvenue sur JETC_IMMO',
-    welcomeDescription: 'Gérez efficacement vos interventions techniques immobilières en Suisse.',
     
-    // Modes
-    demoMode: '🎮 Mode Démo',
-    proMode: '🔐 Mode Professionnel',
-    demoDescription: 'Découvrez la plateforme sans créer de compte',
-    proDescription: 'Accédez à vos données réelles',
-    
-    // Actions
-    tryDemo: 'Essayer en démo',
-    login: 'Se connecter',
-    requestAdhesion: 'Demander une adhésion',
+    // Hero
+    welcomeTitle: 'Gérez vos biens immobiliers en toute simplicité',
+    welcomeDescription: 'La plateforme complète pour optimiser la gestion de vos interventions techniques',
     
     // Packs
     packsTitle: 'Nos Forfaits',
-    packEssentiel: 'Pack Essentiel',
-    packPro: 'Pack Pro',
-    packPremium: 'Pack Premium',
-    packEssentielDesc: 'Pour les petites agences',
-    packProDesc: 'Pour les agences en croissance',
-    packPremiumDesc: 'Pour les grandes agences',
-    packEssentielPrice: '99 CHF/mois',
-    packProPrice: '199 CHF/mois',
-    packPremiumPrice: '399 CHF/mois',
-    packEssentielFeatures: 'Jusqu\'à 100 logements\n5 utilisateurs\nSupport email',
-    packProFeatures: 'Jusqu\'à 500 logements\n20 utilisateurs\nSupport prioritaire',
-    packPremiumFeatures: 'Logements illimités\nUtilisateurs illimités\nSupport 24/7',
+    packsSubtitle: 'Choisissez le plan qui correspond à vos besoins',
+    perMonth: '/ mois',
+    
+    packEssentiel: 'Essentiel',
+    packEssentielTarget: 'Petites régies débutantes',
+    pack1Feature1: 'Jusqu\'à 50 logements',
+    pack1Feature2: 'Gestion des tickets',
+    pack1Feature3: '5 entreprises partenaires',
+    pack1Feature4: 'Support email',
+    
+    packPro: 'Pro',
+    packProTarget: 'Régies en croissance',
+    pack2Feature1: 'Jusqu\'à 200 logements',
+    pack2Feature2: 'Gestion complète',
+    pack2Feature3: 'Entreprises illimitées',
+    pack2Feature4: 'Analytics avancés',
+    pack2Feature5: 'Support prioritaire',
+    
+    packPremium: 'Premium',
+    packPremiumTarget: 'Grandes régies',
+    pack3Feature1: 'Logements illimités',
+    pack3Feature2: 'Multi-utilisateurs',
+    pack3Feature3: 'API personnalisée',
+    pack3Feature4: 'Manager dédié',
+    pack3Feature5: 'Formation incluse',
+    
+    btnLearnMore: 'En savoir plus',
+    btnChoosePro: 'Choisir Pro',
+    
+    // Modes
+    modesTitle: 'Découvrez la plateforme',
+    demoMode: 'Mode Démo',
+    proMode: 'Mode Professionnel',
+    demoDescription: 'Explorez toutes les fonctionnalités sans engagement',
+    proDescription: 'Accédez à votre espace sécurisé',
+    tryDemo: 'Essayer en démo',
+    login: 'Se connecter',
     
     // Features
     featuresTitle: 'Fonctionnalités',
     feature1Title: 'Gestion des tickets',
-    feature1Desc: 'Déclaration et suivi des interventions',
+    feature1Desc: 'Déclaration et suivi en temps réel',
     feature2Title: 'Missions techniques',
-    feature2Desc: 'Assignation et suivi des techniciens',
+    feature2Desc: 'Assignation automatique des techniciens',
     feature3Title: 'Facturation automatique',
-    feature3Desc: 'Génération des factures et commissions',
+    feature3Desc: 'Génération intelligente des factures',
     
     // Footer
     allRightsReserved: 'Tous droits réservés',
+    
+    // Formulaire
+    requestAdhesion: 'Demande d\'adhésion',
+    adhesionInfo: 'Votre demande sera examinée par notre équipe. Vous recevrez un email dès validation.',
+    selectedPlan: 'Forfait sélectionné',
+    email: 'Email',
+    agencyName: 'Nom de l\'agence',
+    agencyNamePlaceholder: 'Agence Immobilière ABC',
+    nbCollaborators: 'Nombre de collaborateurs',
+    nbCollaboratorsHelp: 'Nombre de personnes travaillant dans votre agence',
+    nbHousing: 'Nombre de logements gérés',
+    nbHousingHelp: 'Nombre de biens immobiliers actuellement gérés',
+    siret: 'Numéro SIRET (optionnel)',
+    siretHelp: '14 chiffres - Vous pourrez le renseigner plus tard',
+    password: 'Mot de passe',
+    passwordPlaceholder: '••••••••',
+    passwordHelp: 'Minimum 6 caractères',
+    confirmPassword: 'Confirmer le mot de passe',
+    preferredLanguage: 'Langue préférée',
+    sendAdhesionRequest: 'Envoyer ma demande d\'adhésion',
+    alreadyAccount: 'Vous avez déjà un compte ?',
+    backToHome: '← Retour à l\'accueil',
     
     // Common
     loading: 'Chargement...',
@@ -68,48 +107,87 @@ const translations = {
   },
   
   en: {
-    // Landing page
+    // Meta
+    pageTitle: 'JETC_IMMO - Smart Property Management',
     appName: 'JETC_IMMO',
-    welcomeTitle: 'Welcome to JETC_IMMO',
-    welcomeDescription: 'Efficiently manage your property technical interventions in Switzerland.',
     
-    // Modes
-    demoMode: '🎮 Demo Mode',
-    proMode: '🔐 Professional Mode',
-    demoDescription: 'Discover the platform without creating an account',
-    proDescription: 'Access your real data',
-    
-    // Actions
-    tryDemo: 'Try demo',
-    login: 'Login',
-    requestAdhesion: 'Request membership',
+    // Hero
+    welcomeTitle: 'Manage your properties with ease',
+    welcomeDescription: 'The complete platform to optimize your technical interventions management',
     
     // Packs
     packsTitle: 'Our Plans',
-    packEssentiel: 'Essential Pack',
-    packPro: 'Pro Pack',
-    packPremium: 'Premium Pack',
-    packEssentielDesc: 'For small agencies',
-    packProDesc: 'For growing agencies',
-    packPremiumDesc: 'For large agencies',
-    packEssentielPrice: 'CHF 99/month',
-    packProPrice: 'CHF 199/month',
-    packPremiumPrice: 'CHF 399/month',
-    packEssentielFeatures: 'Up to 100 properties\n5 users\nEmail support',
-    packProFeatures: 'Up to 500 properties\n20 users\nPriority support',
-    packPremiumFeatures: 'Unlimited properties\nUnlimited users\n24/7 support',
+    packsSubtitle: 'Choose the plan that fits your needs',
+    perMonth: '/ month',
+    
+    packEssentiel: 'Essential',
+    packEssentielTarget: 'Small starting agencies',
+    pack1Feature1: 'Up to 50 properties',
+    pack1Feature2: 'Ticket management',
+    pack1Feature3: '5 partner companies',
+    pack1Feature4: 'Email support',
+    
+    packPro: 'Pro',
+    packProTarget: 'Growing agencies',
+    pack2Feature1: 'Up to 200 properties',
+    pack2Feature2: 'Complete management',
+    pack2Feature3: 'Unlimited companies',
+    pack2Feature4: 'Advanced analytics',
+    pack2Feature5: 'Priority support',
+    
+    packPremium: 'Premium',
+    packPremiumTarget: 'Large agencies',
+    pack3Feature1: 'Unlimited properties',
+    pack3Feature2: 'Multi-users',
+    pack3Feature3: 'Custom API',
+    pack3Feature4: 'Dedicated manager',
+    pack3Feature5: 'Training included',
+    
+    btnLearnMore: 'Learn more',
+    btnChoosePro: 'Choose Pro',
+    
+    // Modes
+    modesTitle: 'Discover the platform',
+    demoMode: 'Demo Mode',
+    proMode: 'Professional Mode',
+    demoDescription: 'Explore all features without commitment',
+    proDescription: 'Access your secure workspace',
+    tryDemo: 'Try demo',
+    login: 'Login',
     
     // Features
     featuresTitle: 'Features',
     feature1Title: 'Ticket management',
-    feature1Desc: 'Report and track interventions',
+    feature1Desc: 'Real-time declaration and tracking',
     feature2Title: 'Technical missions',
-    feature2Desc: 'Assign and track technicians',
+    feature2Desc: 'Automatic technician assignment',
     feature3Title: 'Automatic invoicing',
-    feature3Desc: 'Generate invoices and commissions',
+    feature3Desc: 'Smart invoice generation',
     
     // Footer
     allRightsReserved: 'All rights reserved',
+    
+    // Form
+    requestAdhesion: 'Membership request',
+    adhesionInfo: 'Your request will be reviewed by our team. You will receive an email once validated.',
+    selectedPlan: 'Selected plan',
+    email: 'Email',
+    agencyName: 'Agency name',
+    agencyNamePlaceholder: 'ABC Real Estate Agency',
+    nbCollaborators: 'Number of employees',
+    nbCollaboratorsHelp: 'Number of people working in your agency',
+    nbHousing: 'Properties managed',
+    nbHousingHelp: 'Number of properties currently managed',
+    siret: 'SIRET number (optional)',
+    siretHelp: '14 digits - You can fill it later',
+    password: 'Password',
+    passwordPlaceholder: '••••••••',
+    passwordHelp: 'Minimum 6 characters',
+    confirmPassword: 'Confirm password',
+    preferredLanguage: 'Preferred language',
+    sendAdhesionRequest: 'Send membership request',
+    alreadyAccount: 'Already have an account?',
+    backToHome: '← Back to home',
     
     // Common
     loading: 'Loading...',
@@ -118,48 +196,87 @@ const translations = {
   },
   
   de: {
-    // Landing page
+    // Meta
+    pageTitle: 'JETC_IMMO - Intelligente Immobilienverwaltung',
     appName: 'JETC_IMMO',
-    welcomeTitle: 'Willkommen bei JETC_IMMO',
-    welcomeDescription: 'Verwalten Sie effizient Ihre technischen Immobilieneingriffe in der Schweiz.',
     
-    // Modes
-    demoMode: '🎮 Demo-Modus',
-    proMode: '🔐 Professioneller Modus',
-    demoDescription: 'Entdecken Sie die Plattform ohne Konto',
-    proDescription: 'Greifen Sie auf Ihre echten Daten zu',
-    
-    // Actions
-    tryDemo: 'Demo testen',
-    login: 'Anmelden',
-    requestAdhesion: 'Mitgliedschaft beantragen',
+    // Hero
+    welcomeTitle: 'Verwalten Sie Ihre Immobilien mit Leichtigkeit',
+    welcomeDescription: 'Die vollständige Plattform zur Optimierung Ihrer technischen Einsatzverwaltung',
     
     // Packs
     packsTitle: 'Unsere Pakete',
-    packEssentiel: 'Essential-Paket',
-    packPro: 'Pro-Paket',
-    packPremium: 'Premium-Paket',
-    packEssentielDesc: 'Für kleine Agenturen',
-    packProDesc: 'Für wachsende Agenturen',
-    packPremiumDesc: 'Für große Agenturen',
-    packEssentielPrice: 'CHF 99/Monat',
-    packProPrice: 'CHF 199/Monat',
-    packPremiumPrice: 'CHF 399/Monat',
-    packEssentielFeatures: 'Bis zu 100 Immobilien\n5 Benutzer\nE-Mail-Support',
-    packProFeatures: 'Bis zu 500 Immobilien\n20 Benutzer\nPrioritäts-Support',
-    packPremiumFeatures: 'Unbegrenzte Immobilien\nUnbegrenzte Benutzer\n24/7 Support',
+    packsSubtitle: 'Wählen Sie das Paket, das zu Ihnen passt',
+    perMonth: '/ Monat',
+    
+    packEssentiel: 'Essential',
+    packEssentielTarget: 'Kleine Startagenturen',
+    pack1Feature1: 'Bis zu 50 Immobilien',
+    pack1Feature2: 'Ticketverwaltung',
+    pack1Feature3: '5 Partnerunternehmen',
+    pack1Feature4: 'E-Mail-Support',
+    
+    packPro: 'Pro',
+    packProTarget: 'Wachsende Agenturen',
+    pack2Feature1: 'Bis zu 200 Immobilien',
+    pack2Feature2: 'Vollständige Verwaltung',
+    pack2Feature3: 'Unbegrenzte Unternehmen',
+    pack2Feature4: 'Erweiterte Analysen',
+    pack2Feature5: 'Prioritäts-Support',
+    
+    packPremium: 'Premium',
+    packPremiumTarget: 'Große Agenturen',
+    pack3Feature1: 'Unbegrenzte Immobilien',
+    pack3Feature2: 'Mehrbenutzer',
+    pack3Feature3: 'Benutzerdefinierte API',
+    pack3Feature4: 'Dedizierter Manager',
+    pack3Feature5: 'Schulung inbegriffen',
+    
+    btnLearnMore: 'Mehr erfahren',
+    btnChoosePro: 'Pro wählen',
+    
+    // Modes
+    modesTitle: 'Entdecken Sie die Plattform',
+    demoMode: 'Demo-Modus',
+    proMode: 'Professioneller Modus',
+    demoDescription: 'Erkunden Sie alle Funktionen unverbindlich',
+    proDescription: 'Zugriff auf Ihren sicheren Arbeitsbereich',
+    tryDemo: 'Demo testen',
+    login: 'Anmelden',
     
     // Features
     featuresTitle: 'Funktionen',
     feature1Title: 'Ticketverwaltung',
-    feature1Desc: 'Melden und verfolgen Sie Eingriffe',
+    feature1Desc: 'Echtzeit-Meldung und Verfolgung',
     feature2Title: 'Technische Einsätze',
-    feature2Desc: 'Techniker zuweisen und verfolgen',
+    feature2Desc: 'Automatische Technikerzuweisung',
     feature3Title: 'Automatische Abrechnung',
-    feature3Desc: 'Rechnungen und Provisionen erstellen',
+    feature3Desc: 'Intelligente Rechnungserstellung',
     
     // Footer
     allRightsReserved: 'Alle Rechte vorbehalten',
+    
+    // Form
+    requestAdhesion: 'Mitgliedsantrag',
+    adhesionInfo: 'Ihr Antrag wird von unserem Team geprüft. Sie erhalten eine E-Mail nach der Validierung.',
+    selectedPlan: 'Ausgewähltes Paket',
+    email: 'E-Mail',
+    agencyName: 'Agenturname',
+    agencyNamePlaceholder: 'ABC Immobilienagentur',
+    nbCollaborators: 'Anzahl Mitarbeiter',
+    nbCollaboratorsHelp: 'Anzahl der Personen in Ihrer Agentur',
+    nbHousing: 'Verwaltete Immobilien',
+    nbHousingHelp: 'Anzahl der aktuell verwalteten Immobilien',
+    siret: 'SIRET-Nummer (optional)',
+    siretHelp: '14 Ziffern - Sie können es später ausfüllen',
+    password: 'Passwort',
+    passwordPlaceholder: '••••••••',
+    passwordHelp: 'Mindestens 6 Zeichen',
+    confirmPassword: 'Passwort bestätigen',
+    preferredLanguage: 'Bevorzugte Sprache',
+    sendAdhesionRequest: 'Mitgliedsantrag senden',
+    alreadyAccount: 'Haben Sie bereits ein Konto?',
+    backToHome: '← Zurück zur Startseite',
     
     // Common
     loading: 'Lädt...',

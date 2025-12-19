@@ -70,7 +70,7 @@ function getEmailTemplate(content, language = 'fr') {
       margin: 0;
       padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background-color: #f5f5f5;
+      background-color: #f7fafc;
     }
     .email-container {
       max-width: 600px;
@@ -82,6 +82,19 @@ function getEmailTemplate(content, language = 'fr') {
       padding: 30px 20px;
       text-align: center;
     }
+    .logo-placeholder {
+      width: 60px;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      color: white;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
     .logo {
       font-size: 32px;
       font-weight: bold;
@@ -91,50 +104,54 @@ function getEmailTemplate(content, language = 'fr') {
     .content {
       padding: 40px 30px;
       line-height: 1.6;
-      color: #333333;
+      color: #2d3748;
     }
     .footer {
-      background-color: #f8f9fa;
+      background-color: #f7fafc;
       padding: 20px 30px;
       text-align: center;
       font-size: 12px;
-      color: #666666;
-      border-top: 1px solid #e0e0e0;
+      color: #718096;
+      border-top: 1px solid #e2e8f0;
     }
     .button {
       display: inline-block;
-      padding: 12px 30px;
-      background-color: #667eea;
+      padding: 14px 32px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: #ffffff;
       text-decoration: none;
-      border-radius: 6px;
+      border-radius: 8px;
       margin: 20px 0;
       font-weight: 600;
     }
     .info-box {
-      background-color: #e6f7ff;
-      border-left: 4px solid #1890ff;
+      background-color: #ebf8ff;
+      border-left: 4px solid #4299e1;
       padding: 15px;
       margin: 20px 0;
+      border-radius: 4px;
     }
     .warning-box {
-      background-color: #fff7e6;
-      border-left: 4px solid #fa8c16;
+      background-color: #fffaf0;
+      border-left: 4px solid #ed8936;
       padding: 15px;
       margin: 20px 0;
+      border-radius: 4px;
     }
     .success-box {
-      background-color: #f6ffed;
-      border-left: 4px solid #52c41a;
+      background-color: #f0fff4;
+      border-left: 4px solid #48bb78;
       padding: 15px;
       margin: 20px 0;
+      border-radius: 4px;
     }
   </style>
 </head>
 <body>
   <div class="email-container">
     <div class="header">
-      <h1 class="logo">✨ JETC_IMMO</h1>
+      <div class="logo-placeholder">J</div>
+      <h1 class="logo">JETC_IMMO</h1>
     </div>
     <div class="content">
       ${content}
