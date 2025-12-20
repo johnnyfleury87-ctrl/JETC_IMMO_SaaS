@@ -3,14 +3,17 @@
  * 
  * Workflow :
  * 1. Vérifier authentification + rôle régie
- * 2. Créer utilisateur Supabase Auth (admin SDK)
- * 3. Créer profile avec role='locataire'
- * 4. Appeler RPC creer_locataire_complet()
+ * 2. Générer mot de passe temporaire sécurisé
+ * 3. Créer utilisateur Supabase Auth (admin SDK)
+ * 4. Créer profile avec role='locataire'
+ * 5. Stocker mot de passe temporaire hashé
+ * 6. Appeler RPC creer_locataire_complet()
  * 
  * Route : POST /api/locataires/create
  */
 
 const { supabaseAdmin, checkUserRole } = require('../_supabase');
+const { createTempPassword, TEMP_PASSWORD_EXPIRY_DAYS } = require('../services/passwordService');
 
 module.exports = async (req, res) => {
   // CORS
@@ -60,7 +63,6 @@ module.exports = async (req, res) => {
       nom,
       prenom,
       email,
-      mot_de_passe,
       logement_id,
       date_entree,
       telephone,
@@ -69,25 +71,31 @@ module.exports = async (req, res) => {
       contact_urgence_telephone
     } = req.body;
 
-    // Validation
-    if (!nom || !prenom || !email || !mot_de_passe || !logement_id || !date_entree) {
+    // Validation (mot_de_passe retiré, généré automatiquement)
+    if (!nom || !prenom || !email || !logement_id || !date_entree) {
       return res.status(400).json({ 
         error: 'Champs obligatoires manquants',
-        required: ['nom', 'prenom', 'email', 'mot_de_passe', 'logement_id', 'date_entree']
+        required: ['nom', 'prenom', 'email', 'logement_id', 'date_entree']
       });
     }
 
-    if (mot_de_passe.length < 8) {
-      return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 8 caractères' });
-    }
+    // ============================================
+    // 3. GÉNÉRER MOT DE PASSE TEMPORAIRE
+    // ============================================
+
+    // Générer mot de passe temporaire sécurisé (12 caractères)
+    const { password: tempPassword, expiresAt } = await createTempPassword('temp', user.id);
+    
+    // Ce mot de passe sera retourné EN CLAIR une seule fois au frontend
+    // Il sera aussi stocké hashé dans temporary_passwords
 
     // ============================================
-    // 3. CRÉER UTILISATEUR SUPABASE AUTH
+    // 4. CRÉER UTILISATEUR SUPABASE AUTH
     // ============================================
 
     const { data: authUser, error: createAuthError } = await supabaseAdmin.auth.admin.createUser({
       email: email,
-      password: mot_de_passe,
+      password: tempPassword, // Utiliser le mot de passe temporaire généré
       email_confirm: true, // Confirmer email automatiquement
       user_metadata: {
         nom: nom,
@@ -106,7 +114,7 @@ module.exports = async (req, res) => {
 
     try {
       // ============================================
-      // 4. CRÉER PROFILE
+      // 5. CRÉER PROFILE
       // ============================================
 
       const { error: profileError } = await supabaseAdmin
@@ -124,7 +132,24 @@ module.exports = async (req, res) => {
       }
 
       // ============================================
-      // 5. APPELER RPC creer_locataire_complet()
+      // 6. STOCKER MOT DE PASSE TEMPORAIRE HASHÉ
+      // ============================================
+
+      // Le mot de passe a déjà été hashé et stocké par createTempPassword()
+      // On met juste à jour le created_by et le profile_id correct
+      await supabaseAdmin
+        .from('temporary_passwords')
+        .update({
+          profile_id: profileId,
+          created_by: user.id
+        })
+        .eq('profile_id', 'temp');
+
+      // Alternative : recréer proprement
+      const { password: finalTempPassword } = await createTempPassword(profileId, user.id);
+
+      // ============================================
+      // 7. APPELER RPC creer_locataire_complet()
       // ============================================
 
       // Se connecter en tant que régie (pour bypass RLS dans RPC)
@@ -150,7 +175,7 @@ module.exports = async (req, res) => {
       }
 
       // ============================================
-      // 6. SUCCÈS
+      // 8. SUCCÈS - RETOURNER MOT DE PASSE TEMPORAIRE
       // ============================================
 
       return res.status(201).json({
@@ -162,6 +187,11 @@ module.exports = async (req, res) => {
           email: email,
           profile_id: profileId,
           logement: rpcResult.logement
+        },
+        temporary_password: {
+          password: finalTempPassword || tempPassword, // Mot de passe EN CLAIR (une seule fois)
+          expires_at: expiresAt,
+          expires_in_days: TEMP_PASSWORD_EXPIRY_DAYS
         },
         message: `Locataire ${nom} ${prenom} créé avec succès`
       });

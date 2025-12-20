@@ -307,6 +307,60 @@
       overflow-y: auto;
     }
 
+    /* Modal mot de passe temporaire (style spécifique) */
+    #tempPasswordModal {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      align-items: center;
+      justify-content: center;
+    }
+
+    #tempPasswordModal.show {
+      display: flex;
+    }
+
+    #tempPasswordModal .modal-content {
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-2xl);
+      max-width: 500px;
+      width: 90%;
+      padding: 30px;
+      position: relative;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #tempPasswordModal .close {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 28px;
+      font-weight: bold;
+      color: var(--gray-400);
+      cursor: pointer;
+    }
+
+    #tempPasswordModal .close:hover {
+      color: var(--gray-700);
+    }
+
     .modal-header {
       padding: 24px;
       border-bottom: 1px solid var(--gray-200);
@@ -578,12 +632,7 @@
           <div class="form-group">
             <label for="email">Email <span class="required">*</span></label>
             <input type="email" id="email" name="email" required>
-          </div>
-
-          <div class="form-group">
-            <label for="mot_de_passe">Mot de passe <span class="required">*</span></label>
-            <input type="password" id="mot_de_passe" name="mot_de_passe" minlength="8" required>
-            <small style="color: var(--gray-500); font-size: 12px;">Minimum 8 caractères</small>
+            <small style="color: var(--gray-500); font-size: 12px;">Un mot de passe temporaire sera généré automatiquement</small>
           </div>
 
           <div class="form-group">
@@ -632,6 +681,48 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal d'affichage du mot de passe temporaire -->
+  <div id="tempPasswordModal">
+    <div class="modal-content" style="max-width: 500px;">
+      <span class="close" onclick="closeTempPasswordModal()">&times;</span>
+      <h2>🔑 Mot de passe temporaire généré</h2>
+      
+      <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <p style="margin: 0 0 15px; color: #856404; font-weight: 600;">
+          ⚠️ IMPORTANT : Notez ce mot de passe maintenant
+        </p>
+        <p style="margin: 0 0 20px; color: #856404; font-size: 14px;">
+          Il ne sera plus affiché après fermeture. Le locataire pourra le régénérer via "Mot de passe oublié".
+        </p>
+        
+        <div style="background: white; padding: 15px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 20px; font-weight: bold; text-align: center; letter-spacing: 2px; border: 2px dashed #ffc107;" id="tempPasswordDisplay">
+          <!-- Mot de passe affiché ici -->
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+          <button onclick="copyTempPassword()" style="flex: 1; background: var(--primary-500); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+            📋 Copier le mot de passe
+          </button>
+          <button onclick="regenerateTempPassword()" style="flex: 1; background: var(--gray-500); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+            🔄 Régénérer
+          </button>
+        </div>
+      </div>
+
+      <div style="background: var(--gray-50); padding: 15px; border-radius: 8px; margin-top: 15px;">
+        <p style="margin: 0 0 10px; font-weight: 600; color: var(--gray-700);">📅 Validité du mot de passe :</p>
+        <p style="margin: 0; color: var(--gray-600); font-size: 14px;" id="tempPasswordExpiry"></p>
+        <p style="margin: 10px 0 0; color: var(--gray-600); font-size: 14px;">
+          Le locataire devra changer ce mot de passe après sa première connexion.
+        </p>
+      </div>
+
+      <button onclick="closeTempPasswordModal()" style="width: 100%; margin-top: 20px; background: var(--gray-700); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+        Fermer
+      </button>
     </div>
   </div>
 
@@ -888,12 +979,23 @@
           throw new Error(result.error || 'Erreur lors de la création');
         }
 
+        // Fermer le modal de création
+        closeCreateModal();
+
+        // Afficher le modal avec le mot de passe temporaire
+        if (result.temporary_password) {
+          showTempPasswordModal(
+            result.temporary_password.password,
+            result.temporary_password.expires_at,
+            result.temporary_password.expires_in_days,
+            result.locataire.id
+          );
+        }
+
+        // Recharger la liste des locataires
         showSuccess(`✅ ${result.locataire.nom} ${result.locataire.prenom} créé avec succès`);
-        setTimeout(() => {
-          closeCreateModal();
-          loadLocataires();
-          loadLogementsDisponibles();
-        }, 1500);
+        loadLocataires();
+        loadLogementsDisponibles();
 
       } catch (error) {
         console.error('Erreur création:', error);
@@ -939,6 +1041,103 @@
     async function logout() {
       await window.supabase.auth.signOut();
       window.location.href = '/login.html';
+    }
+
+    // ============================================
+    // MODAL MOT DE PASSE TEMPORAIRE
+    // ============================================
+
+    let currentTempPassword = null;
+    let currentLocataireId = null;
+
+    function showTempPasswordModal(password, expiresAt, expiresInDays, locataireId) {
+      currentTempPassword = password;
+      currentLocataireId = locataireId;
+      
+      document.getElementById('tempPasswordDisplay').textContent = password;
+      document.getElementById('tempPasswordExpiry').textContent = 
+        `Expire le ${new Date(expiresAt).toLocaleDateString('fr-FR')} (dans ${expiresInDays} jours)`;
+      
+      document.getElementById('tempPasswordModal').style.display = 'block';
+    }
+
+    function closeTempPasswordModal() {
+      document.getElementById('tempPasswordModal').style.display = 'none';
+      currentTempPassword = null;
+      currentLocataireId = null;
+    }
+
+    async function copyTempPassword() {
+      try {
+        await navigator.clipboard.writeText(currentTempPassword);
+        alert('✅ Mot de passe copié dans le presse-papier');
+      } catch (error) {
+        console.error('Erreur copie:', error);
+        // Fallback pour navigateurs anciens
+        const textArea = document.createElement('textarea');
+        textArea.value = currentTempPassword;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          alert('✅ Mot de passe copié');
+        } catch (err) {
+          alert('❌ Impossible de copier automatiquement. Copiez manuellement : ' + currentTempPassword);
+        }
+        document.body.removeChild(textArea);
+      }
+    }
+
+    async function regenerateTempPassword() {
+      if (!currentLocataireId) {
+        alert('❌ Erreur : ID locataire manquant');
+        return;
+      }
+
+      if (!confirm('Régénérer un nouveau mot de passe ? L\'ancien sera invalidé.')) {
+        return;
+      }
+
+      try {
+        // Récupérer l'email du locataire
+        const { data: profile } = await window.supabase
+          .from('profiles')
+          .select('email')
+          .eq('id', currentLocataireId)
+          .single();
+
+        if (!profile) {
+          throw new Error('Profil introuvable');
+        }
+
+        // Appeler l'API de reset
+        const response = await fetch('/api/auth/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: profile.email })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Échec régénération');
+        }
+
+        // Mettre à jour l'affichage avec le nouveau mot de passe
+        if (result.temporary_password) {
+          currentTempPassword = result.temporary_password.password;
+          document.getElementById('tempPasswordDisplay').textContent = currentTempPassword;
+          document.getElementById('tempPasswordExpiry').textContent = 
+            `Expire le ${new Date(result.temporary_password.expires_at).toLocaleDateString('fr-FR')} (dans ${result.temporary_password.expires_in_days} jours)`;
+          alert('✅ Nouveau mot de passe généré');
+        }
+
+      } catch (error) {
+        console.error('Erreur régénération:', error);
+        alert('❌ Erreur : ' + error.message);
+      }
     }
 
     // ============================================
