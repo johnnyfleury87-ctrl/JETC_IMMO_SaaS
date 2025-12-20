@@ -326,42 +326,96 @@
           return;
         }
         
-        // 2️⃣ Récupérer le profil + régie depuis Supabase
+        // 2️⃣ Récupérer le profil utilisateur
+        console.log('[REGIE][PROFILE_FETCH] Récupération profil pour user:', session.user.id);
+        
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('id, email, role, regie:regies(id, nom, statut_validation)')
+          .select('id, email, role')
           .eq('id', session.user.id)
           .single();
         
         console.log('[REGIE][PROFILE]', {
-          data: profile,
+          found: !!profile,
+          role: profile?.role,
           error: profileError
         });
         
         if (profileError || !profile) {
-          console.log('[REGIE][REDIRECT] Raison: Profil introuvable');
-          alert('Erreur: Profil introuvable. Reconnexion requise.');
-          window.location.href = '/login.html';
+          console.error('[REGIE][PROFILE_MISSING] Profil introuvable en BDD', {
+            userId: session.user.id,
+            error: profileError
+          });
+          
+          // ⚠️ CORRECTION: Logout propre au lieu de popup bloquante
+          console.log('[REGIE][LOGOUT_FORCED] Déconnexion forcée (profil manquant)');
+          await supabase.auth.signOut();
+          
+          // Message clair sans popup bloquante
+          const errorMessage = document.createElement('div');
+          errorMessage.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);max-width:400px;text-align:center;z-index:10000;';
+          errorMessage.innerHTML = `
+            <h3 style="color:#ef4444;margin-bottom:15px;">⚠️ Profil introuvable</h3>
+            <p style="color:#6b7280;margin-bottom:20px;">Votre profil n'a pas été trouvé en base de données.</p>
+            <p style="color:#6b7280;font-size:14px;margin-bottom:20px;">Cela peut se produire si votre compte n'est pas encore finalisé.</p>
+            <a href="/login.html" style="display:inline-block;background:#2563eb;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600;">Retour à la connexion</a>
+          `;
+          document.body.appendChild(errorMessage);
           return;
         }
         
         // 3️⃣ Vérifier le rôle
         if (profile.role !== 'regie') {
           console.log('[REGIE][REDIRECT] Raison: Rôle incorrect', profile.role);
-          alert('Accès interdit : ce dashboard est réservé aux Régies immobilières');
-          window.location.href = '/login.html';
+          await supabase.auth.signOut();
+          
+          const errorMessage = document.createElement('div');
+          errorMessage.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);max-width:400px;text-align:center;z-index:10000;';
+          errorMessage.innerHTML = `
+            <h3 style="color:#ef4444;margin-bottom:15px;">🚫 Accès interdit</h3>
+            <p style="color:#6b7280;margin-bottom:20px;">Ce dashboard est réservé aux Régies immobilières.</p>
+            <p style="color:#6b7280;font-size:14px;margin-bottom:20px;">Votre rôle: <strong>${profile.role}</strong></p>
+            <a href="/login.html" style="display:inline-block;background:#2563eb;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600;">Retour à la connexion</a>
+          `;
+          document.body.appendChild(errorMessage);
           return;
         }
         
-        // 4️⃣ Vérifier que la régie existe
-        if (!profile.regie || !profile.regie.length || profile.regie.length === 0) {
-          console.log('[REGIE][REDIRECT] Raison: Aucune régie associée au profil');
-          alert('Erreur: Aucune régie associée à ce compte. Contactez l\'administrateur.');
-          window.location.href = '/login.html';
+        // 4️⃣ Récupérer les données régie (REQUÊTE SÉPARÉE pour éviter problèmes JOIN)
+        console.log('[REGIE][DATA_FETCH] Récupération données régie pour profile_id:', session.user.id);
+        
+        const { data: regie, error: regieError } = await supabase
+          .from('regies')
+          .select('id, nom, statut_validation, commentaire_refus')
+          .eq('profile_id', session.user.id)
+          .single();
+        
+        console.log('[REGIE][DATA]', {
+          found: !!regie,
+          nom: regie?.nom,
+          statut: regie?.statut_validation,
+          error: regieError
+        });
+        
+        if (regieError || !regie) {
+          console.error('[REGIE][DATA_MISSING] Aucune régie associée au profil', {
+            profileId: session.user.id,
+            error: regieError
+          });
+          
+          await supabase.auth.signOut();
+          
+          const errorMessage = document.createElement('div');
+          errorMessage.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);max-width:400px;text-align:center;z-index:10000;';
+          errorMessage.innerHTML = `
+            <h3 style="color:#ef4444;margin-bottom:15px;">⚠️ Données régie manquantes</h3>
+            <p style="color:#6b7280;margin-bottom:20px;">Aucune agence n'est associée à votre compte.</p>
+            <p style="color:#6b7280;font-size:14px;margin-bottom:20px;">Contactez l'administrateur : <strong>admin@jetc.ch</strong></p>
+            <a href="/login.html" style="display:inline-block;background:#2563eb;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600;">Retour à la connexion</a>
+          `;
+          document.body.appendChild(errorMessage);
           return;
         }
-        
-        const regie = profile.regie[0];
         
         // 5️⃣ Vérifier le statut de validation
         console.log('[REGIE][VALIDATION]', {
@@ -371,28 +425,54 @@
         
         if (regie.statut_validation === 'en_attente') {
           console.log('[REGIE][REDIRECT] Raison: Régie en attente de validation');
-          alert('⏳ Votre agence est en attente de validation par l\'équipe JETC_IMMO.\n\nVous recevrez un email dès validation.');
           await supabase.auth.signOut();
-          window.location.href = '/login.html';
+          
+          const errorMessage = document.createElement('div');
+          errorMessage.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);max-width:500px;text-align:center;z-index:10000;';
+          errorMessage.innerHTML = `
+            <h3 style="color:#f59e0b;margin-bottom:15px;">⏳ Validation en attente</h3>
+            <p style="color:#6b7280;margin-bottom:20px;">Votre agence <strong>${regie.nom}</strong> est en attente de validation par l'équipe JETC_IMMO.</p>
+            <p style="color:#6b7280;font-size:14px;margin-bottom:20px;">Vous recevrez un email dès que votre demande sera traitée.</p>
+            <a href="/login.html" style="display:inline-block;background:#2563eb;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600;">Retour à la connexion</a>
+          `;
+          document.body.appendChild(errorMessage);
           return;
         }
         
         if (regie.statut_validation === 'refuse') {
           console.log('[REGIE][REDIRECT] Raison: Régie refusée');
-          alert('❌ Votre inscription a été refusée.\n\nContactez l\'équipe JETC_IMMO pour plus d\'informations.');
           await supabase.auth.signOut();
-          window.location.href = '/login.html';
+          
+          const errorMessage = document.createElement('div');
+          errorMessage.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);max-width:500px;text-align:center;z-index:10000;';
+          errorMessage.innerHTML = `
+            <h3 style="color:#ef4444;margin-bottom:15px;">❌ Inscription refusée</h3>
+            <p style="color:#6b7280;margin-bottom:15px;">Votre demande d'adhésion pour <strong>${regie.nom}</strong> a été refusée.</p>
+            ${regie.commentaire_refus ? `<p style="color:#6b7280;font-size:14px;background:#fee;padding:10px;border-radius:6px;margin-bottom:15px;"><strong>Raison:</strong> ${regie.commentaire_refus}</p>` : ''}
+            <p style="color:#6b7280;font-size:14px;margin-bottom:20px;">Contactez l'équipe JETC_IMMO : <strong>admin@jetc.ch</strong></p>
+            <a href="/login.html" style="display:inline-block;background:#2563eb;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600;">Retour à la connexion</a>
+          `;
+          document.body.appendChild(errorMessage);
           return;
         }
         
         if (regie.statut_validation !== 'valide') {
-          console.log('[REGIE][REDIRECT] Raison: Statut de validation invalide', regie.statut_validation);
-          alert('Erreur: Statut de validation invalide. Contactez l\'administrateur.');
-          window.location.href = '/login.html';
+          console.error('[REGIE][VALIDATION_STATUS] Statut invalide:', regie.statut_validation);
+          await supabase.auth.signOut();
+          
+          const errorMessage = document.createElement('div');
+          errorMessage.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);max-width:500px;text-align:center;z-index:10000;';
+          errorMessage.innerHTML = `
+            <h3 style="color:#ef4444;margin-bottom:15px;">⚠️ Statut invalide</h3>
+            <p style="color:#6b7280;margin-bottom:15px;">Le statut de validation de votre agence est invalide : <strong>${regie.statut_validation}</strong></p>
+            <p style="color:#6b7280;font-size:14px;margin-bottom:20px;">Contactez l'administrateur : <strong>admin@jetc.ch</strong></p>
+            <a href="/login.html" style="display:inline-block;background:#2563eb;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600;">Retour à la connexion</a>
+          `;
+          document.body.appendChild(errorMessage);
           return;
         }
         
-        console.log('[REGIE][AUTH] ✅ Authentification validée');
+        console.log('[REGIE][AUTH] ✅ Authentification validée - Régie:', regie.nom);
         
         // 6️⃣ Afficher les infos utilisateur
         const email = profile.email;
