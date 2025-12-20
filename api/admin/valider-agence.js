@@ -148,34 +148,40 @@ module.exports = async (req, res) => {
       result = data;
       
       // ============================================
-      // ENVOI EMAIL DE VALIDATION
+      // ENVOI EMAIL DE VALIDATION (NON BLOQUANT)
       // ============================================
       if (result && result.success) {
-        console.log('[ADMIN/VALIDATION] Envoi email de validation...');
-        
-        // Récupérer la langue de la régie
-        const { data: profileData } = await supabaseAdmin
-          .from('profiles')
-          .select('language')
-          .eq('email', result.regie_email)
-          .single();
-        
-        const language = profileData?.language || 'fr';
-        
-        const emailResult = await sendEmail(
-          result.regie_email,
-          'adhesion_validee',
-          {
-            nomAgence: result.regie_nom,
-            email: result.regie_email
-          },
-          language
-        );
-        
-        if (!emailResult.success) {
-          console.warn('[ADMIN/VALIDATION] ⚠️ Erreur envoi email (non bloquant):', emailResult.error);
-        } else {
-          console.log('[ADMIN/VALIDATION] ✅ Email de validation envoyé');
+        try {
+          console.log('[ADMIN/VALIDATION] Envoi email de validation...');
+          
+          // Récupérer la langue de la régie
+          const { data: profileData } = await supabaseAdmin
+            .from('profiles')
+            .select('language')
+            .eq('email', result.regie_email)
+            .single();
+          
+          const language = profileData?.language || 'fr';
+          
+          const emailResult = await sendEmail(
+            result.regie_email,
+            'adhesion_validee',
+            {
+              nomAgence: result.regie_nom,
+              email: result.regie_email
+            },
+            language
+          );
+          
+          if (!emailResult.success) {
+            console.warn('[EMAIL][NON-BLOQUANT] Validation réussie mais email non envoyé:', emailResult.error);
+          } else {
+            console.log('[EMAIL][SUCCESS] ✅ Email de validation envoyé à', result.regie_email);
+          }
+        } catch (emailError) {
+          // Exception totalement capturée - ne doit jamais bloquer le workflow
+          console.warn('[EMAIL][NON-BLOQUANT] Exception lors de l\'envoi email:', emailError.message);
+          console.log('[ADMIN/VALIDATION] ⚠️ Validation réussie malgré échec email (SMTP non configuré?)');
         }
       }
       
@@ -209,35 +215,41 @@ module.exports = async (req, res) => {
       result = data;
       
       // ============================================
-      // ENVOI EMAIL DE REFUS
+      // ENVOI EMAIL DE REFUS (NON BLOQUANT)
       // ============================================
       if (result && result.success) {
-        console.log('[ADMIN/VALIDATION] Envoi email de refus...');
-        
-        // Récupérer la langue de la régie
-        const { data: profileData } = await supabaseAdmin
-          .from('profiles')
-          .select('language')
-          .eq('email', result.regie_email)
-          .single();
-        
-        const language = profileData?.language || 'fr';
-        
-        const emailResult = await sendEmail(
-          result.regie_email,
-          'adhesion_refusee',
-          {
-            nomAgence: result.regie_nom,
-            email: result.regie_email,
-            commentaire: commentaire.trim()
-          },
-          language
-        );
-        
-        if (!emailResult.success) {
-          console.warn('[ADMIN/VALIDATION] ⚠️ Erreur envoi email (non bloquant):', emailResult.error);
-        } else {
-          console.log('[ADMIN/VALIDATION] ✅ Email de refus envoyé');
+        try {
+          console.log('[ADMIN/VALIDATION] Envoi email de refus...');
+          
+          // Récupérer la langue de la régie
+          const { data: profileData } = await supabaseAdmin
+            .from('profiles')
+            .select('language')
+            .eq('email', result.regie_email)
+            .single();
+          
+          const language = profileData?.language || 'fr';
+          
+          const emailResult = await sendEmail(
+            result.regie_email,
+            'adhesion_refusee',
+            {
+              nomAgence: result.regie_nom,
+              email: result.regie_email,
+              commentaire: commentaire.trim()
+            },
+            language
+          );
+          
+          if (!emailResult.success) {
+            console.warn('[EMAIL][NON-BLOQUANT] Refus enregistré mais email non envoyé:', emailResult.error);
+          } else {
+            console.log('[EMAIL][SUCCESS] ✅ Email de refus envoyé à', result.regie_email);
+          }
+        } catch (emailError) {
+          // Exception totalement capturée - ne doit jamais bloquer le workflow
+          console.warn('[EMAIL][NON-BLOQUANT] Exception lors de l\'envoi email:', emailError.message);
+          console.log('[ADMIN/VALIDATION] ⚠️ Refus enregistré malgré échec email (SMTP non configuré?)');
         }
       }
     }
