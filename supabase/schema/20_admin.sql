@@ -298,6 +298,7 @@ declare
   v_admin_role text;
   v_regie_email text;
   v_regie_nom text;
+  v_profile_id uuid;  -- ✅ AJOUT : Variable pour stocker profile_id
 begin
   -- 1. Vérifier que c'est bien un admin_jtec
   select role into v_admin_role
@@ -331,18 +332,32 @@ begin
     admin_validateur_id = p_admin_id,
     commentaire_refus = null
   where id = p_regie_id
-  returning email, nom into v_regie_email, v_regie_nom;
+  returning email, nom, profile_id into v_regie_email, v_regie_nom, v_profile_id;  -- ✅ AJOUT : Récupérer profile_id
   
-  -- 4. Log
-  raise notice 'AUDIT: Admin % a validé l''agence % (ID: %)', p_admin_id, v_regie_nom, p_regie_id;
+  -- ✅ CORRECTION CRITIQUE : Rattacher le profil créateur à sa régie
+  UPDATE profiles
+  SET regie_id = p_regie_id,
+      updated_at = now()
+  WHERE id = v_profile_id;
+  
+  -- Vérification que la mise à jour a réussi
+  IF NOT FOUND THEN
+    -- Rollback implicite (transaction échouée)
+    RAISE EXCEPTION 'ERREUR CRITIQUE: Impossible de rattacher le profil % à la régie %. Rollback.', v_profile_id, p_regie_id;
+  END IF;
+  
+  -- 4. Log avec confirmation du rattachement
+  raise notice 'AUDIT: Admin % a validé l''agence % (ID: %) et rattaché le profil %', p_admin_id, v_regie_nom, p_regie_id, v_profile_id;
   
   -- TODO: Envoyer notification email à la régie
   
   return jsonb_build_object(
     'success', true,
-    'message', 'Agence validée avec succès',
+    'message', 'Agence validée avec succès et profil rattaché',
     'regie_email', v_regie_email,
-    'regie_nom', v_regie_nom
+    'regie_nom', v_regie_nom,
+    'profile_id', v_profile_id,  -- ✅ AJOUT : Pour debug
+    'regie_id_assigned', p_regie_id  -- ✅ AJOUT : Confirmation du rattachement
   );
 end;
 $$;
