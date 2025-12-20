@@ -746,16 +746,21 @@
 
         currentUser = session.user;
 
-        // Récupérer profile
+        console.log('[PROFILE LOAD] Session user ID:', currentUser.id);
+
+        // Récupérer profile avec relation explicite vers SA régie
+        // Utilisation de profiles_regie_id_fkey (profiles.regie_id → regies.id)
         const { data: profile, error: profileError } = await window.supabase
           .from('profiles')
-          .select('*, regies(*)')
+          .select('*, regies!profiles_regie_id_fkey(*)')
           .eq('id', currentUser.id)
           .single();
 
+        console.log('[PROFILE LOAD] Result:', { profile, error: profileError });
+
         if (profileError || !profile) {
-          console.error('Erreur profile:', profileError);
-          alert('Erreur : profil introuvable');
+          console.error('[PROFILE LOAD] Erreur profile:', profileError);
+          alert('Erreur : profil introuvable. Vérifiez que votre compte est bien rattaché à une régie.');
           window.location.href = '/login.html';
           return;
         }
@@ -767,14 +772,17 @@
           return;
         }
 
-        // Récupérer regie_id
-        regieId = profile.regie_id || profile.regies?.id;
+        // Récupérer regie_id depuis le profil
+        regieId = profile.regie_id;
 
         if (!regieId) {
-          alert('Erreur : régie non trouvée');
+          console.error('[PROFILE LOAD] Profil régie sans regie_id:', profile);
+          alert('Erreur : profil régie manquant – création ou rattachement requis. Contactez l\'administrateur.');
           window.location.href = '/login.html';
           return;
         }
+
+        console.log('[PROFILE LOAD] Success - Régie ID:', regieId);
 
         // Afficher infos utilisateur
         document.getElementById('userEmail').textContent = profile.email;
