@@ -808,13 +808,36 @@
         // ============================================
         // 2. Récupérer profil (CAS A / CAS B : régie valide ou orpheline)
         // ============================================
+        console.log('[LOCATAIRES][AUTH] User ID:', currentUser.id);
+        
         const { data: profile, error: profileError } = await window.supabase
           .from('profiles')
-          .select('*, regies!profiles_regie_id_fkey(*)')
+          .select('id, email, role, regie_id')
           .eq('id', currentUser.id)
           .single();
 
-        console.log('[LOCATAIRES][INIT] Profile result:', { profile, error: profileError });
+        console.log('[LOCATAIRES][PROFILE]', { profile, error: profileError });
+        
+        // Si profil trouvé ET regie_id présent, charger les infos régie
+        let regieData = null;
+        if (profile && profile.regie_id) {
+          console.log('[LOCATAIRES][REGIE_ID]', profile.regie_id);
+          
+          const { data: regie, error: regieError } = await window.supabase
+            .from('regies')
+            .select('id, nom')
+            .eq('id', profile.regie_id)
+            .single();
+          
+          if (regieError) {
+            console.warn('[LOCATAIRES][REGIE_FETCH] Erreur chargement régie:', regieError);
+          } else {
+            console.log('[LOCATAIRES][REGIE_DATA]', regie);
+            regieData = regie;
+          }
+        } else {
+          console.warn('[LOCATAIRES][REGIE_ID] Profil sans regie_id');
+        }
 
         // ⚠️ MODE DÉGRADÉ : Profil introuvable (rare, cas système critique)
         if (profileError || !profile) {
@@ -875,7 +898,18 @@
         // ============================================
         document.getElementById('userEmail').textContent = profile.email;
         document.getElementById('userAvatar').textContent = profile.email[0].toUpperCase();
-        document.getElementById('agenceName').textContent = profile.regies?.nom || 'Régie non rattachée';
+        
+        // ✅ CORRECTION : Utiliser regieData chargé explicitement
+        if (regieData && regieData.nom) {
+          document.getElementById('agenceName').textContent = regieData.nom;
+          console.log('[LOCATAIRES][UI] Nom régie affiché:', regieData.nom);
+        } else if (!profile.regie_id) {
+          document.getElementById('agenceName').textContent = 'Régie non rattachée';
+          console.warn('[LOCATAIRES][UI] profiles.regie_id est NULL');
+        } else {
+          document.getElementById('agenceName').textContent = 'Régie (nom indisponible)';
+          console.warn('[LOCATAIRES][UI] regie_id existe mais données régie introuvables');
+        }
 
         // ============================================
         // 6. Charger données (CAS A : régie valide avec/sans locataires)
