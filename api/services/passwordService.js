@@ -1,50 +1,40 @@
 /**
  * SERVICE - Génération et gestion des mots de passe temporaires
  * 
- * SIMPLIFIÉ : Pas de bcryptjs, stockage en clair (protégé par RLS)
+ * VERSION SIMPLIFIÉE : Mot de passe fixe Test1234!
  * 
  * Sécurité :
- * - Génération cryptographiquement sécurisée
  * - Supabase Auth hashe automatiquement le mot de passe dans auth.users
  * - Table temporary_passwords protégée par RLS
  * - Expiration après 7 jours
  * - Marqué is_used après première connexion
+ * 
+ * NOTE : Mot de passe fixe pour développement/test uniquement
  */
 
-const crypto = require('crypto');
 const { supabaseAdmin } = require('../_supabase');
 
 // Configuration
-const TEMP_PASSWORD_LENGTH = 12;
 const TEMP_PASSWORD_EXPIRY_DAYS = 7;
+const DEFAULT_TEMP_PASSWORD = 'Test1234!'; // Mot de passe fixe pour tests
 
 /**
- * Génère un mot de passe temporaire sécurisé
- * @returns {string} Mot de passe en clair (12 caractères)
+ * Génère un mot de passe temporaire (fixe pour le moment)
+ * @returns {string} Mot de passe en clair
  */
 function generateTempPassword() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%';
-  const length = TEMP_PASSWORD_LENGTH;
-  
-  let password = '';
-  const randomBytes = crypto.randomBytes(length);
-  
-  for (let i = 0; i < length; i++) {
-    password += chars[randomBytes[i] % chars.length];
-  }
-  
-  return password;
+  return DEFAULT_TEMP_PASSWORD;
 }
 
 /**
  * Crée ou remplace un mot de passe temporaire pour un locataire
- * STOCKÉ EN CLAIR (Supabase Auth hashe déjà dans auth.users)
+ * STOCKÉ EN CLAIR (Supabase Auth hashe automatiquement dans auth.users)
  * @param {string} profileId - UUID du profile locataire
  * @param {string} createdByUserId - UUID de la régie qui crée
  * @returns {Promise<{password: string, expiresAt: Date}>}
  */
 async function createTempPassword(profileId, createdByUserId) {
-  // Générer mot de passe
+  // Mot de passe fixe pour le moment
   const tempPassword = generateTempPassword();
   
   // Calculer expiration
@@ -52,12 +42,11 @@ async function createTempPassword(profileId, createdByUserId) {
   expiresAt.setDate(expiresAt.getDate() + TEMP_PASSWORD_EXPIRY_DAYS);
   
   // Upsert dans temporary_passwords (remplace si existe)
-  // Stocké en CLAIR car Supabase Auth hashe déjà, et protégé par RLS
   const { error } = await supabaseAdmin
     .from('temporary_passwords')
     .upsert({
       profile_id: profileId,
-      password_clear: tempPassword,  // ✅ En clair, pas de hash bcrypt
+      password_clear: tempPassword,
       expires_at: expiresAt.toISOString(),
       is_used: false,
       used_at: null,
@@ -95,7 +84,7 @@ async function getTempPassword(profileId) {
   
   return {
     profileId: data.profile_id,
-    passwordClear: data.password_clear,  // ✅ En clair
+    passwordClear: data.password_clear,
     expiresAt: new Date(data.expires_at),
     isUsed: data.is_used,
     usedAt: data.used_at ? new Date(data.used_at) : null
