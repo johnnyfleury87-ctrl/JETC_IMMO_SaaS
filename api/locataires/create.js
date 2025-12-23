@@ -72,10 +72,10 @@ module.exports = async (req, res) => {
     } = req.body;
 
     // Validation (mot_de_passe retiré, généré automatiquement)
-    if (!nom || !prenom || !email || !logement_id || !date_entree) {
+    if (!nom || !prenom || !email || !date_entree) {
       return res.status(400).json({ 
         error: 'Champs obligatoires manquants',
-        required: ['nom', 'prenom', 'email', 'logement_id', 'date_entree']
+        required: ['nom', 'prenom', 'email', 'date_entree']
       });
     }
 
