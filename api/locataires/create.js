@@ -99,8 +99,20 @@ module.exports = async (req, res) => {
     // 3. GÉNÉRER MOT DE PASSE TEMPORAIRE
     // ============================================
 
-    // Générer mot de passe temporaire sécurisé (12 caractères)
-    const { password: tempPassword, expiresAt } = await createTempPassword('temp', user.id);
+    let tempPassword, expiresAt;
+    try {
+      // Générer mot de passe temporaire sécurisé (12 caractères)
+      const tempPasswordResult = await createTempPassword('temp', user.id);
+      tempPassword = tempPasswordResult.password;
+      expiresAt = tempPasswordResult.expiresAt;
+    } catch (tempPasswordError) {
+      console.error('[CREATE LOCATAIRE] Erreur génération mot de passe:', tempPasswordError);
+      return res.status(500).json({ 
+        error: 'Erreur lors de la génération du mot de passe temporaire',
+        code: 'TEMP_PASSWORD_ERROR',
+        details: tempPasswordError.message
+      });
+    }
     
     // Ce mot de passe sera retourné EN CLAIR une seule fois au frontend
     // Il sera aussi stocké hashé dans temporary_passwords
@@ -122,35 +134,47 @@ module.exports = async (req, res) => {
     if (createAuthError) {
       console.error('[CREATE LOCATAIRE] Erreur création auth.users:', createAuthError);
       return res.status(400).json({ 
-        error: `Erreur création compte : ${createAuthError.message}` 
+        error: `Erreur création compte : ${createAuthError.message}`,
+        code: 'AUTH_CREATE_ERROR',
+        details: createAuthError.message
       });
     }
 
     const profileId = authUser.user.id;
 
-    try {
-      // ============================================
-      // 5. CRÉER PROFILE
-      // ============================================
+    // ============================================
+    // 5. CRÉER PROFILE
+    // ============================================
 
-      const { error: profileError } = await supabaseAdmin
-        .from('profiles')
-        .insert({
-          id: profileId,
-          email: email,
-          role: 'locataire'
-        });
+    const { error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .insert({
+        id: profileId,
+        email: email,
+        role: 'locataire'
+      });
 
-      if (profileError) {
-        // Rollback : supprimer auth.users
+    if (profileError) {
+      console.error('[CREATE LOCATAIRE] Erreur création profile:', profileError);
+      // Rollback : supprimer auth.users
+      try {
         await supabaseAdmin.auth.admin.deleteUser(profileId);
-        throw new Error(`Erreur création profile : ${profileError.message}`);
+      } catch (deleteError) {
+        console.error('[CREATE LOCATAIRE] Erreur rollback deleteUser:', deleteError);
       }
+      return res.status(400).json({ 
+        error: `Erreur création profil locataire : ${profileError.message}`,
+        code: 'PROFILE_CREATE_ERROR',
+        details: profileError.message
+      });
+    }
 
-      // ============================================
-      // 6. STOCKER MOT DE PASSE TEMPORAIRE HASHÉ
-      // ============================================
+    // ============================================
+    // 6. STOCKER MOT DE PASSE TEMPORAIRE HASHÉ
+    // ============================================
 
+    let finalTempPassword = tempPassword;
+    try {
       // Le mot de passe a déjà été hashé et stocké par createTempPassword()
       // On met juste à jour le created_by et le profile_id correct
       await supabaseAdmin
@@ -162,74 +186,80 @@ module.exports = async (req, res) => {
         .eq('profile_id', 'temp');
 
       // Alternative : recréer proprement
-      const { password: finalTempPassword } = await createTempPassword(profileId, user.id);
+      const tempPasswordResult = await createTempPassword(profileId, user.id);
+      finalTempPassword = tempPasswordResult.password;
+    } catch (tempPasswordUpdateError) {
+      console.error('[CREATE LOCATAIRE] Erreur mise à jour mot de passe temporaire:', tempPasswordUpdateError);
+      // Non bloquant, on continue avec le mot de passe initial
+    }
 
-      // ============================================
-      // 7. APPELER RPC creer_locataire_complet()
-      // ============================================
+    // ============================================
+    // 7. APPELER RPC creer_locataire_complet()
+    // ============================================
 
-      // Se connecter en tant que régie (pour bypass RLS dans RPC)
-      const { data: rpcResult, error: rpcError } = await supabaseAdmin
-        .rpc('creer_locataire_complet', {
-          p_nom: nom,
-          p_prenom: prenom,
-          p_email: email,
-          p_profile_id: profileId,
-          p_regie_id: regieId,  // ✅ AJOUTÉ : garantit isolation multi-tenant
-          p_logement_id: logement_id,
-          p_date_entree: date_entree,
-          p_telephone: telephone || null,
-          p_date_naissance: date_naissance || null,
-          p_contact_urgence_nom: contact_urgence_nom || null,
-          p_contact_urgence_telephone: contact_urgence_telephone || null
-        });
-
-      if (rpcError) {
-        // Rollback : supprimer profile + auth.users
-        await supabaseAdmin.from('profiles').delete().eq('id', profileId);
-        await supabaseAdmin.auth.admin.deleteUser(profileId);
-        throw new Error(`Erreur RPC : ${rpcError.message}`);
-      }
-
-      // ============================================
-      // 8. SUCCÈS - RETOURNER MOT DE PASSE TEMPORAIRE
-      // ============================================
-
-      return res.status(201).json({
-        success: true,
-        locataire: {
-          id: rpcResult.locataire_id,
-          nom: nom,
-          prenom: prenom,
-          email: email,
-          profile_id: profileId,
-          logement: rpcResult.logement
-        },
-        temporary_password: {
-          password: finalTempPassword || tempPassword, // Mot de passe EN CLAIR (une seule fois)
-          expires_at: expiresAt,
-          expires_in_days: TEMP_PASSWORD_EXPIRY_DAYS
-        },
-        message: `Locataire ${nom} ${prenom} créé avec succès`
+    const { data: rpcResult, error: rpcError } = await supabaseAdmin
+      .rpc('creer_locataire_complet', {
+        p_nom: nom,
+        p_prenom: prenom,
+        p_email: email,
+        p_profile_id: profileId,
+        p_regie_id: regieId,  // ✅ AJOUTÉ : garantit isolation multi-tenant
+        p_logement_id: logement_id,
+        p_date_entree: date_entree,
+        p_telephone: telephone || null,
+        p_date_naissance: date_naissance || null,
+        p_contact_urgence_nom: contact_urgence_nom || null,
+        p_contact_urgence_telephone: contact_urgence_telephone || null
       });
 
-    } catch (rpcErrorCatch) {
-      // Rollback si RPC échoue
-      console.error('[CREATE LOCATAIRE] Rollback après erreur RPC:', rpcErrorCatch);
-      
-      // Supprimer auth.users (cascade supprimera profile)
-      await supabaseAdmin.auth.admin.deleteUser(profileId);
-
+    if (rpcError) {
+      console.error('[CREATE LOCATAIRE] Erreur RPC creer_locataire_complet:', rpcError);
+      // Rollback : supprimer profile + auth.users
+      try {
+        await supabaseAdmin.from('profiles').delete().eq('id', profileId);
+        await supabaseAdmin.auth.admin.deleteUser(profileId);
+      } catch (rollbackError) {
+        console.error('[CREATE LOCATAIRE] Erreur rollback après RPC:', rollbackError);
+      }
       return res.status(500).json({ 
-        error: rpcErrorCatch.message || 'Erreur lors de la création du locataire' 
+        error: `Erreur lors de la création du locataire : ${rpcError.message}`,
+        code: 'RPC_ERROR',
+        details: rpcError.message
       });
     }
 
-  } catch (error) {
-    console.error('[CREATE LOCATAIRE] Erreur globale:', error);
-    return res.status(500).json({ 
-      error: 'Erreur serveur interne',
-      details: error.message 
+    // ============================================
+    // 8. SUCCÈS - RETOURNER MOT DE PASSE TEMPORAIRE
+    // ============================================
+
+    return res.status(201).json({
+      success: true,
+      locataire: {
+        id: rpcResult.locataire_id,
+        nom: nom,
+        prenom: prenom,
+        email: email,
+        profile_id: profileId,
+        logement: rpcResult.logement
+      },
+      temporary_password: {
+        password: finalTempPassword, // Mot de passe EN CLAIR (une seule fois)
+        expires_at: expiresAt,
+        expires_in_days: TEMP_PASSWORD_EXPIRY_DAYS
+      },
+      message: `Locataire ${nom} ${prenom} créé avec succès`
     });
+
+  } catch (error) {
+    console.error('[CREATE LOCATAIRE] Erreur globale non catchée:', error);
+    
+    // S'assurer de toujours retourner du JSON
+    if (!res.headersSent) {
+      return res.status(500).json({ 
+        error: 'Erreur serveur interne',
+        code: 'INTERNAL_SERVER_ERROR',
+        details: error.message || 'Une erreur inattendue s\'est produite'
+      });
+    }
   }
 };
