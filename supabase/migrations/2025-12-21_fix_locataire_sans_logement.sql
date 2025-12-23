@@ -19,12 +19,13 @@
 -- Supprimer l'ancienne version si elle existe (optionnel, CREATE OR REPLACE suffit)
 -- DROP FUNCTION IF EXISTS creer_locataire_complet(text, text, text, uuid, uuid, date, text, date, text, text);
 
--- Recréer la fonction avec logement_id optionnel
+-- Recréer la fonction avec logement_id optionnel + regie_id obligatoire
 CREATE OR REPLACE FUNCTION creer_locataire_complet(
   p_nom text,
   p_prenom text,
   p_email text,
   p_profile_id uuid,              -- UUID déjà créé par backend (auth.users)
+  p_regie_id uuid,                -- ✅ OBLIGATOIRE : régie qui gère ce locataire
   p_logement_id uuid DEFAULT NULL,  -- ✅ OPTIONNEL : peut créer locataire sans logement
   p_date_entree date DEFAULT NULL,  -- ✅ DEFAULT obligatoire (contrainte PostgreSQL)
   p_telephone text DEFAULT NULL,
@@ -44,7 +45,19 @@ DECLARE
   v_immeuble_nom text;
 BEGIN
   -- ========================================
-  -- 1. Vérifier que logement existe et récupérer info (UNIQUEMENT SI logement_id fourni)
+  -- 1. Vérifier que p_regie_id est fourni
+  -- ========================================
+  IF p_regie_id IS NULL THEN
+    RAISE EXCEPTION 'regie_id obligatoire pour créer un locataire';
+  END IF;
+  
+  -- Vérifier que la régie existe
+  IF NOT EXISTS (SELECT 1 FROM regies WHERE id = p_regie_id) THEN
+    RAISE EXCEPTION 'Régie non trouvée : %', p_regie_id;
+  END IF;
+  
+  -- ========================================
+  -- 2. Vérifier que logement existe et appartient à la régie (UNIQUEMENT SI logement_id fourni)
   -- ========================================
   IF p_logement_id IS NOT NULL THEN
     SELECT 
@@ -54,17 +67,19 @@ BEGIN
     INTO v_regie_id, v_logement_numero, v_immeuble_nom
     FROM logements l
     JOIN immeubles im ON im.id = l.immeuble_id
-    JOIN regies r ON r.id = im.regie_id
-    JOIN profiles p ON p.id = r.profile_id
-    WHERE l.id = p_logement_id
-      AND p.id = auth.uid();  -- Vérifier que l'utilisateur connecté est la régie propriétaire
+    WHERE l.id = p_logement_id;
     
     IF NOT FOUND THEN
-      RAISE EXCEPTION 'Logement non trouvé ou vous n''avez pas les droits sur ce logement';
+      RAISE EXCEPTION 'Logement non trouvé : %', p_logement_id;
+    END IF;
+    
+    -- Vérifier que le logement appartient bien à la régie
+    IF v_regie_id != p_regie_id THEN
+      RAISE EXCEPTION 'Le logement % n''appartient pas à la régie %', p_logement_id, p_regie_id;
     END IF;
     
     -- ========================================
-    -- 4. Vérifier que logement n'a pas déjà un locataire actif
+    -- 3. Vérifier que logement n'a pas déjà un locataire actif
     -- ========================================
     IF EXISTS (
       SELECT 1 
@@ -77,7 +92,7 @@ BEGIN
   END IF;
   
   -- ========================================
-  -- 2. Vérifier que profile_id existe et role='locataire'
+  -- 4. Vérifier que profile_id existe et role='locataire'
   -- ========================================
   IF NOT EXISTS (
     SELECT 1 
@@ -89,7 +104,7 @@ BEGIN
   END IF;
   
   -- ========================================
-  -- 3. Vérifier que profile_id n'est pas déjà utilisé
+  -- 5. Vérifier que profile_id n'est pas déjà utilisé
   -- ========================================
   IF EXISTS (
     SELECT 1 
@@ -100,13 +115,14 @@ BEGIN
   END IF;
   
   -- ========================================
-  -- 5. Créer locataire
+  -- 6. Créer locataire avec regie_id
   -- ========================================
   INSERT INTO locataires (
     nom,
     prenom,
     email,
     profile_id,
+    regie_id,
     logement_id,
     date_entree,
     telephone,
@@ -119,6 +135,7 @@ BEGIN
     p_prenom,
     p_email,
     p_profile_id,
+    p_regie_id,
     p_logement_id,
     p_date_entree,
     p_telephone,
@@ -129,7 +146,7 @@ BEGIN
   RETURNING id INTO v_locataire_id;
   
   -- ========================================
-  -- 6. Optionnel : Mettre à jour statut logement (UNIQUEMENT si logement_id fourni)
+  -- 7. Optionnel : Mettre à jour statut logement (UNIQUEMENT si logement_id fourni)
   -- ========================================
   IF p_logement_id IS NOT NULL THEN
     UPDATE logements
@@ -138,7 +155,7 @@ BEGIN
   END IF;
   
   -- ========================================
-  -- 7. Retourner résultat
+  -- 8. Retourner résultat
   -- ========================================
   RETURN json_build_object(
     'success', true,
@@ -168,7 +185,7 @@ $$;
 -- =====================================================
 
 COMMENT ON FUNCTION creer_locataire_complet IS 
-  'Création atomique d''un locataire avec vérifications sécurité. Le logement_id est optionnel (NULL accepté) pour créer un locataire avant de lui assigner un logement.';
+  'Création atomique d''un locataire avec vérifications sécurité. Le logement_id est optionnel (NULL accepté) pour créer un locataire avant de lui assigner un logement. Le regie_id est obligatoire pour garantir l''isolation multi-tenant.';
 
 -- =====================================================
 -- TEST DE LA MIGRATION
@@ -180,6 +197,7 @@ COMMENT ON FUNCTION creer_locataire_complet IS
 --   p_prenom := 'Jean',
 --   p_email := 'jean.dupont@test.com',
 --   p_profile_id := '00000000-0000-0000-0000-000000000000'::uuid,
+--   p_regie_id := '00000000-0000-0000-0000-000000000001'::uuid,  -- ✅ OBLIGATOIRE
 --   p_logement_id := NULL,  -- ✅ NULL accepté
 --   p_date_entree := '2025-01-01'
 -- );

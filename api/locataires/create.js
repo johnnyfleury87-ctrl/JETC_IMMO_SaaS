@@ -55,6 +55,22 @@ module.exports = async (req, res) => {
       return res.status(403).json({ error: 'Accès non autorisé : réservé aux régies' });
     }
 
+    // Récupérer le regie_id du profil connecté (OBLIGATOIRE)
+    const { data: regieProfile, error: regieError } = await supabaseAdmin
+      .from('profiles')
+      .select('regie_id')
+      .eq('id', user.id)
+      .single();
+
+    if (regieError || !regieProfile?.regie_id) {
+      return res.status(400).json({ 
+        error: 'Profil régie sans rattachement valide. Contactez l\'administrateur.',
+        code: 'REGIE_ID_MISSING'
+      });
+    }
+
+    const regieId = regieProfile.regie_id;
+
     // ============================================
     // 2. RÉCUPÉRER DONNÉES FORMULAIRE
     // ============================================
@@ -159,6 +175,7 @@ module.exports = async (req, res) => {
           p_prenom: prenom,
           p_email: email,
           p_profile_id: profileId,
+          p_regie_id: regieId,  // ✅ AJOUTÉ : garantit isolation multi-tenant
           p_logement_id: logement_id,
           p_date_entree: date_entree,
           p_telephone: telephone || null,

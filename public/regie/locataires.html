@@ -816,10 +816,10 @@
 
         console.log('[LOCATAIRES][INIT] Profile result:', { profile, error: profileError });
 
-        // ⚠️ MODE DÉGRADÉ : Profil introuvable (rare, mais gérer sans bloquer)
+        // ⚠️ MODE DÉGRADÉ : Profil introuvable (rare, cas système critique)
         if (profileError || !profile) {
-          console.warn('[LOCATAIRES][INIT] Profil non trouvé, affichage en mode dégradé');
-          showWarningBanner('Votre profil est introuvable. Veuillez contacter l\'administrateur.');
+          console.error('[LOCATAIRES][INIT] ERREUR CRITIQUE : Profil réellement introuvable', profileError);
+          showWarningBanner('Erreur technique : impossible de charger votre profil. Veuillez rafraîchir la page ou contacter le support.');
           
           // Afficher email depuis session
           const userEmail = session.user.email || 'Utilisateur';
@@ -827,9 +827,16 @@
           document.getElementById('userAvatar').textContent = userEmail[0].toUpperCase();
           document.getElementById('agenceName').textContent = 'Régie non rattachée';
           
-          // Afficher tableau vide (pas de redirect)
-          displayEmptyState('Profil introuvable. Contactez l\'administrateur.');
-          return; // ✅ Pas de window.location
+          // Afficher tableau vide sans message trompeur
+          document.getElementById('locatairesTableBody').innerHTML = `
+            <tr>
+              <td colspan="8" class="empty-state">
+                <p style="color: var(--red-500);">❌ Erreur technique</p>
+                <p>Impossible de charger les données. Veuillez rafraîchir la page.</p>
+              </td>
+            </tr>
+          `;
+          return; // ✅ Pas de redirect (cas rare, pas blocage utilisateur)
         }
 
         // ============================================
