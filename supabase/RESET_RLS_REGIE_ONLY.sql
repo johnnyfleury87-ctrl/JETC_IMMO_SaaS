@@ -99,16 +99,17 @@ USING (
 -- =====================================================
 -- 3. LOGEMENTS - POLICIES MINIMALES (RÉGIE + ADMIN)
 -- =====================================================
+-- PHASE 1 : logements.regie_id NOT NULL (propriété directe)
+-- Plus de dépendance obligatoire à immeubles (maisons individuelles)
 
--- Régie SELECT ses logements (via immeubles → regies)
+-- Régie SELECT ses logements (via logements.regie_id direct)
 DROP POLICY IF EXISTS "Regie can view own logements" ON logements;
 CREATE POLICY "Regie can view own logements"
 ON logements FOR SELECT
 USING (
   EXISTS (
-    SELECT 1 FROM immeubles i
-    JOIN regies r ON r.id = i.regie_id
-    WHERE i.id = logements.immeuble_id
+    SELECT 1 FROM regies r
+    WHERE r.id = logements.regie_id
       AND r.profile_id = auth.uid()
   )
 );
@@ -119,9 +120,8 @@ CREATE POLICY "Regie can manage own logements"
 ON logements FOR ALL
 USING (
   EXISTS (
-    SELECT 1 FROM immeubles i
-    JOIN regies r ON r.id = i.regie_id
-    WHERE i.id = logements.immeuble_id
+    SELECT 1 FROM regies r
+    WHERE r.id = logements.regie_id
       AND r.profile_id = auth.uid()
   )
 );

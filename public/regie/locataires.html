@@ -1027,7 +1027,7 @@
             <td>${loc.email}</td>
             <td>${loc.telephone || '-'}</td>
             <td>${loc.logements?.numero || 'N/A'}</td>
-            <td>${loc.logements?.immeubles?.nom || 'N/A'}</td>
+            <td>${loc.logements?.immeubles?.nom || (loc.logements ? 'Maison individuelle' : 'N/A')}</td>
             <td>${new Date(loc.date_entree).toLocaleDateString('fr-FR')}</td>
             <td>
               ${loc.date_sortie 
@@ -1079,7 +1079,7 @@
             statut,
             immeubles(nom)
           `)
-          .eq('regie_id', regieId) // ✅ Filtre par regie_id
+          .eq('regie_id', regieId) // ✅ Filtre direct par regie_id
           .in('statut', ['vacant', 'en_travaux'])
           .order('numero');
 
@@ -1092,7 +1092,9 @@
           logements.forEach(log => {
             const option = document.createElement('option');
             option.value = log.id;
-            option.textContent = `${log.immeubles?.nom || 'Immeuble'} - ${log.numero} (${log.statut})`;
+            // Afficher "Maison individuelle" si pas d'immeuble
+            const immeubleName = log.immeubles?.nom || 'Maison individuelle';
+            option.textContent = `${immeubleName} - ${log.numero} (${log.statut})`;
             select.appendChild(option);
           });
         }
