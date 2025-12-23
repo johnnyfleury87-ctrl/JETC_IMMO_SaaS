@@ -148,6 +148,46 @@
       color: var(--gray-900);
     }
 
+    /* Warning Banner */
+    .warning-banner {
+      display: none;
+      background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+      border: 2px solid #ffc107;
+      border-radius: var(--radius-lg);
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .warning-banner.show {
+      display: block;
+    }
+
+    .warning-banner-content {
+      display: flex;
+      align-items: start;
+      gap: 16px;
+    }
+
+    .warning-banner-icon {
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .warning-banner-text h3 {
+      color: #856404;
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+    }
+
+    .warning-banner-text p {
+      color: #856404;
+      font-size: 14px;
+      margin: 0;
+      line-height: 1.5;
+    }
+
     /* Main Content */
     .main-content {
       flex: 1;
@@ -571,10 +611,24 @@
     <main class="main-content">
       <div class="page-header">
         <h1>👥 Gestion des locataires</h1>
-        <button class="btn-primary" onclick="openCreateModal()">
+        <button class="btn-primary" id="btnNouveauLocataire" onclick="openCreateModal()">
           <span>➕</span>
           <span>Nouveau locataire</span>
         </button>
+      </div>
+
+      <!-- Warning Banner (visible si profil orphelin) -->
+      <div class="warning-banner" id="warningBanner">
+        <div class="warning-banner-content">
+          <div class="warning-banner-icon">⚠️</div>
+          <div class="warning-banner-text">
+            <h3>Configuration incomplète</h3>
+            <p id="warningBannerMessage">
+              Votre compte régie n'est pas encore totalement rattaché à une agence.
+              Vous pouvez néanmoins préparer la création de locataires. Contactez l'administrateur si ce message persiste.
+            </p>
+          </div>
+        </div>
       </div>
 
       <div class="card">
@@ -736,68 +790,137 @@
 
     async function init() {
       try {
-        // Vérifier session
+        // ============================================
+        // 1. Vérifier session (CAS C : non connecté)
+        // ============================================
         const { data: { session }, error: sessionError } = await window.supabase.auth.getSession();
         
         if (sessionError || !session) {
+          console.warn('[LOCATAIRES][INIT] Pas de session valide, redirect login');
           window.location.href = '/login.html';
           return;
         }
 
         currentUser = session.user;
+        console.log('[LOCATAIRES][INIT] Session user ID:', currentUser.id);
 
-        console.log('[PROFILE LOAD] Session user ID:', currentUser.id);
-
-        // Récupérer profile avec relation explicite vers SA régie
-        // Utilisation de profiles_regie_id_fkey (profiles.regie_id → regies.id)
+        // ============================================
+        // 2. Récupérer profil (CAS A / CAS B : régie valide ou orpheline)
+        // ============================================
         const { data: profile, error: profileError } = await window.supabase
           .from('profiles')
           .select('*, regies!profiles_regie_id_fkey(*)')
           .eq('id', currentUser.id)
           .single();
 
-        console.log('[PROFILE LOAD] Result:', { profile, error: profileError });
+        console.log('[LOCATAIRES][INIT] Profile result:', { profile, error: profileError });
 
+        // ⚠️ MODE DÉGRADÉ : Profil introuvable (rare, mais gérer sans bloquer)
         if (profileError || !profile) {
-          console.error('[PROFILE LOAD] Erreur profile:', profileError);
-          alert('Erreur : profil introuvable. Vérifiez que votre compte est bien rattaché à une régie.');
-          window.location.href = '/login.html';
-          return;
+          console.warn('[LOCATAIRES][INIT] Profil non trouvé, affichage en mode dégradé');
+          showWarningBanner('Votre profil est introuvable. Veuillez contacter l\'administrateur.');
+          
+          // Afficher email depuis session
+          const userEmail = session.user.email || 'Utilisateur';
+          document.getElementById('userEmail').textContent = userEmail;
+          document.getElementById('userAvatar').textContent = userEmail[0].toUpperCase();
+          document.getElementById('agenceName').textContent = 'Régie non rattachée';
+          
+          // Afficher tableau vide (pas de redirect)
+          displayEmptyState('Profil introuvable. Contactez l\'administrateur.');
+          return; // ✅ Pas de window.location
         }
 
-        // Vérifier rôle régie
+        // ============================================
+        // 3. Vérifier rôle (CAS C : utilisateur non-régie)
+        // ============================================
         if (profile.role !== 'regie') {
-          alert('Accès non autorisé : réservé aux régies');
+          console.warn('[LOCATAIRES][INIT] Accès refusé : rôle =', profile.role);
+          alert('Accès non autorisé : réservé aux régies immobilières');
           window.location.href = '/login.html';
-          return;
+          return; // ✅ Redirect justifié (accès interdit)
         }
 
-        // Récupérer regie_id depuis le profil
-        regieId = profile.regie_id;
+        // ============================================
+        // 4. Récupérer regie_id (CAS B : profil orphelin)
+        // ============================================
+        regieId = profile.regie_id || null;
 
         if (!regieId) {
-          console.error('[PROFILE LOAD] Profil régie sans regie_id:', profile);
-          alert('Erreur : profil régie manquant – création ou rattachement requis. Contactez l\'administrateur.');
-          window.location.href = '/login.html';
-          return;
+          console.warn('[LOCATAIRES][INIT] Profil régie sans regie_id (orphelin)', profile);
+          
+          // ✅ AFFICHER WARNING NON BLOQUANT
+          showWarningBanner(
+            'Votre compte régie n\'est pas encore totalement rattaché à une agence. ' +
+            'Vous pouvez néanmoins préparer la création de locataires. ' +
+            'Contactez l\'administrateur si ce message persiste.'
+          );
+          
+          // ✅ CONTINUER (pas de return, pas de redirect)
+          // Le bouton "Nouveau locataire" reste actif
+        } else {
+          console.log('[LOCATAIRES][INIT] ✅ Régie ID valide:', regieId);
         }
 
-        console.log('[PROFILE LOAD] Success - Régie ID:', regieId);
-
-        // Afficher infos utilisateur
+        // ============================================
+        // 5. Afficher infos utilisateur
+        // ============================================
         document.getElementById('userEmail').textContent = profile.email;
         document.getElementById('userAvatar').textContent = profile.email[0].toUpperCase();
-        document.getElementById('agenceName').textContent = profile.regies?.nom || 'Régie';
+        document.getElementById('agenceName').textContent = profile.regies?.nom || 'Régie non rattachée';
 
-        // Charger logements disponibles (pour select)
-        await loadLogementsDisponibles();
+        // ============================================
+        // 6. Charger données (CAS A : régie valide avec/sans locataires)
+        // ============================================
+        if (regieId) {
+          // Charger logements disponibles (pour select)
+          await loadLogementsDisponibles();
+        }
 
-        // Charger locataires
+        // Charger locataires (affichera liste vide si aucun)
         await loadLocataires();
 
       } catch (error) {
-        console.error('Erreur initialisation:', error);
-        alert('Erreur lors de l\'initialisation');
+        console.error('[LOCATAIRES][INIT][EXCEPTION]', error);
+        
+        // ✅ PAS d'alert() bloquant
+        showWarningBanner(
+          'Erreur technique lors de l\'initialisation. ' +
+          'Rafraîchissez la page ou contactez l\'administrateur.'
+        );
+        
+        // Afficher tableau vide (pas de crash)
+        displayEmptyState('Erreur lors du chargement');
+      }
+    }
+
+    // ============================================
+    // Fonction : Afficher warning banner non bloquant
+    // ============================================
+    function showWarningBanner(message) {
+      const banner = document.getElementById('warningBanner');
+      const messageEl = document.getElementById('warningBannerMessage');
+      
+      if (banner && messageEl) {
+        messageEl.textContent = message;
+        banner.classList.add('show');
+      }
+    }
+
+    // ============================================
+    // Fonction : Afficher état vide (sans bloquer UI)
+    // ============================================
+    function displayEmptyState(message) {
+      const tbody = document.getElementById('locatairesTableBody');
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="empty-state">
+              <div>ℹ️</div>
+              <p>${message}</p>
+            </td>
+          </tr>
+        `;
       }
     }
 
@@ -809,6 +932,20 @@
       try {
         const tbody = document.getElementById('locatairesTableBody');
         tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><div class="loading"></div><p>Chargement...</p></td></tr>';
+
+        // ✅ MODE DÉGRADÉ : Si pas de regieId, afficher état vide (ne pas crash)
+        if (!regieId) {
+          console.warn('[LOCATAIRES][LOAD] Pas de regieId, affichage état vide');
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="8" class="empty-state">
+                <p style="font-size: 18px; margin-bottom: 10px;">👤 Aucun locataire</p>
+                <p>Commencez par créer votre premier locataire</p>
+              </td>
+            </tr>
+          `;
+          return;
+        }
 
         const { data: locataires, error } = await window.supabase
           .from('locataires')
@@ -823,6 +960,7 @@
               )
             )
           `)
+          .eq('regie_id', regieId) // ✅ Filtre par regie_id
           .order('created_at', { ascending: false });
 
         if (error) {
@@ -883,6 +1021,14 @@
 
     async function loadLogementsDisponibles() {
       try {
+        // ✅ MODE DÉGRADÉ : Si pas de regieId, ne pas charger (éviter erreur)
+        if (!regieId) {
+          console.warn('[LOCATAIRES][LOAD_LOGEMENTS] Pas de regieId, skip chargement');
+          const select = document.getElementById('logement_id');
+          select.innerHTML = '<option value="">Aucun logement disponible (régie non rattachée)</option>';
+          return;
+        }
+
         const { data: logements, error } = await window.supabase
           .from('logements')
           .select(`
@@ -891,6 +1037,7 @@
             statut,
             immeubles(nom)
           `)
+          .eq('regie_id', regieId) // ✅ Filtre par regie_id
           .in('statut', ['vacant', 'en_travaux'])
           .order('numero');
 
@@ -918,6 +1065,13 @@
     // ============================================
 
     function openCreateModal() {
+      // ✅ Vérification : Si pas de regieId, avertir mais laisser ouvrir
+      if (!regieId) {
+        console.warn('[LOCATAIRES][CREATE] Pas de regieId, création peut échouer');
+        // Afficher warning dans le modal (non bloquant)
+        showError('⚠️ Attention : Votre compte n\'est pas rattaché à une régie. La création peut échouer. Contactez l\'administrateur.');
+      }
+      
       document.getElementById('createModal').classList.add('active');
       document.getElementById('createLocataireForm').reset();
       hideAlerts();
