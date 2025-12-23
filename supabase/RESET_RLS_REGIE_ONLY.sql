@@ -216,7 +216,6 @@ COMMIT;
 -- =====================================================
 
 DO $$
-BEGIN
 DECLARE
   v_immeubles_count int;
   v_logements_count int;
@@ -259,6 +258,7 @@ BEGIN
   RAISE NOTICE '   2. SELECT * FROM logements → OK (régie)';
   RAISE NOTICE '   3. SELECT * FROM locataires → OK (régie)';
   RAISE NOTICE '   4. Page /regie/locataires charge';
-  RAISE NOTICE '   5. Création locataire SANS logement
+  RAISE NOTICE '   5. Création locataire SANS logement';
+  RAISE NOTICE '';
   RAISE NOTICE '═══════════════════════════════════════════════════';
 END $$;
