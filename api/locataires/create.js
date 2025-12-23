@@ -87,13 +87,21 @@ module.exports = async (req, res) => {
       contact_urgence_telephone
     } = req.body;
 
-    // Validation (mot_de_passe retiré, généré automatiquement)
+    // Validation champs obligatoires
     if (!nom || !prenom || !email || !date_entree) {
       return res.status(400).json({ 
         error: 'Champs obligatoires manquants',
         required: ['nom', 'prenom', 'email', 'date_entree']
       });
     }
+
+    // ⚠️ NETTOYAGE CRITIQUE : Convertir strings vides en null
+    // PostgreSQL distingue "" de NULL, et UUID/date ne peuvent pas être ""
+    const cleanLogementId = logement_id && logement_id.trim() !== '' ? logement_id : null;
+    const cleanTelephone = telephone && telephone.trim() !== '' ? telephone : null;
+    const cleanDateNaissance = date_naissance && date_naissance.trim() !== '' ? date_naissance : null;
+    const cleanContactNom = contact_urgence_nom && contact_urgence_nom.trim() !== '' ? contact_urgence_nom : null;
+    const cleanContactTel = contact_urgence_telephone && contact_urgence_telephone.trim() !== '' ? contact_urgence_telephone : null;
 
     // ============================================
     // 3. GÉNÉRER MOT DE PASSE TEMPORAIRE
@@ -189,13 +197,13 @@ module.exports = async (req, res) => {
         p_prenom: prenom,
         p_email: email,
         p_profile_id: profileId,
-        p_regie_id: regieId,  // ✅ AJOUTÉ : garantit isolation multi-tenant
-        p_logement_id: logement_id,
+        p_regie_id: regieId,
+        p_logement_id: cleanLogementId,        // ✅ null si vide
         p_date_entree: date_entree,
-        p_telephone: telephone || null,
-        p_date_naissance: date_naissance || null,
-        p_contact_urgence_nom: contact_urgence_nom || null,
-        p_contact_urgence_telephone: contact_urgence_telephone || null
+        p_telephone: cleanTelephone,           // ✅ null si vide
+        p_date_naissance: cleanDateNaissance,  // ✅ null si vide
+        p_contact_urgence_nom: cleanContactNom,                // ✅ null si vide
+        p_contact_urgence_telephone: cleanContactTel           // ✅ null si vide
       });
 
     if (rpcError) {
