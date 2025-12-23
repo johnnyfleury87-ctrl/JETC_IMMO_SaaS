@@ -41,23 +41,29 @@ async function createTempPassword(profileId, createdByUserId) {
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + TEMP_PASSWORD_EXPIRY_DAYS);
   
-  // Upsert dans temporary_passwords (remplace si existe)
-  const { error } = await supabaseAdmin
-    .from('temporary_passwords')
-    .upsert({
-      profile_id: profileId,
-      password_clear: tempPassword,
-      expires_at: expiresAt.toISOString(),
-      is_used: false,
-      used_at: null,
-      created_by: createdByUserId,
-      created_at: new Date().toISOString()
-    }, {
-      onConflict: 'profile_id'
-    });
-  
-  if (error) {
-    throw new Error(`Erreur stockage mot de passe temporaire : ${error.message}`);
+  // Tentative d'upsert dans temporary_passwords (NON BLOQUANT si table absente)
+  try {
+    const { error } = await supabaseAdmin
+      .from('temporary_passwords')
+      .upsert({
+        profile_id: profileId,
+        password_clear: tempPassword,
+        expires_at: expiresAt.toISOString(),
+        is_used: false,
+        used_at: null,
+        created_by: createdByUserId,
+        created_at: new Date().toISOString()
+      }, {
+        onConflict: 'profile_id'
+      });
+    
+    if (error) {
+      console.warn('[passwordService] Table temporary_passwords absente ou erreur:', error.message);
+      // NON BLOQUANT : on continue sans stocker
+    }
+  } catch (tableError) {
+    console.warn('[passwordService] Table temporary_passwords non disponible:', tableError.message);
+    // NON BLOQUANT : le mot de passe sera quand même retourné
   }
   
   return {
@@ -72,23 +78,28 @@ async function createTempPassword(profileId, createdByUserId) {
  * @returns {Promise<object|null>}
  */
 async function getTempPassword(profileId) {
-  const { data, error } = await supabaseAdmin
-    .from('temporary_passwords')
-    .select('*')
-    .eq('profile_id', profileId)
-    .single();
-  
-  if (error || !data) {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('temporary_passwords')
+      .select('*')
+      .eq('profile_id', profileId)
+      .single();
+    
+    if (error || !data) {
+      return null;
+    }
+    
+    return {
+      profileId: data.profile_id,
+      passwordClear: data.password_clear,
+      expiresAt: new Date(data.expires_at),
+      isUsed: data.is_used,
+      usedAt: data.used_at ? new Date(data.used_at) : null
+    };
+  } catch (error) {
+    console.warn('[passwordService] getTempPassword error:', error.message);
     return null;
   }
-  
-  return {
-    profileId: data.profile_id,
-    passwordClear: data.password_clear,
-    expiresAt: new Date(data.expires_at),
-    isUsed: data.is_used,
-    usedAt: data.used_at ? new Date(data.used_at) : null
-  };
 }
 
 /**
@@ -97,13 +108,17 @@ async function getTempPassword(profileId) {
  * @returns {Promise<void>}
  */
 async function markTempPasswordAsUsed(profileId) {
-  await supabaseAdmin
-    .from('temporary_passwords')
-    .update({
-      is_used: true,
-      used_at: new Date().toISOString()
-    })
-    .eq('profile_id', profileId);
+  try {
+    await supabaseAdmin
+      .from('temporary_passwords')
+      .update({
+        is_used: true,
+        used_at: new Date().toISOString()
+      })
+      .eq('profile_id', profileId);
+  } catch (error) {
+    console.warn('[passwordService] markTempPasswordAsUsed error:', error.message);
+  }
 }
 
 /**
@@ -112,10 +127,14 @@ async function markTempPasswordAsUsed(profileId) {
  * @returns {Promise<void>}
  */
 async function deleteTempPassword(profileId) {
-  await supabaseAdmin
-    .from('temporary_passwords')
-    .delete()
-    .eq('profile_id', profileId);
+  try {
+    await supabaseAdmin
+      .from('temporary_passwords')
+      .delete()
+      .eq('profile_id', profileId);
+  } catch (error) {
+    console.warn('[passwordService] deleteTempPassword error:', error.message);
+  }
 }
 
 /**
