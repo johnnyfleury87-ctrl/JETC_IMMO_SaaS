@@ -1,23 +1,22 @@
 /**
  * SERVICE - Génération et gestion des mots de passe temporaires
  * 
- * Objectif : Centraliser la logique de génération, stockage et validation
+ * SIMPLIFIÉ : Pas de bcryptjs, stockage en clair (protégé par RLS)
  * 
  * Sécurité :
  * - Génération cryptographiquement sécurisée
- * - Hash bcrypt avec salt automatique
+ * - Supabase Auth hashe automatiquement le mot de passe dans auth.users
+ * - Table temporary_passwords protégée par RLS
  * - Expiration après 7 jours
- * - Un seul mot de passe actif par locataire
+ * - Marqué is_used après première connexion
  */
 
-const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { supabaseAdmin } = require('../_supabase');
 
 // Configuration
 const TEMP_PASSWORD_LENGTH = 12;
 const TEMP_PASSWORD_EXPIRY_DAYS = 7;
-const BCRYPT_ROUNDS = 10;
 
 /**
  * Génère un mot de passe temporaire sécurisé
@@ -38,26 +37,8 @@ function generateTempPassword() {
 }
 
 /**
- * Hashe un mot de passe avec bcrypt
- * @param {string} password - Mot de passe en clair
- * @returns {Promise<string>} Hash bcrypt
- */
-async function hashPassword(password) {
-  return await bcrypt.hash(password, BCRYPT_ROUNDS);
-}
-
-/**
- * Vérifie un mot de passe contre un hash
- * @param {string} password - Mot de passe en clair
- * @param {string} hash - Hash bcrypt
- * @returns {Promise<boolean>}
- */
-async function verifyPassword(password, hash) {
-  return await bcrypt.compare(password, hash);
-}
-
-/**
  * Crée ou remplace un mot de passe temporaire pour un locataire
+ * STOCKÉ EN CLAIR (Supabase Auth hashe déjà dans auth.users)
  * @param {string} profileId - UUID du profile locataire
  * @param {string} createdByUserId - UUID de la régie qui crée
  * @returns {Promise<{password: string, expiresAt: Date}>}
@@ -65,18 +46,18 @@ async function verifyPassword(password, hash) {
 async function createTempPassword(profileId, createdByUserId) {
   // Générer mot de passe
   const tempPassword = generateTempPassword();
-  const passwordHash = await hashPassword(tempPassword);
   
   // Calculer expiration
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + TEMP_PASSWORD_EXPIRY_DAYS);
   
   // Upsert dans temporary_passwords (remplace si existe)
+  // Stocké en CLAIR car Supabase Auth hashe déjà, et protégé par RLS
   const { error } = await supabaseAdmin
     .from('temporary_passwords')
     .upsert({
       profile_id: profileId,
-      password_hash: passwordHash,
+      password_clear: tempPassword,  // ✅ En clair, pas de hash bcrypt
       expires_at: expiresAt.toISOString(),
       is_used: false,
       used_at: null,
@@ -98,6 +79,91 @@ async function createTempPassword(profileId, createdByUserId) {
 
 /**
  * Récupère le mot de passe temporaire d'un locataire
+ * @param {string} profileId - UUID du profile
+ * @returns {Promise<object|null>}
+ */
+async function getTempPassword(profileId) {
+  const { data, error } = await supabaseAdmin
+    .from('temporary_passwords')
+    .select('*')
+    .eq('profile_id', profileId)
+    .single();
+  
+  if (error || !data) {
+    return null;
+  }
+  
+  return {
+    profileId: data.profile_id,
+    passwordClear: data.password_clear,  // ✅ En clair
+    expiresAt: new Date(data.expires_at),
+    isUsed: data.is_used,
+    usedAt: data.used_at ? new Date(data.used_at) : null
+  };
+}
+
+/**
+ * Marque un mot de passe temporaire comme utilisé
+ * @param {string} profileId - UUID du profile locataire
+ * @returns {Promise<void>}
+ */
+async function markTempPasswordAsUsed(profileId) {
+  await supabaseAdmin
+    .from('temporary_passwords')
+    .update({
+      is_used: true,
+      used_at: new Date().toISOString()
+    })
+    .eq('profile_id', profileId);
+}
+
+/**
+ * Supprime le mot de passe temporaire (après changement permanent)
+ * @param {string} profileId - UUID du profile locataire
+ * @returns {Promise<void>}
+ */
+async function deleteTempPassword(profileId) {
+  await supabaseAdmin
+    .from('temporary_passwords')
+    .delete()
+    .eq('profile_id', profileId);
+}
+
+/**
+ * Vérifie si un mot de passe temporaire est valide
+ * @param {string} profileId - UUID du profile
+ * @param {string} password - Mot de passe en clair
+ * @returns {Promise<{valid: boolean, reason?: string}>}
+ */
+async function validateTempPassword(profileId, password) {
+  const tempPwd = await getTempPassword(profileId);
+  
+  if (!tempPwd) {
+    return { valid: false, reason: 'Aucun mot de passe temporaire trouvé' };
+  }
+  
+  // Vérifier expiration
+  if (new Date() > tempPwd.expiresAt) {
+    return { valid: false, reason: 'Mot de passe temporaire expiré' };
+  }
+  
+  // Vérifier mot de passe (comparaison en clair)
+  if (password !== tempPwd.passwordClear) {
+    return { valid: false, reason: 'Mot de passe incorrect' };
+  }
+  
+  return { valid: true };
+}
+
+module.exports = {
+  generateTempPassword,
+  createTempPassword,
+  getTempPassword,
+  markTempPasswordAsUsed,
+  deleteTempPassword,
+  validateTempPassword,
+  TEMP_PASSWORD_EXPIRY_DAYS
+};
  * @param {string} profileId - UUID du profile locataire
  * @returns {Promise<{passwordHash: string, expiresAt: Date, isUsed: boolean} | null>}
  */
