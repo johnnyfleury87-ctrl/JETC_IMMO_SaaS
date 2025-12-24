@@ -628,6 +628,7 @@
       </div>
 
       <form id="logementForm">
+        <!-- TYPE DE LOGEMENT -->
         <div class="form-group">
           <label>Immeuble (optionnel pour maisons)</label>
           <select id="logementImmeuble">
@@ -635,6 +636,9 @@
           </select>
         </div>
 
+        <!-- IDENTIFICATION -->
+        <h3 style="margin: 20px 0 15px 0; font-size: 16px; color: var(--gray-700); border-bottom: 2px solid var(--gray-200); padding-bottom: 8px;">📋 Identification</h3>
+        
         <div class="form-row">
           <div class="form-group">
             <label>Numéro / Référence *</label>
@@ -656,6 +660,33 @@
           </div>
         </div>
 
+        <!-- ADRESSE DU LOGEMENT -->
+        <h3 style="margin: 20px 0 15px 0; font-size: 16px; color: var(--gray-700); border-bottom: 2px solid var(--gray-200); padding-bottom: 8px;">📍 Adresse du logement</h3>
+        
+        <div class="form-group">
+          <label>Adresse (rue + numéro) *</label>
+          <input type="text" id="logementAdresse" placeholder="12 rue Victor Hugo" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>NPA *</label>
+            <input type="text" id="logementNPA" placeholder="1000" pattern="[0-9]{4}" maxlength="4" required>
+          </div>
+          <div class="form-group">
+            <label>Ville *</label>
+            <input type="text" id="logementVille" placeholder="Lausanne" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Pays</label>
+          <input type="text" id="logementPays" value="Suisse" readonly style="background: var(--gray-100); cursor: not-allowed;">
+        </div>
+
+        <!-- CARACTÉRISTIQUES -->
+        <h3 style="margin: 20px 0 15px 0; font-size: 16px; color: var(--gray-700); border-bottom: 2px solid var(--gray-200); padding-bottom: 8px;">🏠 Caractéristiques</h3>
+
         <div class="form-row">
           <div class="form-group">
             <label>Superficie (m²)</label>
@@ -673,30 +704,95 @@
             <input type="number" id="logementEtage" min="-2" max="50" placeholder="0">
           </div>
           <div class="form-group">
-            <label>Statut *</label>
-            <select id="logementStatut" required>
-              <option value="vacant">Vacant</option>
-              <option value="occupé">Occupé</option>
-              <option value="en_travaux">En travaux</option>
+            <label>Orientation</label>
+            <select id="logementOrientation">
+              <option value="">Non spécifié</option>
+              <option value="Nord">Nord</option>
+              <option value="Sud">Sud</option>
+              <option value="Est">Est</option>
+              <option value="Ouest">Ouest</option>
+              <option value="Nord-Est">Nord-Est</option>
+              <option value="Nord-Ouest">Nord-Ouest</option>
+              <option value="Sud-Est">Sud-Est</option>
+              <option value="Sud-Ouest">Sud-Ouest</option>
             </select>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label>Loyer mensuel (€)</label>
-            <input type="number" id="logementLoyer" min="0" max="10000" step="0.01" placeholder="750.00">
+            <label>Année de construction</label>
+            <input type="number" id="logementAnneeConstruction" min="1800" max="2100" placeholder="2000">
           </div>
           <div class="form-group">
-            <label>Charges mensuelles (€)</label>
-            <input type="number" id="logementCharges" min="0" max="1000" step="0.01" placeholder="100.00">
+            <label>Rénové en (année)</label>
+            <input type="number" id="logementAnneeRenovation" min="1800" max="2100" placeholder="2020">
           </div>
         </div>
 
         <div class="form-group">
-          <label>Dépôt de garantie (€)</label>
-          <input type="number" id="logementDepot" min="0" max="10000" step="0.01" placeholder="750.00">
+          <label>Type de chauffage</label>
+          <select id="logementTypeChauffage">
+            <option value="">Non spécifié</option>
+            <option value="Individuel électrique">Individuel électrique</option>
+            <option value="Individuel gaz">Individuel gaz</option>
+            <option value="Collectif">Collectif</option>
+            <option value="Pompe à chaleur">Pompe à chaleur</option>
+            <option value="Mazout">Mazout</option>
+            <option value="Bois">Bois</option>
+            <option value="Autre">Autre</option>
+          </select>
         </div>
+
+        <div class="form-group">
+          <label>Description / Spécifications</label>
+          <textarea id="logementDescription" rows="4" placeholder="Décrivez le logement, ses particularités, l'état général, etc."></textarea>
+        </div>
+
+        <!-- PRIX & FINANCES -->
+        <h3 style="margin: 20px 0 15px 0; font-size: 16px; color: var(--gray-700); border-bottom: 2px solid var(--gray-200); padding-bottom: 8px;">💰 Prix & Finances (CHF)</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Loyer mensuel (CHF)</label>
+            <input type="number" id="logementLoyer" min="0" max="100000" step="0.01" placeholder="1500.00">
+          </div>
+          <div class="form-group">
+            <label>Charges mensuelles (CHF)</label>
+            <input type="number" id="logementCharges" min="0" max="10000" step="0.01" placeholder="200.00">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Dépôt de garantie (CHF)</label>
+          <input type="number" id="logementDepot" min="0" max="100000" step="0.01" placeholder="3000.00">
+        </div>
+
+        <!-- STATUT & DISPONIBILITÉ -->
+        <h3 style="margin: 20px 0 15px 0; font-size: 16px; color: var(--gray-700); border-bottom: 2px solid var(--gray-200); padding-bottom: 8px;">📊 Statut & Disponibilité</h3>
+
+        <div class="form-group">
+          <label>Statut *</label>
+          <select id="logementStatut" required>
+            <option value="vacant">Vacant</option>
+            <option value="occupé">Occupé</option>
+            <option value="en_travaux">En travaux</option>
+          </select>
+        </div>
+
+        <!-- PROPRIÉTAIRE -->
+        <h3 style="margin: 20px 0 15px 0; font-size: 16px; color: var(--gray-700); border-bottom: 2px solid var(--gray-200); padding-bottom: 8px;">👤 Propriétaire</h3>
+        
+        <div class="form-group">
+          <label>Propriétaire</label>
+          <select id="logementProprietaire" disabled style="background: var(--gray-100); cursor: not-allowed;">
+            <option value="">Optionnel - Fonctionnalité à venir</option>
+          </select>
+          <small style="color: var(--gray-500); font-size: 12px;">La gestion des propriétaires sera disponible prochainement</small>
+        </div>
+
+        <!-- ÉQUIPEMENTS -->
+        <h3 style="margin: 20px 0 15px 0; font-size: 16px; color: var(--gray-700); border-bottom: 2px solid var(--gray-200); padding-bottom: 8px;">✨ Équipements</h3>
 
         <div class="form-group">
           <label>Équipements</label>
@@ -1001,17 +1097,33 @@
         document.getElementById('modalTitle').textContent = '✏️ Modifier le logement';
         document.getElementById('btnSubmit').textContent = 'Enregistrer';
         
-        // Remplir le formulaire
+        // Remplir le formulaire - Identification
         document.getElementById('logementImmeuble').value = logement.immeuble_id || '';
         document.getElementById('logementNumero').value = logement.numero || '';
         document.getElementById('logementType').value = logement.type_logement || '';
+        
+        // Adresse
+        document.getElementById('logementAdresse').value = logement.adresse || '';
+        document.getElementById('logementNPA').value = logement.npa || '';
+        document.getElementById('logementVille').value = logement.ville || '';
+        
+        // Caractéristiques
         document.getElementById('logementSuperficie').value = logement.superficie || '';
         document.getElementById('logementPieces').value = logement.nombre_pieces || '';
         document.getElementById('logementEtage').value = logement.etage !== null ? logement.etage : '';
+        document.getElementById('logementOrientation').value = logement.orientation || '';
+        document.getElementById('logementAnneeConstruction').value = logement.annee_construction || '';
+        document.getElementById('logementAnneeRenovation').value = logement.annee_renovation || '';
+        document.getElementById('logementTypeChauffage').value = logement.type_chauffage || '';
+        document.getElementById('logementDescription').value = logement.description || '';
+        
+        // Prix & statut
         document.getElementById('logementStatut').value = logement.statut || 'vacant';
         document.getElementById('logementLoyer').value = logement.loyer_mensuel || '';
         document.getElementById('logementCharges').value = logement.charges_mensuelles || '';
         document.getElementById('logementDepot').value = logement.depot_garantie || '';
+        
+        // Équipements
         document.getElementById('logementBalcon').checked = logement.balcon || false;
         document.getElementById('logementParking').checked = logement.parking || false;
         document.getElementById('logementCave').checked = logement.cave || false;
@@ -1064,84 +1176,165 @@
     document.getElementById('logementForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
+      console.log('[LOGEMENTS][SUBMIT] Début création/modification');
+      
+      // =====================================================
+      // COLLECTE DES DONNÉES
+      // =====================================================
       const immeuble_id = document.getElementById('logementImmeuble').value || null;
       const numero = document.getElementById('logementNumero').value.trim();
       const type_logement = document.getElementById('logementType').value;
+      
+      // Adresse du logement
+      const adresse = document.getElementById('logementAdresse').value.trim();
+      const npa = document.getElementById('logementNPA').value.trim();
+      const ville = document.getElementById('logementVille').value.trim();
+      const pays = document.getElementById('logementPays').value.trim();
+      
+      // Caractéristiques
       const superficie = document.getElementById('logementSuperficie').value;
       const nombre_pieces = document.getElementById('logementPieces').value;
       const etage = document.getElementById('logementEtage').value;
+      const orientation = document.getElementById('logementOrientation').value || null;
+      const annee_construction = document.getElementById('logementAnneeConstruction').value;
+      const annee_renovation = document.getElementById('logementAnneeRenovation').value;
+      const type_chauffage = document.getElementById('logementTypeChauffage').value || null;
+      const description = document.getElementById('logementDescription').value.trim();
+      
+      // Prix & finances
       const statut = document.getElementById('logementStatut').value;
       const loyer_mensuel = document.getElementById('logementLoyer').value;
       const charges_mensuelles = document.getElementById('logementCharges').value;
       const depot_garantie = document.getElementById('logementDepot').value;
+      
+      // Équipements
       const balcon = document.getElementById('logementBalcon').checked;
       const parking = document.getElementById('logementParking').checked;
       const cave = document.getElementById('logementCave').checked;
       const meuble = document.getElementById('logementMeuble').checked;
 
+      // =====================================================
+      // VALIDATION DES CHAMPS OBLIGATOIRES
+      // =====================================================
+      console.log('[LOGEMENTS][VALIDATION] Vérification champs obligatoires');
+      
       if (!numero || !type_logement || !statut) {
-        showModalError('Veuillez remplir tous les champs obligatoires');
+        showModalError('⚠️ Veuillez remplir les champs obligatoires : Numéro, Type, Statut');
         return;
       }
 
+      if (!adresse || !npa || !ville) {
+        showModalError('⚠️ L\'adresse complète est obligatoire : Adresse, NPA, Ville');
+        return;
+      }
+
+      // Validation NPA (format suisse : 4 chiffres)
+      if (!/^[0-9]{4}$/.test(npa)) {
+        showModalError('⚠️ Le NPA doit contenir exactement 4 chiffres (format suisse)');
+        return;
+      }
+
+      // =====================================================
+      // CONSTRUCTION OBJET LOGEMENT
+      // =====================================================
+      console.log('[LOGEMENTS][DATA] Construction objet logement');
+      console.log('[LOGEMENTS][DATA] Table cible : logements');
+      console.log('[LOGEMENTS][DATA] regie_id :', currentRegieId);
+      console.log('[LOGEMENTS][DATA] immeuble_id :', immeuble_id || 'NULL (maison individuelle)');
+      
       const logementData = {
+        // Identification
         numero,
         type_logement,
+        
+        // Adresse du logement (NOUVEAU)
+        adresse,
+        npa,
+        ville,
+        pays,
+        
+        // Caractéristiques
         superficie: superficie ? parseFloat(superficie) : null,
         nombre_pieces: nombre_pieces ? parseInt(nombre_pieces) : null,
         etage: etage !== '' ? parseInt(etage) : null,
+        orientation,
+        annee_construction: annee_construction ? parseInt(annee_construction) : null,
+        annee_renovation: annee_renovation ? parseInt(annee_renovation) : null,
+        type_chauffage,
+        description: description || null,
+        
+        // Prix & finances (CHF)
         statut,
         loyer_mensuel: loyer_mensuel ? parseFloat(loyer_mensuel) : null,
         charges_mensuelles: charges_mensuelles ? parseFloat(charges_mensuelles) : null,
         depot_garantie: depot_garantie ? parseFloat(depot_garantie) : null,
+        
+        // Équipements
         balcon,
         parking,
         cave,
         meuble,
-        immeuble_id,
-        regie_id: currentRegieId
+        
+        // Relations (CRITIQUE)
+        immeuble_id,        // NULL si maison individuelle
+        regie_id: currentRegieId  // TOUJOURS renseigné
       };
 
+      console.log('[LOGEMENTS][DATA] Objet logement complet :', logementData);
+
+      // =====================================================
+      // INSERTION / MODIFICATION EN BDD
+      // =====================================================
       try {
         if (editingLogementId) {
-          // Modification
+          // MODIFICATION
+          console.log('[LOGEMENTS][UPDATE] Modification logement ID :', editingLogementId);
+          
           const { error } = await supabase
             .from('logements')
             .update(logementData)
             .eq('id', editingLogementId);
           
           if (error) {
-            console.error('[LOGEMENTS] Erreur modification:', error);
-            showModalError('Erreur lors de la modification');
+            console.error('[LOGEMENTS][UPDATE] ❌ Erreur SQL :', error);
+            showModalError(`Erreur modification : ${error.message}`);
             return;
           }
 
-          console.log('[LOGEMENTS] ✅ Modifié');
-          showModalSuccess('Logement modifié avec succès');
+          console.log('[LOGEMENTS][UPDATE] ✅ Logement modifié');
+          showModalSuccess('✅ Logement modifié avec succès');
           
         } else {
-          // Création
-          const { error } = await supabase
+          // CRÉATION
+          console.log('[LOGEMENTS][INSERT] Création nouveau logement');
+          
+          const { data, error } = await supabase
             .from('logements')
-            .insert([logementData]);
+            .insert([logementData])
+            .select();
           
           if (error) {
-            console.error('[LOGEMENTS] Erreur création:', error);
-            showModalError('Erreur lors de la création');
+            console.error('[LOGEMENTS][INSERT] ❌ Erreur SQL :', error);
+            showModalError(`Erreur création : ${error.message}`);
             return;
           }
 
-          console.log('[LOGEMENTS] ✅ Créé');
-          showModalSuccess('Logement créé avec succès');
+          console.log('[LOGEMENTS][INSERT] ✅ Logement créé, ID :', data[0].id);
+          console.log('[LOGEMENTS][INSERT] Données enregistrées :', data[0]);
+          showModalSuccess('✅ Logement créé avec succès');
         }
 
+        // Fermeture et rafraîchissement
         setTimeout(() => {
           closeModal();
           loadLogements();
         }, 1500);
         
       } catch (error) {
-        console.error('[LOGEMENTS] Exception:', error);
+        console.error('[LOGEMENTS][EXCEPTION] ❌ Exception :', error);
+        showModalError('Erreur technique, consultez la console (F12)');
+      }
+    });
         showModalError('Erreur de connexion');
       }
     });

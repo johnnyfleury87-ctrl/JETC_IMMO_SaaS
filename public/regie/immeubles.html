@@ -549,9 +549,12 @@
       <div id="modalSuccess" class="alert alert-success" style="display: none;"></div>
 
       <form id="immeubleForm">
+        <!-- LOCALISATION -->
+        <h3 style="margin: 0 0 15px 0; font-size: 16px; color: var(--gray-700); border-bottom: 2px solid var(--gray-200); padding-bottom: 8px;">📍 Localisation</h3>
+        
         <div class="form-group">
-          <label>Nom / Référence *</label>
-          <input type="text" id="immeubleNom" placeholder="Ex: Résidence Les Pins" required>
+          <label>Nom / Référence immeuble *</label>
+          <input type="text" id="immeubleNom" placeholder="Ex: Résidence Les Pins, Immeuble A" required>
         </div>
 
         <div class="form-group">
@@ -561,35 +564,64 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label>Code postal *</label>
-            <input type="text" id="immeubleCodePostal" placeholder="75001" pattern="[0-9]{5}" required>
+            <label>NPA *</label>
+            <input type="text" id="immeubleNPA" placeholder="1000" pattern="[0-9]{4}" maxlength="4" required>
+            <small style="color: var(--gray-500); font-size: 12px;">Format suisse : 4 chiffres</small>
           </div>
           <div class="form-group">
             <label>Ville *</label>
-            <input type="text" id="immeubleVille" placeholder="Paris" required>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Nombre d'étages</label>
-            <input type="number" id="immeubleEtages" min="0" max="100" placeholder="0">
-          </div>
-          <div class="form-group">
-            <label>Année de construction</label>
-            <input type="number" id="immeubleAnnee" min="1800" max="2100" placeholder="2000">
+            <input type="text" id="immeubleVille" placeholder="Lausanne" required>
           </div>
         </div>
 
         <div class="form-group">
+          <label>Pays</label>
+          <input type="text" id="immeublePays" value="Suisse" readonly style="background: var(--gray-100); cursor: not-allowed;">
+        </div>
+
+        <!-- INFORMATIONS BÂTIMENT -->
+        <h3 style="margin: 20px 0 15px 0; font-size: 16px; color: var(--gray-700); border-bottom: 2px solid var(--gray-200); padding-bottom: 8px;">🏢 Informations bâtiment</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Type d'immeuble</label>
+            <select id="immeubleType">
+              <option value="">Non spécifié</option>
+              <option value="Résidentiel">Résidentiel</option>
+              <option value="Mixte">Mixte (résidentiel + commercial)</option>
+              <option value="Commercial">Commercial</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Nombre d'étages *</label>
+            <input type="number" id="immeubleEtages" min="0" max="100" placeholder="5" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Année de construction</label>
+          <input type="number" id="immeubleAnnee" min="1800" max="2100" placeholder="2000">
+        </div>
+
+        <div class="form-group">
+          <label>Description / Remarques</label>
+          <textarea id="immeubleDescription" rows="3" placeholder="Informations complémentaires sur l'immeuble..."></textarea>
+        </div>
+
+        <!-- ÉQUIPEMENTS & ACCÈS -->
+        <h3 style="margin: 20px 0 15px 0; font-size: 16px; color: var(--gray-700); border-bottom: 2px solid var(--gray-200); padding-bottom: 8px;">✨ Équipements & Accès</h3>
+
+        <div class="form-group">
           <label>Type de chauffage</label>
           <select id="immeubleChauffage">
-            <option value="">Sélectionner</option>
-            <option value="individuel">Individuel</option>
-            <option value="collectif">Collectif</option>
-            <option value="gaz">Gaz</option>
-            <option value="électrique">Électrique</option>
-            <option value="autre">Autre</option>
+            <option value="">Non spécifié</option>
+            <option value="Collectif">Collectif</option>
+            <option value="Individuel">Individuel</option>
+            <option value="Gaz">Gaz</option>
+            <option value="Électrique">Électrique</option>
+            <option value="Pompe à chaleur">Pompe à chaleur</option>
+            <option value="Mazout">Mazout</option>
+            <option value="Autre">Autre</option>
           </select>
         </div>
 
@@ -608,6 +640,40 @@
         <div class="form-group">
           <label>Code digicode</label>
           <input type="text" id="immeubleDigicode" placeholder="1234A">
+        </div>
+
+        <!-- PROPRIÉTAIRE -->
+        <h3 style="margin: 20px 0 15px 0; font-size: 16px; color: var(--gray-700); border-bottom: 2px solid var(--gray-200); padding-bottom: 8px;">👤 Propriétaire</h3>
+        
+        <div class="form-group">
+          <label>Propriétaire</label>
+          <select id="immeubleProprietaire" disabled style="background: var(--gray-100); cursor: not-allowed;">
+            <option value="">Optionnel - Fonctionnalité à venir</option>
+          </select>
+          <small style="color: var(--gray-500); font-size: 12px;">La gestion des propriétaires sera disponible prochainement</small>
+        </div>
+
+        <!-- CRÉATION DES LOGEMENTS -->
+        <h3 style="margin: 20px 0 15px 0; font-size: 16px; color: var(--gray-700); border-bottom: 2px solid var(--gray-200); padding-bottom: 8px;">🏠 Paramétrage des logements</h3>
+        
+        <div class="info-box" style="background: var(--blue-50); border-left: 4px solid var(--primary-blue); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+          <h4 style="color: var(--primary-blue); margin: 0 0 8px 0; font-size: 14px;">💡 Création automatique des logements</h4>
+          <p style="margin: 0; font-size: 13px; color: var(--gray-700);">Vous pouvez créer automatiquement les logements de l'immeuble ou le faire plus tard.</p>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="immeubleCreerLogements" style="width: auto; margin-right: 8px;">
+            Créer les logements maintenant
+          </label>
+        </div>
+
+        <div id="logementsConfig" style="display: none; padding: 15px; background: var(--gray-50); border-radius: 8px; margin-top: 15px;">
+          <div class="form-group">
+            <label>Nombre total de logements *</label>
+            <input type="number" id="immeubleNombreLogements" min="1" max="500" placeholder="20">
+            <small style="color: var(--gray-500); font-size: 12px;">Les logements seront créés avec le statut "vacant" par défaut</small>
+          </div>
         </div>
 
         <div class="form-actions">
@@ -811,6 +877,9 @@
       document.getElementById('immeubleForm').reset();
       document.getElementById('modalError').style.display = 'none';
       document.getElementById('modalSuccess').style.display = 'none';
+      document.getElementById('logementsConfig').style.display = 'none';
+      document.getElementById('immeubleCreerLogements').checked = false;
+      document.getElementById('immeubleCreerLogements').disabled = false;
       document.getElementById('immeubleModal').classList.add('active');
     }
 
@@ -837,14 +906,21 @@
         // Remplir le formulaire
         document.getElementById('immeubleNom').value = immeuble.nom || '';
         document.getElementById('immeubleAdresse').value = immeuble.adresse || '';
-        document.getElementById('immeubleCodePostal').value = immeuble.code_postal || '';
+        document.getElementById('immeubleNPA').value = immeuble.npa || immeuble.code_postal || '';
         document.getElementById('immeubleVille').value = immeuble.ville || '';
+        document.getElementById('immeubleType').value = immeuble.type_immeuble || '';
         document.getElementById('immeubleEtages').value = immeuble.nombre_etages || '';
         document.getElementById('immeubleAnnee').value = immeuble.annee_construction || '';
+        document.getElementById('immeubleDescription').value = immeuble.description || '';
         document.getElementById('immeubleChauffage').value = immeuble.type_chauffage || '';
         document.getElementById('immeubleAscenseur').checked = immeuble.ascenseur || false;
         document.getElementById('immeubleInterphone').checked = immeuble.interphone || false;
         document.getElementById('immeubleDigicode').value = immeuble.digicode || '';
+        
+        // Masquer section création logements en mode édition
+        document.getElementById('logementsConfig').style.display = 'none';
+        document.getElementById('immeubleCreerLogements').checked = false;
+        document.getElementById('immeubleCreerLogements').disabled = true;
         
         document.getElementById('modalError').style.display = 'none';
         document.getElementById('modalSuccess').style.display = 'none';
@@ -895,82 +971,194 @@
     document.getElementById('immeubleForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
+      console.log('[IMMEUBLES][SUBMIT] Début création/modification');
+      
+      // =====================================================
+      // COLLECTE DES DONNÉES
+      // =====================================================
       const nom = document.getElementById('immeubleNom').value.trim();
       const adresse = document.getElementById('immeubleAdresse').value.trim();
-      const code_postal = document.getElementById('immeubleCodePostal').value.trim();
+      const npa = document.getElementById('immeubleNPA').value.trim();
       const ville = document.getElementById('immeubleVille').value.trim();
+      const pays = document.getElementById('immeublePays').value.trim();
+      
+      const type_immeuble = document.getElementById('immeubleType').value || null;
       const nombre_etages = document.getElementById('immeubleEtages').value;
       const annee_construction = document.getElementById('immeubleAnnee').value;
-      const type_chauffage = document.getElementById('immeubleChauffage').value;
+      const description = document.getElementById('immeubleDescription').value.trim();
+      
+      const type_chauffage = document.getElementById('immeubleChauffage').value || null;
       const ascenseur = document.getElementById('immeubleAscenseur').checked;
       const interphone = document.getElementById('immeubleInterphone').checked;
       const digicode = document.getElementById('immeubleDigicode').value.trim();
+      
+      // Paramétrage logements
+      const creerLogements = document.getElementById('immeubleCreerLogements').checked;
+      const nombreLogements = document.getElementById('immeubleNombreLogements').value;
 
-      if (!nom || !adresse || !code_postal || !ville) {
-        showModalError('Veuillez remplir tous les champs obligatoires');
+      // =====================================================
+      // VALIDATION DES CHAMPS OBLIGATOIRES
+      // =====================================================
+      console.log('[IMMEUBLES][VALIDATION] Vérification champs obligatoires');
+      
+      if (!nom || !adresse || !npa || !ville) {
+        showModalError('⚠️ Veuillez remplir tous les champs obligatoires : Nom, Adresse, NPA, Ville');
         return;
       }
 
-      if (!/^[0-9]{5}$/.test(code_postal)) {
-        showModalError('Code postal invalide (5 chiffres attendus)');
+      if (!/^[0-9]{4}$/.test(npa)) {
+        showModalError('⚠️ Le NPA doit contenir exactement 4 chiffres (format suisse)');
         return;
       }
 
+      if (!nombre_etages || nombre_etages === '') {
+        showModalError('⚠️ Le nombre d\'étages est obligatoire');
+        return;
+      }
+
+      if (creerLogements) {
+        if (!nombreLogements || nombreLogements < 1) {
+          showModalError('⚠️ Veuillez spécifier le nombre de logements à créer');
+          return;
+        }
+      }
+
+      // =====================================================
+      // CONSTRUCTION OBJET IMMEUBLE
+      // =====================================================
+      console.log('[IMMEUBLES][DATA] Construction objet immeuble');
+      console.log('[IMMEUBLES][DATA] Table cible : immeubles');
+      console.log('[IMMEUBLES][DATA] regie_id :', currentRegieId);
+      
       const immeubleData = {
         nom,
         adresse,
-        code_postal,
+        npa,
         ville,
-        nombre_etages: nombre_etages ? parseInt(nombre_etages) : 0,
+        pays,
+        type_immeuble,
+        nombre_etages: parseInt(nombre_etages),
         annee_construction: annee_construction ? parseInt(annee_construction) : null,
-        type_chauffage: type_chauffage || null,
+        description: description || null,
+        type_chauffage,
         ascenseur,
         interphone,
         digicode: digicode || null,
         regie_id: currentRegieId
       };
 
+      console.log('[IMMEUBLES][DATA] Objet immeuble complet :', immeubleData);
+
+      // =====================================================
+      // INSERTION / MODIFICATION EN BDD
+      // =====================================================
       try {
         if (editingImmeubleId) {
-          // Modification
+          // =====================================
+          // MODIFICATION IMMEUBLE
+          // =====================================
+          console.log('[IMMEUBLES][UPDATE] Modification immeuble ID :', editingImmeubleId);
+          
           const { error } = await supabase
             .from('immeubles')
             .update(immeubleData)
             .eq('id', editingImmeubleId);
           
           if (error) {
-            console.error('[IMMEUBLES] Erreur modification:', error);
-            showModalError('Erreur lors de la modification');
+            console.error('[IMMEUBLES][UPDATE] ❌ Erreur SQL :', error);
+            showModalError(`Erreur modification : ${error.message}`);
             return;
           }
 
-          console.log('[IMMEUBLES] ✅ Modifié');
-          showModalSuccess('Immeuble modifié avec succès');
+          console.log('[IMMEUBLES][UPDATE] ✅ Immeuble modifié');
+          showModalSuccess('✅ Immeuble modifié avec succès');
           
         } else {
-          // Création
-          const { error } = await supabase
-            .from('immeubles')
-            .insert([immeubleData]);
+          // =====================================
+          // CRÉATION IMMEUBLE
+          // =====================================
+          console.log('[IMMEUBLES][INSERT] Création nouvel immeuble');
           
-          if (error) {
-            console.error('[IMMEUBLES] Erreur création:', error);
-            showModalError('Erreur lors de la création');
+          const { data: newImmeuble, error: immeubleError } = await supabase
+            .from('immeubles')
+            .insert([immeubleData])
+            .select();
+          
+          if (immeubleError) {
+            console.error('[IMMEUBLES][INSERT] ❌ Erreur SQL immeuble :', immeubleError);
+            showModalError(`Erreur création immeuble : ${immeubleError.message}`);
             return;
           }
 
-          console.log('[IMMEUBLES] ✅ Créé');
-          showModalSuccess('Immeuble créé avec succès');
+          const immeubleId = newImmeuble[0].id;
+          console.log('[IMMEUBLES][INSERT] ✅ Immeuble créé, ID :', immeubleId);
+
+          // =====================================
+          // CRÉATION AUTOMATIQUE DES LOGEMENTS
+          // =====================================
+          if (creerLogements) {
+            console.log('[IMMEUBLES][LOGEMENTS] Création automatique de', nombreLogements, 'logements');
+            
+            const logementsToCreate = [];
+            const nbLogements = parseInt(nombreLogements);
+            const nbEtages = parseInt(nombre_etages);
+            
+            // Générer les logements
+            for (let i = 1; i <= nbLogements; i++) {
+              // Répartir les logements sur les étages
+              const etage = Math.floor((i - 1) / Math.max(1, Math.ceil(nbLogements / nbEtages)));
+              
+              logementsToCreate.push({
+                numero: `Log ${i}`,
+                immeuble_id: immeubleId,
+                regie_id: currentRegieId,
+                etage: etage,
+                statut: 'vacant',
+                // Copier adresse de l'immeuble
+                adresse: adresse,
+                npa: npa,
+                ville: ville,
+                pays: pays
+              });
+            }
+
+            console.log('[IMMEUBLES][LOGEMENTS] Insertion de', logementsToCreate.length, 'logements');
+            console.log('[IMMEUBLES][LOGEMENTS] Table cible : logements');
+            
+            const { data: logementsCreated, error: logementsError } = await supabase
+              .from('logements')
+              .insert(logementsToCreate)
+              .select();
+            
+            if (logementsError) {
+              console.error('[IMMEUBLES][LOGEMENTS] ⚠️ Erreur création logements :', logementsError);
+              showModalError(`Immeuble créé MAIS erreur création logements : ${logementsError.message}`);
+              
+              // L'immeuble est créé, on ne rollback pas
+              setTimeout(() => {
+                closeModal();
+                loadImmeubles();
+              }, 3000);
+              return;
+            }
+
+            console.log('[IMMEUBLES][LOGEMENTS] ✅', logementsCreated.length, 'logements créés');
+            showModalSuccess(`✅ Immeuble créé avec ${logementsCreated.length} logements générés automatiquement`);
+          } else {
+            console.log('[IMMEUBLES][LOGEMENTS] Création logements différée (Option B choisie)');
+            showModalSuccess('✅ Immeuble créé avec succès. Vous pourrez créer les logements plus tard.');
+          }
         }
 
+        // Fermeture et rafraîchissement
         setTimeout(() => {
           closeModal();
           loadImmeubles();
-        }, 1500);
+        }, 2000);
         
       } catch (error) {
-        console.error('[IMMEUBLES] Exception:', error);
-        showModalError('Erreur de connexion');
+        console.error('[IMMEUBLES][EXCEPTION] ❌ Exception :', error);
+        showModalError('Erreur technique, consultez la console (F12)');
       }
     });
 
@@ -1011,6 +1199,20 @@
     // Initialisation
     document.addEventListener('DOMContentLoaded', () => {
       checkAuth();
+      
+      // Gérer affichage config logements
+      const checkboxCreerLogements = document.getElementById('immeubleCreerLogements');
+      const configLogementsDiv = document.getElementById('logementsConfig');
+      
+      checkboxCreerLogements.addEventListener('change', function() {
+        if (this.checked) {
+          configLogementsDiv.style.display = 'block';
+          document.getElementById('immeubleNombreLogements').required = true;
+        } else {
+          configLogementsDiv.style.display = 'none';
+          document.getElementById('immeubleNombreLogements').required = false;
+        }
+      });
     });
   </script>
 </body>
