@@ -8,6 +8,406 @@
   <!-- ✅ CRITIQUE : Charger CDN Supabase AVANT supabaseClient.js -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/supabaseClient.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--gray-50);
+      min-height: 100vh;
+    }
+
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: white;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      z-index: 1000;
+    }
+
+    .sidebar-header {
+      padding: 30px 20px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .logo-dashboard {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .logo-dashboard img {
+      height: 42px;
+      width: auto;
+    }
+
+    .logo-dashboard h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin: 0;
+    }
+
+    .sidebar-subtitle {
+      font-size: 13px;
+      color: var(--gray-600);
+      margin-top: 5px;
+      padding-left: 54px;
+    }
+
+    .sidebar-menu {
+      flex: 1;
+      padding: 20px 0;
+      overflow-y: auto;
+    }
+
+    .menu-item {
+      padding: 12px 20px;
+      color: var(--gray-700);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+    }
+
+    .menu-item:hover:not(.disabled) {
+      background: var(--gray-50);
+      color: var(--primary-blue);
+    }
+
+    .menu-item.active {
+      background: var(--blue-50);
+      color: var(--primary-blue);
+      border-left-color: var(--primary-blue);
+      font-weight: 600;
+    }
+
+    .menu-item.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .menu-icon {
+      font-size: 18px;
+    }
+
+    .menu-label {
+      flex: 1;
+    }
+
+    .badge {
+      background: var(--primary-blue);
+      color: white;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .sidebar-footer {
+      padding: 20px;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    .user-info-sidebar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .user-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-email {
+      font-size: 13px;
+      color: var(--gray-700);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-role {
+      font-size: 11px;
+      color: var(--gray-500);
+    }
+
+    .btn-logout {
+      width: 100%;
+      padding: 10px;
+      background: var(--gray-100);
+      color: var(--gray-700);
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .btn-logout:hover {
+      background: var(--gray-200);
+      color: var(--gray-900);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 30px 40px;
+    }
+
+    .welcome-card {
+      background: white;
+      padding: 40px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      text-align: center;
+    }
+
+    .welcome-card h2 {
+      color: var(--primary-blue);
+      margin-bottom: 20px;
+      font-size: 32px;
+      font-weight: 700;
+    }
+
+    .welcome-card p {
+      color: var(--gray-600);
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+
+    .info-box {
+      background: var(--blue-50);
+      border-left: 4px solid var(--primary-blue);
+      padding: 20px;
+      border-radius: var(--radius-md);
+      margin: 30px 0;
+      text-align: left;
+    }
+
+    .info-box h3 {
+      color: var(--primary-blue);
+      margin-bottom: 10px;
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    .info-box p {
+      color: var(--gray-700);
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    .info-box ul {
+      margin-left: 20px;
+      color: var(--gray-600);
+    }
+
+    .info-box li {
+      margin: 8px 0;
+    }
+
+    /* Alerte Warning */
+    .info-box.warning {
+      background: #fff3cd;
+      border-left-color: #ffc107;
+    }
+
+    .info-box.warning h3 {
+      color: #856404;
+    }
+
+    .info-box.warning p {
+      color: #856404;
+    }
+
+    /* Alerte Success */
+    .info-box.success {
+      background: #d4edda;
+      border-left-color: #28a745;
+    }
+
+    .info-box.success h3 {
+      color: #155724;
+    }
+
+    .info-box.success p {
+      color: #155724;
+    }
+
+    /* Boutons */
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 600;
+      font-size: 14px;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-primary {
+      background: var(--primary-blue);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-blue);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: var(--gray-100);
+      color: var(--gray-700);
+    }
+
+    .btn-secondary:hover {
+      background: var(--gray-200);
+    }
+
+    /* Formulaire ticket */
+    .ticket-form-container {
+      margin-top: 30px;
+      background: white;
+      padding: 30px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      text-align: left;
+    }
+
+    .ticket-form-container h3 {
+      margin-bottom: 20px;
+      color: var(--primary-blue);
+      font-size: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: var(--gray-700);
+      font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary-blue);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      font-family: inherit;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      margin-right: 10px;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .checkbox-label span {
+      font-weight: 600;
+      color: #d73a49;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .alert {
+      padding: 12px;
+      border-radius: var(--radius-md);
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+
+    .alert-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+      .main-content {
+        margin-left: 0;
+        padding: 15px;
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -55,87 +455,85 @@
       <p><strong>Rôle :</strong> Locataire</p>
       <p>Vous êtes connecté en tant que <strong id="userEmailDisplay">utilisateur</strong></p>
       
-      <div class="info-box" style="background: #d4edda; border-left-color: #28a745;">
-        <h3 style="color: #155724;">✅ ÉTAPE 5 - Création de tickets</h3>
-        <p style="color: #155724; margin-top: 10px;">Vous pouvez maintenant déclarer des problèmes dans votre logement.</p>
+      <div class="info-box success">
+        <h3>✅ ÉTAPE 5 - Création de tickets</h3>
+        <p>Vous pouvez déclarer des problèmes dans votre logement et suivre leur résolution.</p>
       </div>
 
-      <button class="btn btn-primary" style="font-size: 16px; padding: 15px 40px;" onclick="showTicketForm()">
+      <button id="btnCreateTicket" class="btn btn-primary" style="font-size: 16px; padding: 15px 40px;" onclick="showTicketForm()">
         🎫 Créer un nouveau ticket
       </button>
 
       <!-- Formulaire de création de ticket (caché par défaut) -->
-      <div id="ticketFormContainer" style="display: none; margin-top: 30px;">
-        <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: left;">
-          <h3 style="margin-bottom: 20px; color: #667eea;">📝 Nouveau ticket d'intervention</h3>
-          
-          <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Titre *</label>
-            <input type="text" id="ticketTitre" placeholder="Ex: Fuite d'eau dans la salle de bain" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
-          </div>
+      <div id="ticketFormContainer" style="display: none;" class="ticket-form-container">
+        <h3>📝 Nouveau ticket d'intervention</h3>
+        
+        <div class="form-group">
+          <label>Titre *</label>
+          <input type="text" id="ticketTitre" placeholder="Ex: Fuite d'eau dans la salle de bain">
+        </div>
 
-          <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Catégorie *</label>
-            <select id="ticketCategorie" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
-              <option value="">Sélectionnez une catégorie</option>
-              <option value="plomberie">💧 Plomberie</option>
-              <option value="électricité">⚡ Électricité</option>
-              <option value="chauffage">🔥 Chauffage</option>
-              <option value="serrurerie">🔑 Serrurerie</option>
-              <option value="vitrerie">🪟 Vitrerie</option>
-              <option value="menuiserie">🪵 Menuiserie</option>
-              <option value="peinture">🎨 Peinture</option>
-              <option value="autre">❓ Autre</option>
-            </select>
-          </div>
+        <div class="form-group">
+          <label>Catégorie *</label>
+          <select id="ticketCategorie">
+            <option value="">Sélectionnez une catégorie</option>
+            <option value="plomberie">💧 Plomberie</option>
+            <option value="électricité">⚡ Électricité</option>
+            <option value="chauffage">🔥 Chauffage</option>
+            <option value="serrurerie">🔑 Serrurerie</option>
+            <option value="vitrerie">🪟 Vitrerie</option>
+            <option value="menuiserie">🪵 Menuiserie</option>
+            <option value="peinture">🎨 Peinture</option>
+            <option value="autre">❓ Autre</option>
+          </select>
+        </div>
 
-          <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Priorité</label>
-            <select id="ticketPriorite" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
-              <option value="normale">Normale</option>
-              <option value="faible">Faible</option>
-              <option value="haute">Haute</option>
-              <option value="urgente">🚨 Urgente</option>
-            </select>
-          </div>
+        <div class="form-group">
+          <label>Priorité</label>
+          <select id="ticketPriorite">
+            <option value="normale">Normale</option>
+            <option value="faible">Faible</option>
+            <option value="haute">Haute</option>
+            <option value="urgente">🚨 Urgente</option>
+          </select>
+        </div>
 
-          <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Description *</label>
-            <textarea id="ticketDescription" rows="5" placeholder="Décrivez le problème en détail..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; resize: vertical;"></textarea>
-          </div>
+        <div class="form-group">
+          <label>Description *</label>
+          <textarea id="ticketDescription" rows="5" placeholder="Décrivez le problème en détail..."></textarea>
+        </div>
 
-          <div style="margin-bottom: 20px;">
-            <label style="display: flex; align-items: center; cursor: pointer;">
-              <input type="checkbox" id="ticketUrgence" style="margin-right: 10px; width: 18px; height: 18px;">
-              <span style="font-weight: 600; color: #d73a49;">⚠️ Marquer comme urgence</span>
-            </label>
-          </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="ticketUrgence">
+            <span>⚠️ Marquer comme urgence</span>
+          </label>
+        </div>
 
-          <div id="ticketError" style="display: none; background: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 15px;"></div>
-          <div id="ticketSuccess" style="display: none; background: #d4edda; color: #155724; padding: 12px; border-radius: 6px; margin-bottom: 15px;"></div>
+        <div id="ticketError" class="alert alert-error" style="display: none;"></div>
+        <div id="ticketSuccess" class="alert alert-success" style="display: none;"></div>
 
-          <div style="display: flex; gap: 10px;">
-            <button onclick="createTicket()" style="flex: 1; background: #667eea; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; cursor: pointer;">
-              Créer le ticket
-            </button>
-            <button onclick="hideTicketForm()" style="background: #e0e0e0; color: #666; border: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; cursor: pointer;">
-              Annuler
-            </button>
-          </div>
+        <div class="form-actions">
+          <button onclick="createTicket()" class="btn btn-primary" style="flex: 1;">
+            Créer le ticket
+          </button>
+          <button onclick="hideTicketForm()" class="btn btn-secondary">
+            Annuler
+          </button>
         </div>
       </div>
 
       <div class="info-box">
         <h3>📋 Fonctionnalités à venir (ÉTAPES suivantes)</h3>
-        <ul style="text-align: left;">
+        <ul>
           <li><strong>ÉTAPE 6</strong> : Suivre vos tickets</li>
           <li><strong>ÉTAPE 12</strong> : Signer les interventions terminées</li>
           <li><strong>ÉTAPE 14</strong> : Messagerie avec entreprises/techniciens</li>
         </ul>
       </div>
 
-      <p style="margin-top: 30px; color: #999;">
-        <small>ÉTAPE 5 - Création de tickets fonctionnelle ✅</small>
+      <p style="margin-top: 30px; color: var(--gray-400); font-size: 13px;">
+        <small>ÉTAPE 2 - Authentification fonctionnelle ✅</small>
       </p>
     </div>
     </main>
@@ -246,24 +644,32 @@
     // Afficher la bannière "En attente de logement"
     function showSansLogementBanner() {
       const welcomeCard = document.querySelector('.welcome-card');
+      
+      // Supprimer la bannière de succès ÉTAPE 5
+      const successBox = welcomeCard.querySelector('.info-box.success');
+      if (successBox) {
+        successBox.remove();
+      }
+      
+      // Créer la bannière d'avertissement
       const banner = document.createElement('div');
       banner.id = 'sansLogementBanner';
-      banner.className = 'info-box';
-      banner.style.cssText = 'background: #fff3cd; border-left: 4px solid #ffc107; margin-bottom: 20px;';
+      banner.className = 'info-box warning';
       banner.innerHTML = `
-        <h3 style="color: #856404;">⚠️ Logement non attribué</h3>
-        <p style="color: #856404; margin-top: 10px;">Votre logement n'est pas encore attribué par la régie. Vous ne pouvez pas créer de tickets pour le moment.</p>
+        <h3>⚠️ Logement non attribué</h3>
+        <p>Votre logement n'est pas encore attribué par la régie. La création de tickets sera disponible une fois votre logement assigné.</p>
       `;
-      welcomeCard.insertBefore(banner, welcomeCard.firstChild);
+      
+      // Insérer en premier dans la carte
+      const firstElement = welcomeCard.querySelector('p');
+      welcomeCard.insertBefore(banner, firstElement.nextSibling);
     }
     
     // Désactiver la création de ticket
     function disableTicketCreation() {
-      const createBtn = document.querySelector('button[onclick="showTicketForm()"]');
+      const createBtn = document.getElementById('btnCreateTicket');
       if (createBtn) {
         createBtn.disabled = true;
-        createBtn.style.opacity = '0.5';
-        createBtn.style.cursor = 'not-allowed';
         createBtn.title = 'Fonction indisponible sans logement attribué';
       }
     }
@@ -353,12 +759,26 @@
     }
 
     // Déconnexion
-    function logout() {
-      localStorage.removeItem('jetc_access_token');
-      localStorage.removeItem('jetc_refresh_token');
-      localStorage.removeItem('jetc_user');
-      console.log('[DASHBOARD] Déconnexion');
-      window.location.href = '/index.html';
+    async function logout() {
+      try {
+        // Déconnexion Supabase (source de vérité)
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          console.error('[LOGOUT] Erreur Supabase:', error);
+        }
+        
+        // Nettoyer localStorage (legacy)
+        localStorage.removeItem('jetc_access_token');
+        localStorage.removeItem('jetc_refresh_token');
+        localStorage.removeItem('jetc_user');
+        
+        console.log('[DASHBOARD] Déconnexion réussie');
+        window.location.href = '/index.html';
+      } catch (error) {
+        console.error('[LOGOUT] Exception:', error);
+        // Rediriger quand même
+        window.location.href = '/index.html';
+      }
     }
 
     // Initialisation
