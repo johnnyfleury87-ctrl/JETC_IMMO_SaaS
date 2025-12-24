@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion des immeubles - JETC_IMMO</title>
+  <link rel="stylesheet" href="/css/design-system.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabaseClient.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--gray-50);
+      min-height: 100vh;
+    }
+
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: white;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      z-index: 1000;
+    }
+
+    .sidebar-header {
+      padding: 30px 20px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .logo-dashboard {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .logo-dashboard img {
+      height: 42px;
+      width: auto;
+    }
+
+    .logo-dashboard h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin: 0;
+    }
+
+    .sidebar-subtitle {
+      font-size: 13px;
+      color: var(--gray-600);
+      margin-top: 5px;
+      padding-left: 54px;
+    }
+
+    .sidebar-menu {
+      flex: 1;
+      padding: 20px 0;
+      overflow-y: auto;
+    }
+
+    .menu-item {
+      padding: 12px 20px;
+      color: var(--gray-700);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+    }
+
+    .menu-item:hover {
+      background: var(--gray-50);
+      color: var(--primary-blue);
+    }
+
+    .menu-item.active {
+      background: var(--blue-50);
+      color: var(--primary-blue);
+      border-left-color: var(--primary-blue);
+      font-weight: 600;
+    }
+
+    .sidebar-footer {
+      padding: 20px;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    .user-info-sidebar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .user-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-email {
+      font-size: 13px;
+      color: var(--gray-700);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-role {
+      font-size: 11px;
+      color: var(--gray-500);
+    }
+
+    .btn-logout {
+      width: 100%;
+      padding: 10px;
+      background: var(--gray-100);
+      color: var(--gray-700);
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .btn-logout:hover {
+      background: var(--gray-200);
+      color: var(--gray-900);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 30px 40px;
+    }
+
+    .page-header {
+      margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+      font-size: 28px;
+      color: var(--gray-900);
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      color: var(--gray-600);
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .btn-primary {
+      background: var(--primary-blue);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-blue);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+      background: var(--gray-100);
+      color: var(--gray-700);
+    }
+
+    .btn-secondary:hover {
+      background: var(--gray-200);
+    }
+
+    /* Liste immeubles */
+    .immeubles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 20px;
+    }
+
+    .immeuble-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .immeuble-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .immeuble-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 15px;
+    }
+
+    .immeuble-card-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--gray-900);
+      margin-bottom: 5px;
+    }
+
+    .immeuble-card-address {
+      font-size: 13px;
+      color: var(--gray-600);
+    }
+
+    .immeuble-card-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+
+    .btn-edit {
+      background: var(--blue-50);
+      color: var(--primary-blue);
+    }
+
+    .btn-edit:hover {
+      background: var(--blue-100);
+    }
+
+    .btn-delete {
+      background: var(--red-50);
+      color: #dc3545;
+    }
+
+    .btn-delete:hover {
+      background: #fee;
+    }
+
+    .immeuble-card-info {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    .info-item {
+      font-size: 13px;
+      color: var(--gray-600);
+    }
+
+    .info-item strong {
+      color: var(--gray-900);
+      font-weight: 600;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+      font-size: 22px;
+      color: var(--primary-blue);
+    }
+
+    .btn-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: var(--gray-100);
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      color: var(--gray-700);
+    }
+
+    .btn-close:hover {
+      background: var(--gray-200);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: var(--gray-700);
+      font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary-blue);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: flex-end;
+    }
+
+    .alert {
+      padding: 12px;
+      border-radius: var(--radius-md);
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+
+    .alert-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--gray-500);
+    }
+
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+      .main-content {
+        margin-left: 0;
+        padding: 15px;
+      }
+      .immeubles-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-dashboard">
+          <img src="/logo_moi.png" alt="JETC_IMMO Logo">
+          <h1>JETC_IMMO</h1>
+        </div>
+        <div class="sidebar-subtitle">Régie immobilière</div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <a href="/regie/dashboard.html" class="menu-item">
+          <span>🏠</span>
+          <span>Dashboard</span>
+        </a>
+        <a href="/regie/immeubles.html" class="menu-item active">
+          <span>🏢</span>
+          <span>Immeubles</span>
+        </a>
+        <a href="/regie/logements.html" class="menu-item">
+          <span>🏠</span>
+          <span>Logements</span>
+        </a>
+        <a href="/regie/locataires.html" class="menu-item">
+          <span>👥</span>
+          <span>Locataires</span>
+        </a>
+        <a href="#" class="menu-item">
+          <span>🎫</span>
+          <span>Tickets</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-info-sidebar">
+          <div class="user-avatar" id="userAvatar">R</div>
+          <div class="user-details">
+            <div class="user-email" id="userEmail">Chargement...</div>
+            <div class="user-role">Régie</div>
+          </div>
+        </div>
+        <button class="btn-logout" onclick="logout()">Déconnexion</button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="page-header">
+        <h1>🏢 Gestion des immeubles</h1>
+        <p>Gérez vos immeubles et consultez leurs logements</p>
+      </div>
+
+      <div class="toolbar">
+        <div>
+          <span id="immeubleCount">0 immeuble</span>
+        </div>
+        <button class="btn btn-primary" onclick="showCreateModal()">
+          ➕ Ajouter un immeuble
+        </button>
+      </div>
+
+      <div id="immeublesList" class="immeubles-grid">
+        <!-- Les immeubles seront chargés ici -->
+      </div>
+
+      <div id="emptyState" class="empty-state" style="display: none;">
+        <div class="empty-state-icon">🏢</div>
+        <h3>Aucun immeuble</h3>
+        <p>Commencez par créer votre premier immeuble</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Création/Modification -->
+  <div id="immeubleModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">➕ Nouvel immeuble</h2>
+        <button class="btn-close" onclick="closeModal()">✕</button>
+      </div>
+
+      <div id="modalError" class="alert alert-error" style="display: none;"></div>
+      <div id="modalSuccess" class="alert alert-success" style="display: none;"></div>
+
+      <form id="immeubleForm">
+        <div class="form-group">
+          <label>Nom / Référence *</label>
+          <input type="text" id="immeubleNom" placeholder="Ex: Résidence Les Pins" required>
+        </div>
+
+        <div class="form-group">
+          <label>Adresse *</label>
+          <input type="text" id="immeubleAdresse" placeholder="12 rue Victor Hugo" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Code postal *</label>
+            <input type="text" id="immeubleCodePostal" placeholder="75001" pattern="[0-9]{5}" required>
+          </div>
+          <div class="form-group">
+            <label>Ville *</label>
+            <input type="text" id="immeubleVille" placeholder="Paris" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre d'étages</label>
+            <input type="number" id="immeubleEtages" min="0" max="100" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label>Année de construction</label>
+            <input type="number" id="immeubleAnnee" min="1800" max="2100" placeholder="2000">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Type de chauffage</label>
+          <select id="immeubleChauffage">
+            <option value="">Sélectionner</option>
+            <option value="individuel">Individuel</option>
+            <option value="collectif">Collectif</option>
+            <option value="gaz">Gaz</option>
+            <option value="électrique">Électrique</option>
+            <option value="autre">Autre</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Équipements</label>
+          <div class="checkbox-group">
+            <input type="checkbox" id="immeubleAscenseur">
+            <label for="immeubleAscenseur" style="font-weight: normal; margin: 0;">Ascenseur</label>
+          </div>
+          <div class="checkbox-group">
+            <input type="checkbox" id="immeubleInterphone">
+            <label for="immeubleInterphone" style="font-weight: normal; margin: 0;">Interphone</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Code digicode</label>
+          <input type="text" id="immeubleDigicode" placeholder="1234A">
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">
+            Annuler
+          </button>
+          <button type="submit" class="btn btn-primary" id="btnSubmit">
+            Créer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let currentRegieId = null;
+    let editingImmeubleId = null;
+
+    // Vérifier l'authentification
+    async function checkAuth() {
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !session) {
+          console.log('[IMMEUBLES] Non authentifié');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        // Récupérer le profil
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role, email')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (profileError || !profile || profile.role !== 'regie') {
+          console.error('[IMMEUBLES] Accès interdit:', profile?.role);
+          alert('Accès réservé aux régies');
+          window.location.href = '/login.html';
+          return;
+        }
+
+        // Récupérer la régie
+        const { data: regie, error: regieError } = await supabase
+          .from('regies')
+          .select('id, nom_agence')
+          .eq('profile_id', session.user.id)
+          .single();
+        
+        if (regieError || !regie) {
+          console.error('[IMMEUBLES] Régie introuvable');
+          alert('Profil régie introuvable');
+          window.location.href = '/login.html';
+          return;
+        }
+
+        currentRegieId = regie.id;
+        
+        // Afficher les infos utilisateur
+        document.getElementById('userEmail').textContent = profile.email;
+        document.getElementById('userAvatar').textContent = profile.email.charAt(0).toUpperCase();
+        
+        console.log('[IMMEUBLES] ✅ Régie connectée:', regie.nom_agence);
+        
+        // Charger les immeubles
+        await loadImmeubles();
+        
+      } catch (error) {
+        console.error('[IMMEUBLES] Exception:', error);
+        window.location.href = '/login.html';
+      }
+    }
+
+    // Charger la liste des immeubles
+    async function loadImmeubles() {
+      try {
+        const { data: immeubles, error } = await supabase
+          .from('immeubles')
+          .select('*')
+          .eq('regie_id', currentRegieId)
+          .order('nom', { ascending: true });
+        
+        if (error) {
+          console.error('[IMMEUBLES] Erreur chargement:', error);
+          return;
+        }
+
+        console.log('[IMMEUBLES] Chargés:', immeubles.length);
+        displayImmeubles(immeubles);
+        
+      } catch (error) {
+        console.error('[IMMEUBLES] Exception:', error);
+      }
+    }
+
+    // Afficher les immeubles
+    function displayImmeubles(immeubles) {
+      const container = document.getElementById('immeublesList');
+      const emptyState = document.getElementById('emptyState');
+      const countElement = document.getElementById('immeubleCount');
+
+      if (!immeubles || immeubles.length === 0) {
+        container.style.display = 'none';
+        emptyState.style.display = 'block';
+        countElement.textContent = '0 immeuble';
+        return;
+      }
+
+      container.style.display = 'grid';
+      emptyState.style.display = 'none';
+      countElement.textContent = `${immeubles.length} immeuble${immeubles.length > 1 ? 's' : ''}`;
+
+      container.innerHTML = immeubles.map(immeuble => `
+        <div class="immeuble-card" onclick="viewImmeuble('${immeuble.id}')">
+          <div class="immeuble-card-header">
+            <div>
+              <div class="immeuble-card-title">${escapeHtml(immeuble.nom)}</div>
+              <div class="immeuble-card-address">
+                ${escapeHtml(immeuble.adresse)}<br>
+                ${escapeHtml(immeuble.code_postal)} ${escapeHtml(immeuble.ville)}
+              </div>
+            </div>
+            <div class="immeuble-card-actions">
+              <button class="btn-icon btn-edit" onclick="editImmeuble(event, '${immeuble.id}')" title="Modifier">
+                ✏️
+              </button>
+              <button class="btn-icon btn-delete" onclick="deleteImmeuble(event, '${immeuble.id}')" title="Supprimer">
+                🗑️
+              </button>
+            </div>
+          </div>
+          <div class="immeuble-card-info">
+            <div class="info-item">
+              <strong>${immeuble.nombre_etages || 0}</strong> étage${immeuble.nombre_etages > 1 ? 's' : ''}
+            </div>
+            <div class="info-item">
+              ${immeuble.ascenseur ? '✅ Ascenseur' : ''}
+            </div>
+            <div class="info-item">
+              ${immeuble.type_chauffage || 'N/A'}
+            </div>
+            <div class="info-item">
+              ${immeuble.interphone ? '✅ Interphone' : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Voir détail immeuble (redirection vers logements)
+    function viewImmeuble(immeubleId) {
+      window.location.href = `/regie/logements.html?immeuble_id=${immeubleId}`;
+    }
+
+    // Afficher modal création
+    function showCreateModal() {
+      editingImmeubleId = null;
+      document.getElementById('modalTitle').textContent = '➕ Nouvel immeuble';
+      document.getElementById('btnSubmit').textContent = 'Créer';
+      document.getElementById('immeubleForm').reset();
+      document.getElementById('modalError').style.display = 'none';
+      document.getElementById('modalSuccess').style.display = 'none';
+      document.getElementById('immeubleModal').classList.add('active');
+    }
+
+    // Modifier immeuble
+    async function editImmeuble(event, immeubleId) {
+      event.stopPropagation();
+      
+      try {
+        const { data: immeuble, error } = await supabase
+          .from('immeubles')
+          .select('*')
+          .eq('id', immeubleId)
+          .single();
+        
+        if (error || !immeuble) {
+          alert('Erreur lors du chargement');
+          return;
+        }
+
+        editingImmeubleId = immeubleId;
+        document.getElementById('modalTitle').textContent = '✏️ Modifier l\'immeuble';
+        document.getElementById('btnSubmit').textContent = 'Enregistrer';
+        
+        // Remplir le formulaire
+        document.getElementById('immeubleNom').value = immeuble.nom || '';
+        document.getElementById('immeubleAdresse').value = immeuble.adresse || '';
+        document.getElementById('immeubleCodePostal').value = immeuble.code_postal || '';
+        document.getElementById('immeubleVille').value = immeuble.ville || '';
+        document.getElementById('immeubleEtages').value = immeuble.nombre_etages || '';
+        document.getElementById('immeubleAnnee').value = immeuble.annee_construction || '';
+        document.getElementById('immeubleChauffage').value = immeuble.type_chauffage || '';
+        document.getElementById('immeubleAscenseur').checked = immeuble.ascenseur || false;
+        document.getElementById('immeubleInterphone').checked = immeuble.interphone || false;
+        document.getElementById('immeubleDigicode').value = immeuble.digicode || '';
+        
+        document.getElementById('modalError').style.display = 'none';
+        document.getElementById('modalSuccess').style.display = 'none';
+        document.getElementById('immeubleModal').classList.add('active');
+        
+      } catch (error) {
+        console.error('[IMMEUBLES] Erreur edit:', error);
+        alert('Erreur lors du chargement');
+      }
+    }
+
+    // Supprimer immeuble
+    async function deleteImmeuble(event, immeubleId) {
+      event.stopPropagation();
+      
+      if (!confirm('Êtes-vous sûr de vouloir supprimer cet immeuble ? Les logements associés seront également supprimés.')) {
+        return;
+      }
+
+      try {
+        const { error } = await supabase
+          .from('immeubles')
+          .delete()
+          .eq('id', immeubleId);
+        
+        if (error) {
+          console.error('[IMMEUBLES] Erreur suppression:', error);
+          alert('Erreur lors de la suppression');
+          return;
+        }
+
+        console.log('[IMMEUBLES] ✅ Supprimé');
+        await loadImmeubles();
+        
+      } catch (error) {
+        console.error('[IMMEUBLES] Exception:', error);
+        alert('Erreur lors de la suppression');
+      }
+    }
+
+    // Fermer modal
+    function closeModal() {
+      document.getElementById('immeubleModal').classList.remove('active');
+      editingImmeubleId = null;
+    }
+
+    // Soumettre formulaire
+    document.getElementById('immeubleForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const nom = document.getElementById('immeubleNom').value.trim();
+      const adresse = document.getElementById('immeubleAdresse').value.trim();
+      const code_postal = document.getElementById('immeubleCodePostal').value.trim();
+      const ville = document.getElementById('immeubleVille').value.trim();
+      const nombre_etages = document.getElementById('immeubleEtages').value;
+      const annee_construction = document.getElementById('immeubleAnnee').value;
+      const type_chauffage = document.getElementById('immeubleChauffage').value;
+      const ascenseur = document.getElementById('immeubleAscenseur').checked;
+      const interphone = document.getElementById('immeubleInterphone').checked;
+      const digicode = document.getElementById('immeubleDigicode').value.trim();
+
+      if (!nom || !adresse || !code_postal || !ville) {
+        showModalError('Veuillez remplir tous les champs obligatoires');
+        return;
+      }
+
+      if (!/^[0-9]{5}$/.test(code_postal)) {
+        showModalError('Code postal invalide (5 chiffres attendus)');
+        return;
+      }
+
+      const immeubleData = {
+        nom,
+        adresse,
+        code_postal,
+        ville,
+        nombre_etages: nombre_etages ? parseInt(nombre_etages) : 0,
+        annee_construction: annee_construction ? parseInt(annee_construction) : null,
+        type_chauffage: type_chauffage || null,
+        ascenseur,
+        interphone,
+        digicode: digicode || null,
+        regie_id: currentRegieId
+      };
+
+      try {
+        if (editingImmeubleId) {
+          // Modification
+          const { error } = await supabase
+            .from('immeubles')
+            .update(immeubleData)
+            .eq('id', editingImmeubleId);
+          
+          if (error) {
+            console.error('[IMMEUBLES] Erreur modification:', error);
+            showModalError('Erreur lors de la modification');
+            return;
+          }
+
+          console.log('[IMMEUBLES] ✅ Modifié');
+          showModalSuccess('Immeuble modifié avec succès');
+          
+        } else {
+          // Création
+          const { error } = await supabase
+            .from('immeubles')
+            .insert([immeubleData]);
+          
+          if (error) {
+            console.error('[IMMEUBLES] Erreur création:', error);
+            showModalError('Erreur lors de la création');
+            return;
+          }
+
+          console.log('[IMMEUBLES] ✅ Créé');
+          showModalSuccess('Immeuble créé avec succès');
+        }
+
+        setTimeout(() => {
+          closeModal();
+          loadImmeubles();
+        }, 1500);
+        
+      } catch (error) {
+        console.error('[IMMEUBLES] Exception:', error);
+        showModalError('Erreur de connexion');
+      }
+    });
+
+    // Afficher erreur modal
+    function showModalError(message) {
+      const errorDiv = document.getElementById('modalError');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      document.getElementById('modalSuccess').style.display = 'none';
+    }
+
+    // Afficher succès modal
+    function showModalSuccess(message) {
+      const successDiv = document.getElementById('modalSuccess');
+      successDiv.textContent = message;
+      successDiv.style.display = 'block';
+      document.getElementById('modalError').style.display = 'none';
+    }
+
+    // Échapper HTML
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Déconnexion
+    async function logout() {
+      try {
+        await supabase.auth.signOut();
+        window.location.href = '/index.html';
+      } catch (error) {
+        console.error('[LOGOUT] Erreur:', error);
+        window.location.href = '/index.html';
+      }
+    }
+
+    // Initialisation
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuth();
+    });
+  </script>
+</body>
+</html>
