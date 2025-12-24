@@ -826,10 +826,50 @@
     </div>
   </div>
 
+  <!-- Modal Attribution Locataire -->
+  <div id="attribuerLocataireModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>👤 Attribuer un locataire</h2>
+        <button class="btn-close" onclick="closeAttribuerLocataireModal()">✕</button>
+      </div>
+
+      <div id="attribuerModalError" class="alert alert-error" style="display: none;"></div>
+      <div id="attribuerModalSuccess" class="alert alert-success" style="display: none;"></div>
+
+      <div class="info-box">
+        <p>Logement : <strong id="attribuerLogementRef"></strong></p>
+        <p style="margin-top: 5px; font-size: 13px; color: var(--gray-600);">
+          Le locataire sera lié à ce logement et le statut passera automatiquement à "Occupé".
+        </p>
+      </div>
+
+      <form id="attribuerLocataireForm">
+        <div class="form-group">
+          <label>Sélectionner un locataire disponible *</label>
+          <select id="attribuerLocataire" required>
+            <option value="">Choisir un locataire...</option>
+          </select>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeAttribuerLocataireModal()">
+            Annuler
+          </button>
+          <button type="submit" class="btn btn-primary">
+            Attribuer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
     let currentRegieId = null;
     let editingLogementId = null;
     let immeubles = [];
+    let immeublesData = {}; // Stocke les données complètes (dont nombre_etages)
+    let currentLogementIdAttribution = null;
 
     // Vérifier l'authentification
     async function checkAuth() {
@@ -943,6 +983,11 @@
 
         immeubles = data || [];
         
+        // Stocker les données complètes des immeubles (avec nombre_etages)
+        immeubles.forEach(immeuble => {
+          immeublesData[immeuble.id] = immeuble;
+        });
+        
         // Peupler le select d'immeuble dans le modal
         const select = document.getElementById('logementImmeuble');
         const filterSelect = document.getElementById('filterImmeuble');
@@ -1045,6 +1090,11 @@
             <td><span class="badge badge-${logement.statut}">${getStatutLabel(logement.statut)}</span></td>
             <td>
               <div class="actions">
+                ${logement.statut === 'vacant' 
+                  ? `<button class="btn-icon btn-primary" onclick="showAttribuerLocataireModal('${logement.id}', '${escapeHtml(logement.numero)}')" title="Attribuer un locataire">
+                      👤+
+                    </button>` 
+                  : ''}
                 <button class="btn-icon btn-edit" onclick="editLogement('${logement.id}')" title="Modifier">
                   ✏️
                 </button>
@@ -1183,6 +1233,23 @@
       // =====================================================
       const immeuble_id = document.getElementById('logementImmeuble').value || null;
       const numero = document.getElementById('logementNumero').value.trim();
+      
+      // =====================================================
+      // VALIDATION ÉTAGE vs NOMBRE_ETAGES IMMEUBLE
+      // =====================================================
+      const etageInput = document.getElementById('logementEtage').value;
+      if (immeuble_id && etageInput !== '') {
+        const etage = parseInt(etageInput);
+        const immeuble = immeublesData[immeuble_id];
+        
+        if (immeuble && immeuble.nombre_etages !== null && immeuble.nombre_etages !== undefined) {
+          if (etage > immeuble.nombre_etages) {
+            showModalError(`❌ L'étage indiqué (${etage}) dépasse le nombre d'étages de l'immeuble (max : ${immeuble.nombre_etages}).`);
+            console.error('[LOGEMENTS][VALIDATION] Étage invalide:', { etage, max: immeuble.nombre_etages });
+            return; // Bloquer la soumission
+          }
+        }
+      }
       const type_logement = document.getElementById('logementType').value;
       
       // Adresse du logement
@@ -1286,6 +1353,32 @@
       // INSERTION / MODIFICATION EN BDD
       // =====================================================
       try {
+        // =====================================================
+        // VALIDATION BACKEND : Vérifier étage vs immeuble
+        // =====================================================
+        if (logementData.immeuble_id && logementData.etage !== null) {
+          const { data: immeubleCheck, error: immeubleError } = await supabase
+            .from('immeubles')
+            .select('nombre_etages, nom')
+            .eq('id', logementData.immeuble_id)
+            .single();
+          
+          if (immeubleError) {
+            console.error('[LOGEMENTS][CHECK] Erreur vérification immeuble:', immeubleError);
+            showModalError('Erreur: impossible de vérifier l\'immeuble');
+            return;
+          }
+          
+          if (immeubleCheck && immeubleCheck.nombre_etages !== null) {
+            if (logementData.etage > immeubleCheck.nombre_etages) {
+              console.error('[LOGEMENTS][VALIDATION BACKEND] Étage invalide');
+              showModalError(`❌ Étage ${logementData.etage} invalide pour l'immeuble "${immeubleCheck.nom}" (max: ${immeubleCheck.nombre_etages}).`);
+              return;
+            }
+          }
+        }
+        // =====================================================
+        
         if (editingLogementId) {
           // MODIFICATION
           console.log('[LOGEMENTS][UPDATE] Modification logement ID :', editingLogementId);
@@ -1358,6 +1451,153 @@
       div.textContent = text;
       return div.innerHTML;
     }
+
+    // =====================================================
+    // ATTRIBUTION LOCATAIRE
+    // =====================================================
+    
+    // Ouvrir modal attribution
+    async function showAttribuerLocataireModal(logementId, logementRef) {
+      currentLogementIdAttribution = logementId;
+      document.getElementById('attribuerLogementRef').textContent = logementRef;
+      document.getElementById('attribuerModalError').style.display = 'none';
+      document.getElementById('attribuerModalSuccess').style.display = 'none';
+      
+      // Charger les locataires disponibles (sans logement)
+      try {
+        const { data: locataires, error } = await supabase
+          .from('locataires')
+          .select('id, nom, prenom, email')
+          .eq('regie_id', currentRegieId)
+          .is('logement_id', null)
+          .order('nom', { ascending: true });
+        
+        if (error) {
+          console.error('[ATTRIBUTION] Erreur chargement locataires:', error);
+          alert('Erreur lors du chargement des locataires');
+          return;
+        }
+        
+        const select = document.getElementById('attribuerLocataire');
+        select.innerHTML = '<option value="">Choisir un locataire...</option>';
+        
+        if (locataires && locataires.length > 0) {
+          locataires.forEach(loc => {
+            const option = new Option(
+              `${loc.nom} ${loc.prenom}${loc.email ? ' (' + loc.email + ')' : ''}`,
+              loc.id
+            );
+            select.add(option);
+          });
+        } else {
+          select.innerHTML = '<option value="">Aucun locataire disponible</option>';
+        }
+        
+        document.getElementById('attribuerLocataireModal').style.display = 'flex';
+        
+      } catch (error) {
+        console.error('[ATTRIBUTION] Exception:', error);
+        alert('Erreur technique');
+      }
+    }
+
+    // Fermer modal attribution
+    function closeAttribuerLocataireModal() {
+      document.getElementById('attribuerLocataireModal').style.display = 'none';
+      currentLogementIdAttribution = null;
+      document.getElementById('attribuerLocataireForm').reset();
+    }
+
+    // Soumettre attribution
+    document.getElementById('attribuerLocataireForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const locataireId = document.getElementById('attribuerLocataire').value;
+      
+      if (!locataireId || !currentLogementIdAttribution) {
+        showAttribuerModalError('Données manquantes');
+        return;
+      }
+      
+      try {
+        console.log('[ATTRIBUTION] Début attribution:', { locataireId, logementId: currentLogementIdAttribution });
+        
+        // Vérifier que le locataire n'est pas déjà lié
+        const { data: locataireCheck, error: checkError } = await supabase
+          .from('locataires')
+          .select('logement_id, nom, prenom')
+          .eq('id', locataireId)
+          .single();
+        
+        if (checkError) {
+          console.error('[ATTRIBUTION] Erreur vérification locataire:', checkError);
+          showAttribuerModalError('Erreur lors de la vérification');
+          return;
+        }
+        
+        if (locataireCheck.logement_id !== null) {
+          showAttribuerModalError(`❌ ${locataireCheck.nom} ${locataireCheck.prenom} est déjà lié à un logement.`);
+          return;
+        }
+        
+        // 1. Mettre à jour le locataire (logement_id)
+        const { error: updateLocataireError } = await supabase
+          .from('locataires')
+          .update({ logement_id: currentLogementIdAttribution })
+          .eq('id', locataireId);
+        
+        if (updateLocataireError) {
+          console.error('[ATTRIBUTION] Erreur update locataire:', updateLocataireError);
+          showAttribuerModalError(`Erreur: ${updateLocataireError.message}`);
+          return;
+        }
+        
+        // 2. Mettre à jour le logement (statut = occupé)
+        const { error: updateLogementError } = await supabase
+          .from('logements')
+          .update({ statut: 'occupé' })
+          .eq('id', currentLogementIdAttribution);
+        
+        if (updateLogementError) {
+          console.error('[ATTRIBUTION] Erreur update logement:', updateLogementError);
+          showAttribuerModalError(`Erreur: ${updateLogementError.message}`);
+          return;
+        }
+        
+        console.log('[ATTRIBUTION] ✅ Attribution réussie');
+        showAttribuerModalSuccess('✅ Locataire attribué avec succès');
+        
+        // Fermeture et rafraîchissement
+        setTimeout(() => {
+          closeAttribuerLocataireModal();
+          loadLogements();
+        }, 1500);
+        
+      } catch (error) {
+        console.error('[ATTRIBUTION] Exception:', error);
+        showAttribuerModalError('Erreur technique');
+      }
+    });
+
+    // Afficher erreur modal attribution
+    function showAttribuerModalError(message) {
+      const errorDiv = document.getElementById('attribuerModalError');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      document.getElementById('attribuerModalSuccess').style.display = 'none';
+    }
+
+    // Afficher succès modal attribution
+    function showAttribuerModalSuccess(message) {
+      const successDiv = document.getElementById('attribuerModalSuccess');
+      successDiv.textContent = message;
+      successDiv.style.display = 'block';
+      document.getElementById('attribuerModalError').style.display = 'none';
+    }
+
+    // =====================================================
+    // FIN ATTRIBUTION LOCATAIRE
+    // =====================================================
 
     // Déconnexion
     async function logout() {
