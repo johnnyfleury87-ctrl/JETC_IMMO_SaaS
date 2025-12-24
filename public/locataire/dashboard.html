@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Locataire - JETC_IMMO</title>
   <link rel="stylesheet" href="/css/design-system.css">
+  <script src="/js/supabaseClient.js"></script>
 </head>
 <body>
   <div class="container">
@@ -141,35 +142,81 @@
   <script>
     // Vérifier l'authentification
     async function checkAuth() {
-      const token = localStorage.getItem('jetc_access_token');
-      const userStr = localStorage.getItem('jetc_user');
-      
-      if (!token || !userStr) {
-        console.log('[DASHBOARD] Non authentifié, redirection...');
+      try {
+        // Vérifier la session Supabase
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !session) {
+          console.log('[DASHBOARD] Non authentifié, redirection...', sessionError);
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        console.log('[DASHBOARD] Session active:', session.user.id);
+        
+        // Récupérer le profil RÉEL depuis la DB
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role, email')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (profileError || !profile) {
+          console.error('[DASHBOARD] Erreur profil:', profileError);
+          alert('Erreur lors de la récupération du profil');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        console.log('[DASHBOARD] Profil chargé:', profile);
+        
+        // ✅ VÉRIFIER LE RÔLE RÉEL (depuis la DB, pas localStorage)
+        if (profile.role !== 'locataire') {
+          console.log('[DASHBOARD] Rôle incorrect:', profile.role);
+          alert('Accès interdit : ce dashboard est réservé aux locataires');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        // ✅ RÉCUPÉRER LES DONNÉES LOCATAIRE (même sans logement)
+        const { data: locataire, error: locataireError } = await supabase
+          .from('locataires')
+          .select('logement_id, regie_id')
+          .eq('profile_id', session.user.id)
+          .single();
+        
+        if (locataireError || !locataire) {
+          console.error('[DASHBOARD] Erreur locataire:', locataireError);
+          alert('Profil locataire introuvable');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        console.log('[DASHBOARD] Données locataire:', locataire);
+        
+        // ✅ AFFICHER UX SELON ÉTAT LOGEMENT
+        if (!locataire.logement_id) {
+          console.warn('[DASHBOARD] Locataire SANS logement - fonctionnalités limitées');
+          showSansLogementBanner();
+          disableTicketCreation();
+        }
+        
+        // Afficher les infos utilisateur
+        const email = profile.email || session.user.email;
+        document.getElementById('userEmail').textContent = email;
+        document.getElementById('userEmailDisplay').textContent = email;
+        
+        // Première lettre pour l'avatar
+        const firstLetter = email.charAt(0).toUpperCase();
+        document.getElementById('userAvatar').textContent = firstLetter;
+        
+        console.log('[DASHBOARD] ✅ Utilisateur connecté (locataire)');
+        
+      } catch (error) {
+        console.error('[DASHBOARD] Exception:', error);
+        alert('Erreur technique lors de la vérification');
         window.location.href = '/login.html';
-        return;
       }
-      
-      const user = JSON.parse(userStr);
-      
-      // Vérifier le rôle
-      if (user.role !== 'locataire') {
-        console.log('[DASHBOARD] Rôle incorrect:', user.role);
-        alert('Accès interdit : ce dashboard est réservé aux locataires');
-        window.location.href = '/login.html';
-        return;
-      }
-      
-      // Afficher les infos utilisateur
-      const email = user.email;
-      document.getElementById('userEmail').textContent = email;
-      document.getElementById('userEmailDisplay').textContent = email;
-      
-      // Première lettre pour l'avatar
-      const firstLetter = email.charAt(0).toUpperCase();
-      document.getElementById('userAvatar').textContent = firstLetter;
-      
-      console.log('[DASHBOARD] Utilisateur connecté:', user);
     }
 
     // Afficher le formulaire de création de ticket
@@ -192,6 +239,31 @@
       document.getElementById('ticketUrgence').checked = false;
       document.getElementById('ticketError').style.display = 'none';
       document.getElementById('ticketSuccess').style.display = 'none';
+    }
+    
+    // Afficher la bannière "En attente de logement"
+    function showSansLogementBanner() {
+      const welcomeCard = document.querySelector('.welcome-card');
+      const banner = document.createElement('div');
+      banner.id = 'sansLogementBanner';
+      banner.className = 'info-box';
+      banner.style.cssText = 'background: #fff3cd; border-left: 4px solid #ffc107; margin-bottom: 20px;';
+      banner.innerHTML = `
+        <h3 style="color: #856404;">⚠️ Logement non attribué</h3>
+        <p style="color: #856404; margin-top: 10px;">Votre logement n'est pas encore attribué par la régie. Vous ne pouvez pas créer de tickets pour le moment.</p>
+      `;
+      welcomeCard.insertBefore(banner, welcomeCard.firstChild);
+    }
+    
+    // Désactiver la création de ticket
+    function disableTicketCreation() {
+      const createBtn = document.querySelector('button[onclick="showTicketForm()"]');
+      if (createBtn) {
+        createBtn.disabled = true;
+        createBtn.style.opacity = '0.5';
+        createBtn.style.cursor = 'not-allowed';
+        createBtn.title = 'Fonction indisponible sans logement attribué';
+      }
     }
 
     // Créer un ticket
