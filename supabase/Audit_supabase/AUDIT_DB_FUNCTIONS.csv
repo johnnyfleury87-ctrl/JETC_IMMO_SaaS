@@ -1,0 +1,1760 @@
+routine_name,routine_definition;
+gbt_macad8_consistent,null;
+gbt_macad8_compress,null;
+gbt_macad8_fetch,null;
+gbt_macad8_penalty,null;
+gbt_macad8_picksplit,null;
+gbt_macad8_union,null;
+gbt_macad8_same,null;
+gbt_enum_consistent,null;
+gbt_enum_compress,null;
+gbt_enum_fetch,null;
+gbt_enum_penalty,null;
+gbt_enum_picksplit,null;
+gbt_enum_union,null;
+gbt_enum_same,null;
+gbtreekey2_in,null;
+gbtreekey2_out,null;
+gbt_bool_consistent,null;
+gbt_bool_compress,null;
+gbt_bool_fetch,null;
+gbt_bool_penalty,null;
+gbt_bool_picksplit,null;
+gbt_bool_union,null;
+gbt_bool_same,null;
+"check_locataire_has_logement_for_ticket,""";
+DECLARE;
+  v_logement_id uuid;
+BEGIN;
+  -- Récupérer logement_id du locataire;
+  SELECT logement_id INTO v_logement_id;
+  FROM locataires;
+  WHERE id = NEW.locataire_id;
+;
+  -- Vérifier que le locataire a un logement;
+  IF v_logement_id IS NULL THEN;
+    RAISE EXCEPTION 'RÈGLE MÉTIER VIOLÉE : Le locataire % doit avoir un logement assigné pour créer un ticket. Demandez à votre régie de vous attribuer un logement.', NEW.locataire_id;
+      USING HINT = 'Contactez votre régie pour être rattaché à un logement avant de créer un ticket';
+  END IF;
+;
+  RETURN NEW;
+END;
+"
+liberer_logement_locataire,";
+DECLARE;
+  v_logement_id uuid;
+  v_ancien_statut text;
+BEGIN;
+  -- ========================================;
+  -- 1. Vérifier que locataire appartient à la régie connectée;
+  -- ========================================;
+  SELECT l.logement_id INTO v_logement_id;
+  FROM locataires l;
+  JOIN logements lg ON lg.id = l.logement_id;
+  JOIN immeubles i ON i.id = lg.immeuble_id;
+  WHERE l.id = p_locataire_id;
+    AND i.regie_id = get_user_regie_id();
+  ;
+  IF NOT FOUND THEN;
+    RAISE EXCEPTION 'Locataire non trouvé ou vous n''avez pas les droits';
+  END IF;
+  ;
+  -- ========================================;
+  -- 2. Mettre date_sortie locataire;
+  -- ========================================;
+  UPDATE locataires;
+  SET date_sortie = p_date_sortie;
+  WHERE id = p_locataire_id;
+  ;
+  -- ========================================;
+"  -- 3. Changer statut logement en """"vacant""""";
+  -- ========================================;
+  UPDATE logements;
+  SET statut = 'vacant';
+  WHERE id = v_logement_id;
+  RETURNING statut INTO v_ancien_statut;
+  ;
+  -- ========================================;
+  -- 4. Retourner résultat;
+  -- ========================================;
+  RETURN json_build_object(;
+    'success', true,;
+    'locataire_id', p_locataire_id,;
+    'logement_id', v_logement_id,;
+    'date_sortie', p_date_sortie,;
+    'logement_statut', 'vacant',;
+    'message', 'Logement libéré avec succès';
+  );
+  ;
+EXCEPTION;
+  WHEN OTHERS THEN;
+    RAISE EXCEPTION 'Erreur libération logement : %', SQLERRM;
+END;
+"
+creer_locataire_complet,";
+DECLARE;
+  v_locataire_id uuid;
+  v_regie_id uuid;
+  v_logement_numero text;
+  v_immeuble_nom text;
+BEGIN;
+  -- ========================================;
+  -- 1. Vérifier que logement existe et récupérer info (UNIQUEMENT SI logement_id fourni);
+  -- ========================================;
+  IF p_logement_id IS NOT NULL THEN;
+    SELECT ;
+      i.regie_id,;
+      l.numero,;
+      im.nom;
+    INTO v_regie_id, v_logement_numero, v_immeuble_nom;
+    FROM logements l;
+    JOIN immeubles im ON im.id = l.immeuble_id;
+    JOIN regies r ON r.id = im.regie_id;
+    JOIN profiles p ON p.id = r.profile_id;
+    WHERE l.id = p_logement_id;
+      AND p.id = auth.uid();  -- Vérifier que l'utilisateur connecté est la régie propriétaire
+    ;
+    IF NOT FOUND THEN;
+      RAISE EXCEPTION 'Logement non trouvé ou vous n''avez pas les droits sur ce logement';
+    END IF;
+    ;
+    -- ========================================;
+    -- 4. Vérifier que logement n'a pas déjà un locataire actif;
+    -- ========================================;
+    IF EXISTS (;
+      SELECT 1 ;
+      FROM locataires ;
+      WHERE logement_id = p_logement_id;
+        AND date_sortie IS NULL  -- Locataire actuel (pas encore sorti);
+    ) THEN;
+      RAISE EXCEPTION 'Ce logement a déjà un locataire actif. Veuillez d''abord clôturer le locataire actuel (date_sortie).';
+    END IF;
+  END IF;
+  ;
+  -- ========================================;
+  -- 2. Vérifier que profile_id existe et role='locataire';
+  -- ========================================;
+  IF NOT EXISTS (;
+    SELECT 1 ;
+    FROM profiles ;
+    WHERE id = p_profile_id ;
+      AND role = 'locataire';
+  ) THEN;
+    RAISE EXCEPTION 'Profile non trouvé ou rôle incorrect (doit être ''locataire'')';
+  END IF;
+  ;
+  -- ========================================;
+  -- 3. Vérifier que profile_id n'est pas déjà utilisé;
+  -- ========================================;
+  IF EXISTS (;
+    SELECT 1 ;
+    FROM locataires ;
+    WHERE profile_id = p_profile_id;
+  ) THEN;
+    RAISE EXCEPTION 'Ce profile est déjà associé à un locataire existant';
+  END IF;
+  ;
+  -- ========================================;
+  -- 5. Créer locataire;
+  -- ========================================;
+  INSERT INTO locataires (;
+    nom,;
+    prenom,;
+    email,;
+    profile_id,;
+    logement_id,;
+    date_entree,;
+    telephone,;
+    date_naissance,;
+    contact_urgence_nom,;
+    contact_urgence_telephone;
+  );
+  VALUES (;
+    p_nom,;
+    p_prenom,;
+    p_email,;
+    p_profile_id,;
+    p_logement_id,;
+    p_date_entree,;
+    p_telephone,;
+    p_date_naissance,;
+    p_contact_urgence_nom,;
+    p_contact_urgence_telephone;
+  );
+  RETURNING id INTO v_locataire_id;
+  ;
+  -- ========================================;
+  -- 6. Optionnel : Mettre à jour statut logement (UNIQUEMENT si logement_id fourni);
+  -- ========================================;
+  IF p_logement_id IS NOT NULL THEN;
+    UPDATE logements;
+    SET statut = 'occupé';
+    WHERE id = p_logement_id;
+  END IF;
+  ;
+  -- ========================================;
+  -- 7. Retourner résultat;
+  -- ========================================;
+  RETURN json_build_object(;
+    'success', true,;
+    'locataire_id', v_locataire_id,;
+    'profile_id', p_profile_id,;
+    'email', p_email,;
+    'logement', CASE ;
+      WHEN p_logement_id IS NOT NULL THEN json_build_object(;
+        'id', p_logement_id,;
+        'numero', v_logement_numero,;
+        'immeuble', v_immeuble_nom;
+      );
+      ELSE NULL;
+    END,;
+    'message', 'Locataire créé avec succès';
+  );
+  ;
+EXCEPTION;
+  WHEN OTHERS THEN;
+    -- Rollback automatique en cas d'erreur;
+    RAISE EXCEPTION 'Erreur création locataire : %', SQLERRM;
+END;
+"
+valider_agence,";
+declare;
+  v_admin_role text;
+  v_regie_email text;
+  v_regie_nom text;
+  v_profile_id uuid;  -- ✅ AJOUT : Variable pour stocker profile_id
+begin;
+  -- 1. Vérifier que c'est bien un admin_jtec;
+  select role into v_admin_role;
+  from profiles;
+  where id = p_admin_id;
+  ;
+  if v_admin_role != 'admin_jtec' then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'Seul un admin JTEC peut valider une agence';
+    );
+  end if;
+  ;
+  -- 2. Vérifier que la régie existe et est en attente;
+  if not exists (;
+    select 1 from regies;
+    where id = p_regie_id;
+    and statut_validation = 'en_attente';
+  ) then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'Régie non trouvée ou déjà validée/refusée';
+    );
+  end if;
+  ;
+  -- 3. Valider la régie;
+  update regies;
+  set ;
+    statut_validation = 'valide',;
+    date_validation = now(),;
+    admin_validateur_id = p_admin_id,;
+    commentaire_refus = null;
+  where id = p_regie_id;
+  returning email, nom, profile_id into v_regie_email, v_regie_nom, v_profile_id;  -- ✅ AJOUT : Récupérer profile_id
+  ;
+  -- ✅ CORRECTION CRITIQUE : Rattacher le profil créateur à sa régie;
+  UPDATE profiles;
+  SET regie_id = p_regie_id,;
+      updated_at = now();
+  WHERE id = v_profile_id;
+  ;
+  -- Vérification que la mise à jour a réussi;
+  IF NOT FOUND THEN;
+    -- Rollback implicite (transaction échouée);
+    RAISE EXCEPTION 'ERREUR CRITIQUE: Impossible de rattacher le profil % à la régie %. Rollback.', v_profile_id, p_regie_id;
+  END IF;
+  ;
+  -- 4. Log avec confirmation du rattachement;
+  raise notice 'AUDIT: Admin % a validé l''agence % (ID: %) et rattaché le profil %', p_admin_id, v_regie_nom, p_regie_id, v_profile_id;
+  ;
+  -- TODO: Envoyer notification email à la régie;
+  ;
+  return jsonb_build_object(;
+    'success', true,;
+    'message', 'Agence validée avec succès et profil rattaché',;
+    'regie_email', v_regie_email,;
+    'regie_nom', v_regie_nom,;
+    'profile_id', v_profile_id,  -- ✅ AJOUT : Pour debug;
+    'regie_id_assigned', p_regie_id  -- ✅ AJOUT : Confirmation du rattachement;
+  );
+end;
+"
+refuser_agence,";
+declare;
+  v_admin_role text;
+  v_regie_email text;
+  v_regie_nom text;
+begin;
+  -- 1. Vérifier que c'est bien un admin_jtec;
+  select role into v_admin_role;
+  from profiles;
+  where id = p_admin_id;
+  ;
+  if v_admin_role != 'admin_jtec' then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'Seul un admin JTEC peut refuser une agence';
+    );
+  end if;
+  ;
+  -- 2. Validation du commentaire;
+  if p_commentaire is null or trim(p_commentaire) = '' then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'Un commentaire est obligatoire pour refuser une agence';
+    );
+  end if;
+  ;
+  -- 3. Vérifier que la régie existe et est en attente;
+  if not exists (;
+    select 1 from regies;
+    where id = p_regie_id;
+    and statut_validation = 'en_attente';
+  ) then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'Régie non trouvée ou déjà validée/refusée';
+    );
+  end if;
+  ;
+  -- 4. Refuser la régie;
+  update regies;
+  set ;
+    statut_validation = 'refuse',;
+    date_validation = now(),;
+    admin_validateur_id = p_admin_id,;
+    commentaire_refus = p_commentaire;
+  where id = p_regie_id;
+  returning email, nom into v_regie_email, v_regie_nom;
+  ;
+  -- 5. Log;
+  raise notice 'AUDIT: Admin % a refusé l''agence % (ID: %): %', p_admin_id, v_regie_nom, p_regie_id, p_commentaire;
+  ;
+  -- TODO: Envoyer notification email à la régie;
+  ;
+  return jsonb_build_object(;
+    'success', true,;
+    'message', 'Agence refusée',;
+    'regie_email', v_regie_email,;
+    'regie_nom', v_regie_nom;
+  );
+end;
+"
+gbtreekey4_in,null
+gbtreekey4_out,null
+gbtreekey8_in,null
+gbtreekey8_out,null
+gbtreekey16_in,null
+gbtreekey16_out,null
+gbtreekey32_in,null
+gbtreekey32_out,null
+gbtreekey_var_in,null
+gbtreekey_var_out,null
+cash_dist,null
+date_dist,null
+float4_dist,null
+float8_dist,null
+int2_dist,null
+int4_dist,null
+int8_dist,null
+interval_dist,null
+oid_dist,null
+time_dist,null
+ts_dist,null
+tstz_dist,null
+gbt_oid_consistent,null
+gbt_oid_distance,null
+gbt_oid_fetch,null
+gbt_oid_compress,null
+gbt_decompress,null
+gbt_var_decompress,null
+gbt_var_fetch,null
+gbt_oid_penalty,null
+gbt_oid_picksplit,null
+gbt_oid_union,null
+gbt_oid_same,null
+gbt_int2_consistent,null
+gbt_int2_distance,null
+start_mission,";
+declare;
+  v_current_statut text;
+begin;
+  -- 1. Vérifier que la mission existe et récupérer son statut;
+  select statut into v_current_statut;
+  from missions;
+  where id = p_mission_id;
+  ;
+  if not found then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'Mission non trouvée';
+    );
+  end if;
+  ;
+  -- 2. Vérifier que la mission est en_attente;
+  if v_current_statut != 'en_attente' then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'La mission doit être en_attente pour être démarrée (statut actuel: ' || v_current_statut || ')';
+    );
+  end if;
+  ;
+  -- 3. Démarrer la mission;
+  update missions;
+  set ;
+    statut = 'en_cours',;
+    started_at = now();
+  where id = p_mission_id;
+  ;
+  return jsonb_build_object(;
+    'success', true;
+  );
+end;
+"
+gbt_int2_compress,null
+complete_mission,";
+declare;
+  v_current_statut text;
+  v_technicien_id uuid;
+begin;
+  -- 1. Vérifier que la mission existe;
+  select statut, technicien_id ;
+  into v_current_statut, v_technicien_id;
+  from missions;
+  where id = p_mission_id;
+  ;
+  if not found then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'Mission non trouvée';
+    );
+  end if;
+  ;
+  -- 2. Vérifier que la mission est en_cours;
+  if v_current_statut != 'en_cours' then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'La mission doit être en_cours pour être terminée (statut actuel: ' || v_current_statut || ')';
+    );
+  end if;
+  ;
+  -- 3. Vérifier qu'un technicien est assigné;
+  if v_technicien_id is null then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'La mission doit avoir un technicien assigné';
+    );
+  end if;
+  ;
+  -- 4. Terminer la mission;
+  update missions;
+  set ;
+    statut = 'terminee',;
+    completed_at = now(),;
+    date_intervention_realisee = now(),;
+    rapport_url = coalesce(p_rapport_url, rapport_url);
+  where id = p_mission_id;
+  ;
+  return jsonb_build_object(;
+    'success', true;
+  );
+end;
+"
+gbt_int2_fetch,null
+gbt_int2_penalty,null
+handle_updated_at,";
+begin;
+  new.updated_at = now();
+  return new;
+end;
+"
+gbt_int2_picksplit,null
+gbt_int2_union,null
+gbt_int2_same,null
+gbt_int4_consistent,null
+notify_mission_status_change_extended,";
+declare;
+  v_actor record;
+  v_mission_ref text;
+begin;
+  if OLD.statut is distinct from NEW.statut then;
+    -- Récupérer la référence;
+    v_mission_ref := NEW.reference;
+    ;
+    -- Message système dans la messagerie;
+    perform create_system_message(;
+      NEW.id,;
+      'Statut changé : ' || OLD.statut || ' → ' || NEW.statut;
+    );
+    ;
+    -- Notifications pour tous les acteurs;
+    for v_actor in select * from get_mission_actors(NEW.id);
+    loop;
+      insert into notifications (;
+        user_id,;
+        type,;
+        title,;
+        message,;
+        related_mission_id;
+      );
+      values (;
+        v_actor.user_id,;
+        'mission_status_change',;
+        'Changement de statut - ' || v_mission_ref,;
+        'La mission est maintenant : ' || NEW.statut,;
+        NEW.id;
+      );
+    end loop;
+  end if;
+  ;
+  return NEW;
+end;
+"
+notify_technicien_assignment,";
+declare;
+  v_tech_user_id uuid;
+  v_mission_ref text;
+  v_tech_nom text;
+begin;
+  -- Uniquement si technicien assigné (avant NULL, maintenant non NULL);
+  if OLD.technicien_id is null and NEW.technicien_id is not null then;
+    -- Récupérer le user_id du technicien;
+    select user_id, nom into v_tech_user_id, v_tech_nom;
+    from techniciens;
+    where id = NEW.technicien_id;
+    ;
+    if v_tech_user_id is not null then;
+      v_mission_ref := NEW.reference;
+      ;
+      -- Message système;
+      perform create_system_message(;
+        NEW.id,;
+        'Technicien assigné : ' || v_tech_nom;
+      );
+      ;
+      -- Notification pour le technicien;
+      insert into notifications (;
+        user_id,;
+        type,;
+        title,;
+        message,;
+        related_mission_id;
+      );
+      values (;
+        v_tech_user_id,;
+        'mission_assigned',;
+        'Nouvelle mission assignée',;
+        'Vous avez été assigné à la mission ' || v_mission_ref,;
+        NEW.id;
+      );
+    end if;
+  end if;
+  ;
+  return NEW;
+end;
+"
+notify_new_ticket,";
+declare;
+  v_actor record;
+begin;
+  -- Notifier la régie et le locataire;
+  for v_actor in ;
+    select id from profiles ;
+    where regie_id = NEW.regie_id or locataire_id = NEW.locataire_id;
+  loop;
+    insert into notifications (;
+      user_id,;
+      type,;
+      title,;
+      message,;
+      related_ticket_id;
+    );
+    values (;
+      v_actor.user_id,;
+      'new_ticket',;
+      'Nouveau ticket créé',;
+      'Ticket ' || NEW.numero || ' : ' || left(NEW.description, 100),;
+      NEW.id;
+    );
+  end loop;
+  ;
+  return NEW;
+end;
+"
+gbt_int4_distance,null
+gbt_int4_compress,null
+gbt_int4_fetch,null
+gbt_int4_penalty,null
+gbt_int4_picksplit,null
+gbt_int4_union,null
+gbt_int4_same,null
+gbt_int8_consistent,null
+gbt_int8_distance,null
+gbt_int8_compress,null
+gbt_int8_fetch,null
+gbt_int8_penalty,null
+gbt_int8_picksplit,null
+gbt_int8_union,null
+gbt_int8_same,null
+gbt_float4_consistent,null
+gbt_float4_distance,null
+gbt_float4_compress,null
+gbt_float4_fetch,null
+gbt_float4_penalty,null
+gbt_float4_picksplit,null
+gbt_float4_union,null
+gbt_float4_same,null
+gbt_float8_consistent,null
+gbt_float8_distance,null
+gbt_float8_compress,null
+gbt_float8_fetch,null
+gbt_float8_penalty,null
+gbt_float8_picksplit,null
+gbt_float8_union,null
+gbt_float8_same,null
+gbt_ts_consistent,null
+get_user_regie_id,";
+  select regie_id from (;
+    -- Pour le rôle 'regie', prendre directement depuis regies;
+    select r.id as regie_id;
+    from regies r;
+    where r.profile_id = auth.uid();
+    ;
+    union;
+    ;
+    -- Pour le rôle 'locataire', remonter via logements → immeubles;
+    select i.regie_id;
+    from locataires l;
+    join logements lg on lg.id = l.logement_id;
+    join immeubles i on i.id = lg.immeuble_id;
+    where l.profile_id = auth.uid();
+    ;
+    limit 1;
+  ) as user_regie;
+"
+gbt_ts_distance,null
+gbt_tstz_consistent,null
+gbt_tstz_distance,null
+gbt_ts_compress,null
+update_techniciens_updated_at,";
+begin;
+  new.updated_at = now();
+  return new;
+end;
+"
+get_user_technicien_id,";
+  select id from techniciens;
+  where profile_id = auth.uid();
+  limit 1;
+"
+assign_technicien_to_mission,";
+declare;
+  v_mission_entreprise_id uuid;
+  v_technicien_entreprise_id uuid;
+begin;
+  -- 1. Vérifier que la mission existe et récupérer son entreprise;
+  select entreprise_id into v_mission_entreprise_id;
+  from missions;
+  where id = p_mission_id;
+  ;
+  if not found then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'Mission non trouvée';
+    );
+  end if;
+  ;
+  -- 2. Vérifier que le technicien existe et récupérer son entreprise;
+  select entreprise_id into v_technicien_entreprise_id;
+  from techniciens;
+  where id = p_technicien_id;
+  and actif = true;
+  ;
+  if not found then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'Technicien non trouvé ou inactif';
+    );
+  end if;
+  ;
+  -- 3. Vérifier que le technicien appartient à la même entreprise;
+  if v_mission_entreprise_id != v_technicien_entreprise_id then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'Le technicien n''appartient pas à l''entreprise de la mission';
+    );
+  end if;
+  ;
+  -- 4. Assigner le technicien à la mission;
+  update missions;
+  set ;
+    technicien_id = p_technicien_id,;
+    date_intervention_prevue = coalesce(p_date_intervention_prevue, date_intervention_prevue);
+  where id = p_mission_id;
+  ;
+  return jsonb_build_object(;
+    'success', true;
+  );
+end;
+"
+gbt_tstz_compress,null
+gbt_ts_fetch,null
+set_ticket_regie_id,";
+declare;
+  v_regie_id uuid;
+begin;
+  -- Récupérer la regie_id via logement → immeuble → regie;
+  select i.regie_id into v_regie_id;
+  from logements l;
+  join immeubles i on l.immeuble_id = i.id;
+  where l.id = new.logement_id;
+  ;
+  if v_regie_id is null then;
+    raise exception 'Impossible de déterminer la régie pour le logement %', new.logement_id;
+  end if;
+  ;
+  new.regie_id := v_regie_id;
+  return new;
+end;
+"
+accept_ticket_and_create_mission,";
+declare;
+  v_ticket_regie_id uuid;
+  v_is_authorized boolean;
+  v_ticket_locked boolean;
+  v_mission_id uuid;
+begin;
+  -- 1. Vérifier que le ticket existe et récupérer sa régie;
+  select ;
+    i.regie_id,;
+    t.locked_at is not null;
+  into v_ticket_regie_id, v_ticket_locked;
+  from tickets t;
+  join logements l on t.logement_id = l.id;
+  join immeubles i on l.immeuble_id = i.id;
+  where t.id = p_ticket_id;
+  ;
+  if not found then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'Ticket non trouvé';
+    );
+  end if;
+  ;
+  -- 2. Vérifier que le ticket n'est pas déjà verrouillé;
+  if v_ticket_locked then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'Ticket déjà verrouillé (mission existante)';
+    );
+  end if;
+  ;
+  -- 3. Vérifier que l'entreprise est autorisée pour cette régie;
+  select exists (;
+    select 1 from regies_entreprises;
+    where regie_id = v_ticket_regie_id;
+    and entreprise_id = p_entreprise_id;
+    and autorise = true;
+  ) into v_is_authorized;
+  ;
+  if not v_is_authorized then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'Entreprise non autorisée pour cette régie';
+    );
+  end if;
+  ;
+  -- 4. Créer la mission;
+  insert into missions (ticket_id, entreprise_id, statut);
+  values (p_ticket_id, p_entreprise_id, 'en_attente');
+  returning id into v_mission_id;
+  ;
+  -- 5. Verrouiller le ticket;
+  update tickets;
+  set locked_at = now();
+  where id = p_ticket_id;
+  ;
+  -- 6. Mettre à jour le statut du ticket;
+  update tickets;
+  set statut = 'en_cours';
+  where id = p_ticket_id;
+  ;
+  return jsonb_build_object(;
+    'success', true,;
+    'mission_id', v_mission_id;
+  );
+end;
+"
+update_missions_updated_at,";
+begin;
+  new.updated_at = now();
+  return new;
+end;
+"
+validate_mission,";
+declare;
+  v_current_statut text;
+  v_signatures_complete boolean;
+begin;
+  -- 1. Vérifier que la mission existe;
+  select ;
+    statut,;
+    (signature_locataire_url is not null and signature_technicien_url is not null);
+  into v_current_statut, v_signatures_complete;
+  from missions;
+  where id = p_mission_id;
+  ;
+  if not found then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'Mission non trouvée';
+    );
+  end if;
+  ;
+  -- 2. Vérifier que la mission est terminee;
+  if v_current_statut != 'terminee' then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'La mission doit être terminee pour être validée (statut actuel: ' || v_current_statut || ')';
+    );
+  end if;
+  ;
+  -- 3. Vérifier que les signatures sont présentes (optionnel mais recommandé);
+  if not v_signatures_complete then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'Les signatures du locataire et du technicien sont requises',;
+      'warning', true;
+    );
+  end if;
+  ;
+  -- 4. Valider la mission;
+  update missions;
+  set ;
+    statut = 'validee',;
+    validated_at = now();
+  where id = p_mission_id;
+  ;
+  return jsonb_build_object(;
+    'success', true;
+  );
+end;
+"
+cancel_mission,";
+declare;
+  v_current_statut text;
+begin;
+  -- 1. Vérifier que la mission existe;
+  select statut into v_current_statut;
+  from missions;
+  where id = p_mission_id;
+  ;
+  if not found then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'Mission non trouvée';
+    );
+  end if;
+  ;
+  -- 2. Vérifier que la mission n'est pas déjà validee;
+  if v_current_statut = 'validee' then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'Une mission validée ne peut pas être annulée';
+    );
+  end if;
+  ;
+  -- 3. Annuler la mission;
+  update missions;
+  set ;
+    statut = 'annulee',;
+    notes = coalesce(notes || E'\n\nRaison annulation: ' || p_raison, 'Raison: ' || p_raison);
+  where id = p_mission_id;
+  ;
+  -- 4. Déverrouiller le ticket (pour permettre une nouvelle mission);
+  update tickets;
+  set locked_at = null;
+  where id = (select ticket_id from missions where id = p_mission_id);
+  ;
+  return jsonb_build_object(;
+    'success', true;
+  );
+end;
+"
+notify_mission_status_change,";
+begin;
+  -- Log simple du changement (pour audit);
+  if old.statut is distinct from new.statut then;
+    raise notice 'Mission % : statut changé de % à %', new.id, old.statut, new.statut;
+  end if;
+  ;
+  return new;
+end;
+"
+gbt_ts_penalty,null
+generate_facture_from_mission,";
+declare;
+  v_mission record;
+  v_facture factures;
+  v_numero text;
+  v_year text;
+  v_seq int;
+begin;
+  -- Vérifier que la mission existe et est validée;
+  select * into v_mission from missions where id = p_mission_id;
+  ;
+  if not found then;
+    raise exception 'Mission non trouvée';
+  end if;
+  ;
+  if v_mission.statut != 'validee' then;
+    raise exception 'La mission doit être validée pour générer une facture';
+  end if;
+  ;
+  -- Vérifier qu'aucune facture n'existe déjà;
+  if exists (select 1 from factures where mission_id = p_mission_id) then;
+    raise exception 'Une facture existe déjà pour cette mission';
+  end if;
+  ;
+  -- Générer le numéro de facture (format: FAC-YYYY-NNNN);
+  v_year := to_char(current_date, 'YYYY');
+  ;
+  select coalesce(max(;
+    case ;
+      when numero ~ '^FAC-[0-9]{4}-[0-9]+$' ;
+      then cast(substring(numero from 'FAC-[0-9]{4}-([0-9]+)') as int);
+      else 0;
+    end;
+  ), 0) + 1;
+  into v_seq;
+  from factures;
+  where numero like 'FAC-' || v_year || '-%';
+  ;
+  v_numero := 'FAC-' || v_year || '-' || lpad(v_seq::text, 4, '0');
+  ;
+  -- Créer la facture;
+  insert into factures (;
+    mission_id,;
+    entreprise_id,;
+    regie_id,;
+    numero,;
+    montant_ht,;
+    taux_tva,;
+    taux_commission,;
+    date_echeance;
+  );
+  values (;
+    p_mission_id,;
+    v_mission.entreprise_id,;
+    (select regie_id from tickets where id = v_mission.ticket_id),;
+    v_numero,;
+    p_montant_ht,;
+    p_taux_tva,;
+    p_taux_commission,;
+    p_date_echeance;
+  );
+  returning * into v_facture;
+  ;
+  return v_facture;
+end;
+"
+gbt_ts_picksplit,null
+gbt_ts_union,null
+gbt_ts_same,null
+gbt_time_consistent,null
+gbt_time_distance,null
+gbt_timetz_consistent,null
+gbt_time_compress,null
+update_facture_status,";
+declare;
+  v_facture factures;
+  v_ancien_statut text;
+begin;
+  -- Récupérer la facture;
+  select * into v_facture from factures where id = p_facture_id;
+  ;
+  if not found then;
+    raise exception 'Facture non trouvée';
+  end if;
+  ;
+  v_ancien_statut := v_facture.statut;
+  ;
+  -- Vérifier que le nouveau statut est valide;
+  if p_nouveau_statut not in ('brouillon', 'envoyee', 'payee', 'annulee') then;
+    raise exception 'Statut invalide: %', p_nouveau_statut;
+  end if;
+  ;
+  -- Vérifier les transitions autorisées;
+  if v_ancien_statut = 'annulee' then;
+    raise exception 'Impossible de modifier une facture annulée';
+  end if;
+  ;
+  if v_ancien_statut = 'payee' and p_nouveau_statut != 'payee' then;
+    raise exception 'Impossible de modifier une facture déjà payée';
+  end if;
+  ;
+  -- Valider la séquence logique;
+  if v_ancien_statut = 'brouillon' and p_nouveau_statut = 'payee' then;
+    raise exception 'Une facture doit être envoyée avant d''être marquée comme payée';
+  end if;
+  ;
+  -- Mettre à jour la facture;
+  update factures;
+  set statut = p_nouveau_statut,;
+      date_envoi = case when p_nouveau_statut = 'envoyee' and date_envoi is null then now() else date_envoi end,;
+      date_paiement = case when p_nouveau_statut = 'payee' and date_paiement is null then now() else date_paiement end;
+  where id = p_facture_id;
+  returning * into v_facture;
+  ;
+  return v_facture;
+end;
+"
+cancel_facture,";
+declare;
+  v_facture factures;
+begin;
+  -- Récupérer la facture;
+  select * into v_facture from factures where id = p_facture_id;
+  ;
+  if not found then;
+    raise exception 'Facture non trouvée';
+  end if;
+  ;
+  -- Vérifier qu'elle n'est pas payée;
+  if v_facture.statut = 'payee' then;
+    raise exception 'Impossible d''annuler une facture déjà payée';
+  end if;
+  ;
+  if v_facture.statut = 'annulee' then;
+    raise exception 'Facture déjà annulée';
+  end if;
+  ;
+  -- Annuler la facture;
+  update factures;
+  set statut = 'annulee',;
+      notes = coalesce(notes || E'\n\nAnnulation: ' || p_raison, 'Annulation: ' || p_raison);
+  where id = p_facture_id;
+  returning * into v_facture;
+  ;
+  return v_facture;
+end;
+"
+notify_facture_status_change,";
+begin;
+  if OLD.statut is distinct from NEW.statut then;
+    perform pg_notify('facture_status_change', json_build_object(;
+      'facture_id', NEW.id,;
+      'numero', NEW.numero,;
+      'ancien_statut', OLD.statut,;
+      'nouveau_statut', NEW.statut,;
+      'entreprise_id', NEW.entreprise_id,;
+      'regie_id', NEW.regie_id;
+    )::text);
+  end if;
+  return NEW;
+end;
+"
+gbt_timetz_compress,null
+get_mission_actors,";
+begin;
+  return query;
+  select distinct au.id, au.role;
+  from missions m;
+    join tickets t on m.ticket_id = t.id;
+    join profiles au on (;
+      -- Entreprise;
+      au.entreprise_id = m.entreprise_id;
+      -- Technicien assigné;
+      or (m.technicien_id is not null and exists (;
+        select 1 from techniciens tech ;
+        where tech.id = m.technicien_id ;
+        and tech.profile_id = au.id;
+      ));
+      -- Régie;
+      or au.regie_id = t.regie_id;
+      -- Locataire;
+      or au.locataire_id = t.locataire_id;
+    );
+  where m.id = p_mission_id;
+end;
+"
+send_message,";
+declare;
+  v_message messages;
+  v_sender profiles;
+  v_actor record;
+  v_mission_ref text;
+begin;
+  -- Vérifier que la mission existe;
+  if not exists (select 1 from missions where id = p_mission_id) then;
+    raise exception 'Mission non trouvée';
+  end if;
+  ;
+  -- Récupérer les infos de l'expéditeur;
+  select * into v_sender from profiles where id = p_sender_user_id;
+  ;
+  if not found then;
+    raise exception 'Utilisateur non trouvé';
+  end if;
+  ;
+  -- Vérifier que l'expéditeur est un acteur de la mission;
+  if not exists (;
+    select 1 from get_mission_actors(p_mission_id) ;
+    where user_id = p_sender_user_id;
+  ) then;
+    raise exception 'Accès refusé : vous n''êtes pas acteur de cette mission';
+  end if;
+  ;
+  -- Créer le message;
+  insert into messages (;
+    mission_id,;
+    sender_user_id,;
+    sender_name,;
+    sender_role,;
+    content,;
+    type;
+  );
+  values (;
+    p_mission_id,;
+    p_sender_user_id,;
+    coalesce(v_sender.nom, v_sender.prenom, 'Utilisateur'),;
+    v_sender.role,;
+    p_content,;
+    'message';
+  );
+  returning * into v_message;
+  ;
+  -- Récupérer la référence de la mission pour les notifications;
+  select reference into v_mission_ref from missions where id = p_mission_id;
+  ;
+  -- Créer des notifications pour les autres acteurs;
+  for v_actor in ;
+    select * from get_mission_actors(p_mission_id) ;
+    where user_id != p_sender_user_id;
+  loop;
+    insert into notifications (;
+      user_id,;
+      type,;
+      title,;
+      message,;
+      related_mission_id,;
+      related_message_id;
+    );
+    values (;
+      v_actor.user_id,;
+      'new_message',;
+      'Nouveau message sur ' || v_mission_ref,;
+      v_sender.nom || ' : ' || left(p_content, 100),;
+      p_mission_id,;
+      v_message.id;
+    );
+  end loop;
+  ;
+  return v_message;
+end;
+"
+mark_notification_as_read,";
+declare;
+  v_notification notifications;
+begin;
+  -- Vérifier que la notification appartient à l'utilisateur;
+  select * into v_notification ;
+  from notifications ;
+  where id = p_notification_id and user_id = p_user_id;
+  ;
+  if not found then;
+    raise exception 'Notification non trouvée';
+  end if;
+  ;
+  -- Marquer comme lue;
+  update notifications;
+  set read = true,;
+      read_at = now();
+  where id = p_notification_id;
+  returning * into v_notification;
+  ;
+  return v_notification;
+end;
+"
+create_system_message,";
+declare;
+  v_message messages;
+begin;
+  insert into messages (;
+    mission_id,;
+    sender_user_id,;
+    sender_name,;
+    sender_role,;
+    content,;
+    type;
+  );
+  values (;
+    p_mission_id,;
+    (select id from profiles where role = 'admin_jtec' limit 1),  -- Système;
+    'Système',;
+    'system',;
+    p_content,;
+    'system';
+  );
+  returning * into v_message;
+  ;
+  return v_message;
+end;
+"
+gbt_time_fetch,null
+gbt_time_penalty,null
+gbt_time_picksplit,null
+gbt_time_union,null
+gbt_time_same,null
+gbt_date_consistent,null
+gbt_date_distance,null
+gbt_date_compress,null
+gbt_date_fetch,null
+gbt_date_penalty,null
+update_plan_updated_at,";
+BEGIN;
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+"
+update_abonnement_updated_at,";
+BEGIN;
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+"
+increment_quota_on_mission,";
+BEGIN;
+    -- Incrémenter le quota si c'est une entreprise;
+    IF NEW.entreprise_id IS NOT NULL THEN;
+        PERFORM public.increment_mission_quota(NEW.entreprise_id);
+    END IF;
+    ;
+    RETURN NEW;
+END;
+"
+create_abonnement,";
+DECLARE;
+    v_plan RECORD;
+    v_date_fin DATE;
+    v_montant DECIMAL(10, 2);
+    v_abonnement_id UUID;
+BEGIN;
+    -- Vérifier que plan existe;
+    SELECT * INTO v_plan FROM public.plans WHERE id = p_plan_id AND actif = true;
+    IF NOT FOUND THEN;
+        RAISE EXCEPTION 'Plan introuvable ou inactif';
+    END IF;
+    ;
+    -- Vérifier qu'un seul client est fourni;
+    IF (p_entreprise_id IS NULL AND p_regie_id IS NULL) OR ;
+       (p_entreprise_id IS NOT NULL AND p_regie_id IS NOT NULL) THEN;
+        RAISE EXCEPTION 'Fournir entreprise_id OU regie_id (pas les deux)';
+    END IF;
+    ;
+    -- Calculer date de fin et montant;
+    IF p_type_periode = 'mensuel' THEN;
+        v_date_fin := CURRENT_DATE + INTERVAL '1 month';
+        v_montant := v_plan.prix_mensuel;
+    ELSIF p_type_periode = 'annuel' THEN;
+        v_date_fin := CURRENT_DATE + INTERVAL '1 year';
+        v_montant := v_plan.prix_annuel;
+    ELSE;
+        RAISE EXCEPTION 'Type de période invalide (mensuel ou annuel)';
+    END IF;
+    ;
+    -- Créer l'abonnement;
+    INSERT INTO public.abonnements (;
+        entreprise_id,;
+        regie_id,;
+        plan_id,;
+        type_periode,;
+        date_debut,;
+        date_fin,;
+        statut,;
+        montant_paye,;
+        date_prochain_paiement;
+    ) VALUES (;
+        p_entreprise_id,;
+        p_regie_id,;
+        p_plan_id,;
+        p_type_periode,;
+        CURRENT_DATE,;
+        v_date_fin,;
+        'actif',;
+        v_montant,;
+        v_date_fin;
+    );
+    RETURNING id INTO v_abonnement_id;
+    ;
+    RETURN v_abonnement_id;
+END;
+"
+gbt_date_picksplit,null
+gbt_date_union,null
+gbt_date_same,null
+gbt_intv_consistent,null
+gbt_intv_distance,null
+gbt_intv_compress,null
+is_admin_jtec,";
+  select exists (;
+    select 1 from profiles;
+    where id = auth.uid();
+    and role = 'admin_jtec';
+  );
+"
+gbt_intv_decompress,null
+gbt_intv_fetch,null
+gbt_intv_penalty,null
+gbt_intv_picksplit,null
+gbt_intv_union,null
+gbt_intv_same,null
+gbt_cash_consistent,null
+gbt_cash_distance,null
+gbt_cash_compress,null
+gbt_cash_fetch,null
+gbt_cash_penalty,null
+gbt_cash_picksplit,null
+gbt_cash_union,null
+gbt_cash_same,null
+gbt_macad_consistent,null
+gbt_macad_compress,null
+gbt_macad_fetch,null
+gbt_macad_penalty,null
+gbt_macad_picksplit,null
+gbt_macad_union,null
+gbt_macad_same,null
+gbt_text_consistent,null
+get_current_plan,";
+BEGIN;
+    RETURN QUERY;
+    SELECT ;
+        a.id,;
+        p.id,;
+        p.nom,;
+        a.statut,;
+        a.date_fin,;
+        p.limite_missions_mois,;
+        p.limite_techniciens,;
+        p.limite_utilisateurs,;
+        p.modules_actifs;
+    FROM public.abonnements a;
+    JOIN public.plans p ON a.plan_id = p.id;
+    WHERE ;
+        (p_entreprise_id IS NOT NULL AND a.entreprise_id = p_entreprise_id) OR;
+        (p_regie_id IS NOT NULL AND a.regie_id = p_regie_id);
+    AND a.statut = 'actif';
+    ORDER BY a.created_at DESC;
+    LIMIT 1;
+END;
+"
+check_access_module,";
+DECLARE;
+    v_modules_actifs JSONB;
+    v_statut VARCHAR;
+BEGIN;
+    -- Récupérer le plan actuel;
+    SELECT ;
+        p.modules_actifs,;
+        a.statut;
+    INTO v_modules_actifs, v_statut;
+    FROM public.abonnements a;
+    JOIN public.plans p ON a.plan_id = p.id;
+    WHERE ;
+        (p_entreprise_id IS NOT NULL AND a.entreprise_id = p_entreprise_id) OR;
+        (p_regie_id IS NOT NULL AND a.regie_id = p_regie_id);
+    AND a.statut = 'actif';
+    ORDER BY a.created_at DESC;
+    LIMIT 1;
+    ;
+    -- Si pas d'abonnement actif;
+    IF NOT FOUND OR v_statut != 'actif' THEN;
+        RETURN false;
+    END IF;
+    ;
+    -- Vérifier si module dans la liste;
+    RETURN v_modules_actifs ? p_module_name;
+END;
+"
+check_quota,";
+DECLARE;
+    v_plan RECORD;
+    v_abonnement RECORD;
+    v_utilisation INTEGER;
+BEGIN;
+    -- Récupérer le plan et l'abonnement;
+    SELECT ;
+        a.id as abonnement_id,;
+        a.missions_ce_mois,;
+        a.dernier_reset_quota,;
+        p.limite_missions_mois,;
+        p.limite_techniciens,;
+        p.limite_utilisateurs;
+    INTO v_abonnement;
+    FROM public.abonnements a;
+    JOIN public.plans p ON a.plan_id = p.id;
+    WHERE ;
+        (p_entreprise_id IS NOT NULL AND a.entreprise_id = p_entreprise_id) OR;
+        (p_regie_id IS NOT NULL AND a.regie_id = p_regie_id);
+    AND a.statut = 'actif';
+    ORDER BY a.created_at DESC;
+    LIMIT 1;
+    ;
+    -- Si pas d'abonnement;
+    IF NOT FOUND THEN;
+        RETURN QUERY SELECT true, 0, 0;
+        RETURN;
+    END IF;
+    ;
+    -- Missions;
+    IF p_quota_type = 'missions' THEN;
+        -- Reset quota si nouveau mois;
+        IF v_abonnement.dernier_reset_quota < DATE_TRUNC('month', CURRENT_DATE)::DATE THEN;
+            UPDATE public.abonnements ;
+            SET missions_ce_mois = 0, dernier_reset_quota = CURRENT_DATE;
+            WHERE id = v_abonnement.abonnement_id;
+            v_utilisation := 0;
+        ELSE;
+            v_utilisation := v_abonnement.missions_ce_mois;
+        END IF;
+        ;
+        -- NULL = illimité;
+        IF v_abonnement.limite_missions_mois IS NULL THEN;
+            RETURN QUERY SELECT false, NULL::INTEGER, v_utilisation;
+        ELSE;
+            RETURN QUERY SELECT ;
+                v_utilisation >= v_abonnement.limite_missions_mois,;
+                v_abonnement.limite_missions_mois,;
+                v_utilisation;
+        END IF;
+        RETURN;
+    END IF;
+    ;
+    -- Techniciens;
+    IF p_quota_type = 'techniciens' THEN;
+        SELECT COUNT(*) INTO v_utilisation;
+        FROM public.techniciens;
+        WHERE (p_entreprise_id IS NOT NULL AND entreprise_id = p_entreprise_id);
+        ;
+        IF v_abonnement.limite_techniciens IS NULL THEN;
+            RETURN QUERY SELECT false, NULL::INTEGER, v_utilisation;
+        ELSE;
+            RETURN QUERY SELECT ;
+                v_utilisation >= v_abonnement.limite_techniciens,;
+                v_abonnement.limite_techniciens,;
+                v_utilisation;
+        END IF;
+        RETURN;
+    END IF;
+    ;
+    -- Utilisateurs;
+    IF p_quota_type = 'utilisateurs' THEN;
+        IF p_entreprise_id IS NOT NULL THEN;
+            SELECT COUNT(*) INTO v_utilisation;
+            FROM profiles;
+            WHERE entreprise_id = p_entreprise_id;
+        ELSIF p_regie_id IS NOT NULL THEN;
+            SELECT COUNT(*) INTO v_utilisation;
+            FROM profiles;
+            WHERE regie_id = p_regie_id;
+        END IF;
+        ;
+        IF v_abonnement.limite_utilisateurs IS NULL THEN;
+            RETURN QUERY SELECT false, NULL::INTEGER, v_utilisation;
+        ELSE;
+            RETURN QUERY SELECT ;
+                v_utilisation >= v_abonnement.limite_utilisateurs,;
+                v_abonnement.limite_utilisateurs,;
+                v_utilisation;
+        END IF;
+        RETURN;
+    END IF;
+    ;
+    -- Type inconnu;
+    RAISE EXCEPTION 'Type de quota invalide: %', p_quota_type;
+END;
+"
+increment_mission_quota,";
+DECLARE;
+    v_abonnement_id UUID;
+BEGIN;
+    -- Trouver l'abonnement actif;
+    SELECT id INTO v_abonnement_id;
+    FROM public.abonnements;
+    WHERE entreprise_id = p_entreprise_id;
+    AND statut = 'actif';
+    ORDER BY created_at DESC;
+    LIMIT 1;
+    ;
+    IF FOUND THEN;
+        -- Incrémenter le compteur;
+        UPDATE public.abonnements;
+        SET missions_ce_mois = missions_ce_mois + 1,;
+            updated_at = now();
+        WHERE id = v_abonnement_id;
+    END IF;
+END;
+"
+change_plan,";
+DECLARE;
+    v_ancien_abonnement RECORD;
+    v_nouveau_plan RECORD;
+    v_nouveau_abonnement_id UUID;
+    v_jours_restants INTEGER;
+    v_nouvelle_date_fin DATE;
+BEGIN;
+    -- Récupérer l'ancien abonnement;
+    SELECT * INTO v_ancien_abonnement;
+    FROM public.abonnements;
+    WHERE id = p_abonnement_id;
+    AND statut = 'actif';
+    ;
+    IF NOT FOUND THEN;
+        RAISE EXCEPTION 'Abonnement introuvable ou inactif';
+    END IF;
+    ;
+    -- Récupérer le nouveau plan;
+    SELECT * INTO v_nouveau_plan;
+    FROM public.plans;
+    WHERE id = p_nouveau_plan_id;
+    AND actif = true;
+    ;
+    IF NOT FOUND THEN;
+        RAISE EXCEPTION 'Nouveau plan introuvable ou inactif';
+    END IF;
+    ;
+    -- Calculer la nouvelle date de fin;
+    v_jours_restants := v_ancien_abonnement.date_fin - CURRENT_DATE;
+    IF v_jours_restants < 0 THEN;
+        v_jours_restants := 0;
+    END IF;
+    ;
+    IF v_ancien_abonnement.type_periode = 'mensuel' THEN;
+        v_nouvelle_date_fin := CURRENT_DATE + INTERVAL '1 month';
+    ELSE;
+        v_nouvelle_date_fin := CURRENT_DATE + INTERVAL '1 year';
+    END IF;
+    ;
+    -- Annuler l'ancien abonnement;
+    UPDATE public.abonnements;
+    SET statut = 'annule',;
+        updated_at = now();
+    WHERE id = p_abonnement_id;
+    ;
+    -- Créer le nouvel abonnement;
+    INSERT INTO public.abonnements (;
+        entreprise_id,;
+        regie_id,;
+        plan_id,;
+        type_periode,;
+        date_debut,;
+        date_fin,;
+        statut,;
+        montant_paye,;
+        date_prochain_paiement,;
+        missions_ce_mois,;
+        dernier_reset_quota;
+    ) VALUES (;
+        v_ancien_abonnement.entreprise_id,;
+        v_ancien_abonnement.regie_id,;
+        p_nouveau_plan_id,;
+        v_ancien_abonnement.type_periode,;
+        CURRENT_DATE,;
+        v_nouvelle_date_fin,;
+        'actif',;
+        CASE ;
+            WHEN v_ancien_abonnement.type_periode = 'mensuel' ;
+            THEN v_nouveau_plan.prix_mensuel;
+            ELSE v_nouveau_plan.prix_annuel;
+        END,;
+        v_nouvelle_date_fin,;
+        v_ancien_abonnement.missions_ce_mois, -- Conserver le compteur;
+        v_ancien_abonnement.dernier_reset_quota;
+    );
+    RETURNING id INTO v_nouveau_abonnement_id;
+    ;
+    RETURN v_nouveau_abonnement_id;
+END;
+"
+gbt_bpchar_consistent,null
+gbt_text_compress,null
+gbt_bpchar_compress,null
+gbt_text_penalty,null
+gbt_text_picksplit,null
+gbt_text_union,null
+gbt_text_same,null
+gbt_bytea_consistent,null
+gbt_bytea_compress,null
+gbt_bytea_penalty,null
+gbt_bytea_picksplit,null
+gbt_bytea_union,null
+gbt_bytea_same,null
+update_mission_status,";
+declare;
+  v_current_status mission_status;
+begin;
+  select statut;
+  into v_current_status;
+  from missions;
+  where id = p_mission_id;
+;
+  if not found then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'Mission introuvable';
+    );
+  end if;
+;
+  update missions;
+  set;
+    statut = p_new_status,;
+    updated_at = now();
+  where id = p_mission_id;
+;
+  return jsonb_build_object(;
+    'success', true,;
+    'ancien_statut', v_current_status,;
+    'nouveau_statut', p_new_status;
+  );
+end;
+"
+gbt_numeric_consistent,null
+gbt_numeric_compress,null
+gbt_numeric_penalty,null
+gbt_numeric_picksplit,null
+gbt_numeric_union,null
+gbt_numeric_same,null
+gbt_bit_consistent,null
+gbt_bit_compress,null
+gbt_bit_penalty,null
+gbt_bit_picksplit,null
+gbt_bit_union,null
+gbt_bit_same,null
+gbt_inet_consistent,null
+update_ticket_status,";
+declare;
+  v_current_status ticket_status;
+begin;
+  select statut;
+  into v_current_status;
+  from tickets;
+  where id = p_ticket_id;
+;
+  if not found then;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'Ticket introuvable';
+    );
+  end if;
+;
+  -- règles métier strictes;
+  if v_current_status = 'nouveau';
+     and p_new_status = 'en_attente';
+     and p_role in ('regie', 'admin_jtec') then;
+    null;
+;
+  elsif v_current_status = 'en_attente';
+     and p_new_status = 'en_cours';
+     and p_role in ('entreprise', 'admin_jtec') then;
+    null;
+;
+  elsif v_current_status = 'en_cours';
+     and p_new_status = 'termine';
+     and p_role in ('entreprise', 'admin_jtec') then;
+    null;
+;
+  elsif v_current_status = 'termine';
+     and p_new_status = 'clos';
+     and p_role in ('regie', 'admin_jtec') then;
+    null;
+;
+  elsif p_new_status = 'annule';
+     and p_role in ('regie', 'locataire', 'admin_jtec') then;
+    null;
+;
+  else;
+    return jsonb_build_object(;
+      'success', false,;
+      'error', 'Transition non autorisée',;
+      'from', v_current_status,;
+      'to', p_new_status,;
+      'role', p_role;
+    );
+  end if;
+;
+  update tickets;
+  set;
+    statut = p_new_status,;
+    updated_at = now(),;
+    date_cloture = case;
+      when p_new_status in ('clos','annule') then now();
+      else date_cloture;
+    end;
+  where id = p_ticket_id;
+;
+  return jsonb_build_object(;
+    'success', true,;
+    'ancien_statut', v_current_status,;
+    'nouveau_statut', p_new_status;
+  );
+end;
+"
+gbt_inet_compress,null
+gbt_inet_penalty,null
+gbt_inet_picksplit,null
+gbt_inet_union,null
+prevent_role_self_escalation,";
+declare;
+  v_current_user_role text;
+  v_is_admin boolean := false;
+begin;
+  -- 1. Récupérer le rôle de l'utilisateur qui fait la modification;
+  select role into v_current_user_role;
+  from profiles;
+  where id = auth.uid();
+  ;
+  -- 2. Vérifier si l'utilisateur est admin_jtec;
+  if v_current_user_role = 'admin_jtec' then;
+    v_is_admin := true;
+  end if;
+  ;
+  -- 3. Si le champ 'role' est modifié;
+  if OLD.role is distinct from NEW.role then;
+    -- 3a. Si l'utilisateur modifie son propre rôle;
+    if OLD.id = auth.uid() then;
+      -- Même un admin ne peut pas changer son propre rôle;
+      -- Cela évite qu'un admin se rétrograde par erreur;
+      raise exception 'SÉCURITÉ: Impossible de modifier son propre rôle. Contactez un autre administrateur.';
+    end if;
+    ;
+    -- 3b. Si ce n'est pas un admin qui modifie le rôle d'un autre utilisateur;
+    if not v_is_admin then;
+      raise exception 'SÉCURITÉ: Seul un admin_jtec peut modifier le rôle d''un utilisateur.';
+    end if;
+    ;
+    -- 3c. Log de la modification (audit);
+    raise notice 'AUDIT: Admin % a changé le rôle de % : % → %', ;
+      auth.uid(), ;
+      NEW.id, ;
+      OLD.role, ;
+      NEW.role;
+  end if;
+  ;
+  -- 4. Autoriser la modification;
+  return NEW;
+end;
+"
+gbt_inet_same,null
+gbt_uuid_consistent,null
+gbt_uuid_fetch,null
+gbt_uuid_compress,null
+gbt_uuid_penalty,null
+gbt_uuid_picksplit,null
+gbt_uuid_union,null
+gbt_uuid_same,null";

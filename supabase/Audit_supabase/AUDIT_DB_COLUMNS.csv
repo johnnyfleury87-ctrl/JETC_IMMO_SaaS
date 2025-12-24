@@ -1,0 +1,412 @@
+table_name,column_name,data_type,is_nullable
+abonnements,id,uuid,NO
+abonnements,entreprise_id,uuid,YES
+abonnements,regie_id,uuid,YES
+abonnements,plan_id,uuid,NO
+abonnements,type_periode,character varying,NO
+abonnements,date_debut,date,NO
+abonnements,date_fin,date,NO
+abonnements,statut,character varying,NO
+abonnements,montant_paye,numeric,NO
+abonnements,date_prochain_paiement,date,YES
+abonnements,missions_ce_mois,integer,YES
+abonnements,dernier_reset_quota,date,YES
+abonnements,created_at,timestamp with time zone,YES
+abonnements,updated_at,timestamp with time zone,YES
+abonnements_stats,plan_nom,character varying,YES
+abonnements_stats,nom_affichage,character varying,YES
+abonnements_stats,nombre_abonnements,bigint,YES
+abonnements_stats,abonnements_actifs,bigint,YES
+abonnements_stats,abonnements_mensuels,bigint,YES
+abonnements_stats,abonnements_annuels,bigint,YES
+abonnements_stats,mrr_mensuel,numeric,YES
+abonnements_stats,mrr_annuel,numeric,YES
+abonnements_stats,mrr_total,numeric,YES
+admin_agences_en_attente,id,uuid,YES
+admin_agences_en_attente,nom_agence,text,YES
+admin_agences_en_attente,email,text,YES
+admin_agences_en_attente,siret,text,YES
+admin_agences_en_attente,nb_collaborateurs,integer,YES
+admin_agences_en_attente,nb_logements_geres,integer,YES
+admin_agences_en_attente,statut_validation,text,YES
+admin_agences_en_attente,date_inscription,timestamp with time zone,YES
+admin_agences_en_attente,email_contact,text,YES
+admin_agences_en_attente,language,text,YES
+admin_dashboard,total_regies,bigint,YES
+admin_dashboard,regies_30_jours,bigint,YES
+admin_dashboard,total_immeubles,bigint,YES
+admin_dashboard,immeubles_30_jours,bigint,YES
+admin_dashboard,total_logements,bigint,YES
+admin_dashboard,logements_30_jours,bigint,YES
+admin_dashboard,total_locataires,bigint,YES
+admin_dashboard,locataires_30_jours,bigint,YES
+admin_dashboard,total_tickets,bigint,YES
+admin_dashboard,tickets_30_jours,bigint,YES
+admin_dashboard,tickets_ouverts,bigint,YES
+admin_dashboard,tickets_en_cours,bigint,YES
+admin_dashboard,tickets_termines,bigint,YES
+admin_dashboard,total_entreprises,bigint,YES
+admin_dashboard,entreprises_30_jours,bigint,YES
+admin_stats_entreprises,total_entreprises,bigint,YES
+admin_stats_entreprises,entreprises_30_jours,bigint,YES
+admin_stats_entreprises,entreprises_7_jours,bigint,YES
+admin_stats_entreprises,regies_avec_entreprises,bigint,YES
+admin_stats_entreprises,entreprises_autorisees,bigint,YES
+admin_stats_evolution,jour,timestamp with time zone,YES
+admin_stats_evolution,type,text,YES
+admin_stats_evolution,nombre,bigint,YES
+admin_stats_immeubles,total_immeubles,bigint,YES
+admin_stats_immeubles,immeubles_30_jours,bigint,YES
+admin_stats_immeubles,immeubles_7_jours,bigint,YES
+admin_stats_immeubles,regies_avec_immeubles,bigint,YES
+admin_stats_immeubles,moyenne_par_regie,numeric,YES
+admin_stats_locataires,total_locataires,bigint,YES
+admin_stats_locataires,locataires_30_jours,bigint,YES
+admin_stats_locataires,locataires_7_jours,bigint,YES
+admin_stats_locataires,logements_occupes,bigint,YES
+admin_stats_logements,total_logements,bigint,YES
+admin_stats_logements,logements_30_jours,bigint,YES
+admin_stats_logements,logements_7_jours,bigint,YES
+admin_stats_logements,immeubles_avec_logements,bigint,YES
+admin_stats_logements,moyenne_par_immeuble,numeric,YES
+admin_stats_regies,total_regies,bigint,YES
+admin_stats_regies,regies_30_jours,bigint,YES
+admin_stats_regies,regies_7_jours,bigint,YES
+admin_stats_regies,regies_aujourd_hui,bigint,YES
+admin_stats_tickets,total_tickets,bigint,YES
+admin_stats_tickets,tickets_30_jours,bigint,YES
+admin_stats_tickets,tickets_7_jours,bigint,YES
+admin_stats_tickets,tickets_aujourd_hui,bigint,YES
+admin_stats_tickets,tickets_ouverts,bigint,YES
+admin_stats_tickets,tickets_en_cours,bigint,YES
+admin_stats_tickets,tickets_termines,bigint,YES
+admin_stats_tickets,tickets_annules,bigint,YES
+admin_stats_tickets,tickets_priorite_haute,bigint,YES
+admin_stats_tickets,tickets_priorite_moyenne,bigint,YES
+admin_stats_tickets,tickets_priorite_basse,bigint,YES
+admin_stats_tickets,regies_avec_tickets,bigint,YES
+admin_stats_tickets,duree_moyenne_heures,numeric,YES
+admin_stats_tickets_categories,categorie,text,YES
+admin_stats_tickets_categories,total,bigint,YES
+admin_stats_tickets_categories,ouverts,bigint,YES
+admin_stats_tickets_categories,en_cours,bigint,YES
+admin_stats_tickets_categories,termines,bigint,YES
+admin_stats_tickets_priorites,priorite,text,YES
+admin_stats_tickets_priorites,total,bigint,YES
+admin_stats_tickets_priorites,ouverts,bigint,YES
+admin_stats_tickets_priorites,en_cours,bigint,YES
+admin_stats_tickets_priorites,termines,bigint,YES
+entreprises,id,uuid,NO
+entreprises,nom,text,NO
+entreprises,siret,text,YES
+entreprises,adresse,text,YES
+entreprises,code_postal,text,YES
+entreprises,ville,text,YES
+entreprises,telephone,text,YES
+entreprises,email,text,NO
+entreprises,specialites,ARRAY,YES
+entreprises,profile_id,uuid,YES
+entreprises,description,text,YES
+entreprises,site_web,text,YES
+entreprises,created_at,timestamp with time zone,YES
+entreprises,updated_at,timestamp with time zone,YES
+entreprises,signature_url,text,YES
+factures,id,uuid,NO
+factures,mission_id,uuid,NO
+factures,entreprise_id,uuid,NO
+factures,regie_id,uuid,NO
+factures,numero,text,NO
+factures,montant_ht,numeric,NO
+factures,taux_tva,numeric,NO
+factures,montant_tva,numeric,YES
+factures,montant_ttc,numeric,YES
+factures,taux_commission,numeric,NO
+factures,montant_commission,numeric,YES
+factures,statut,text,NO
+factures,date_emission,date,NO
+factures,date_echeance,date,NO
+factures,date_envoi,timestamp with time zone,YES
+factures,date_paiement,timestamp with time zone,YES
+factures,notes,text,YES
+factures,created_at,timestamp with time zone,NO
+factures,updated_at,timestamp with time zone,NO
+factures_commissions_jtec,facture_id,uuid,YES
+factures_commissions_jtec,numero,text,YES
+factures_commissions_jtec,date_emission,date,YES
+factures_commissions_jtec,statut,text,YES
+factures_commissions_jtec,entreprise_nom,text,YES
+factures_commissions_jtec,regie_nom,text,YES
+factures_commissions_jtec,montant_ht,numeric,YES
+factures_commissions_jtec,montant_ttc,numeric,YES
+factures_commissions_jtec,taux_commission,numeric,YES
+factures_commissions_jtec,montant_commission,numeric,YES
+factures_commissions_jtec,statut_commission,text,YES
+factures_stats,entreprise_id,uuid,YES
+factures_stats,entreprise_nom,text,YES
+factures_stats,total_factures,bigint,YES
+factures_stats,factures_brouillon,bigint,YES
+factures_stats,factures_envoyees,bigint,YES
+factures_stats,factures_payees,bigint,YES
+factures_stats,factures_annulees,bigint,YES
+factures_stats,ca_ht_total,numeric,YES
+factures_stats,ca_ttc_total,numeric,YES
+factures_stats,commissions_jtec_total,numeric,YES
+factures_stats,ca_ht_paye,numeric,YES
+factures_stats,ca_ttc_paye,numeric,YES
+factures_stats,commissions_jtec_payees,numeric,YES
+factures_stats,ca_en_attente,numeric,YES
+factures_stats,taux_paiement,numeric,YES
+factures_stats,delai_moyen_paiement_jours,numeric,YES
+immeubles,id,uuid,NO
+immeubles,nom,text,NO
+immeubles,adresse,text,NO
+immeubles,code_postal,text,NO
+immeubles,ville,text,NO
+immeubles,nombre_etages,integer,YES
+immeubles,annee_construction,integer,YES
+immeubles,regie_id,uuid,NO
+immeubles,type_chauffage,text,YES
+immeubles,ascenseur,boolean,YES
+immeubles,digicode,text,YES
+immeubles,interphone,boolean,YES
+immeubles,created_at,timestamp with time zone,YES
+immeubles,updated_at,timestamp with time zone,YES
+immeubles,photo_url,text,YES
+locataires,id,uuid,NO
+locataires,nom,text,NO
+locataires,prenom,text,NO
+locataires,telephone,text,YES
+locataires,email,text,NO
+locataires,date_naissance,date,YES
+locataires,profile_id,uuid,NO
+locataires,logement_id,uuid,NO
+locataires,date_entree,date,NO
+locataires,date_sortie,date,YES
+locataires,contact_urgence_nom,text,YES
+locataires,contact_urgence_telephone,text,YES
+locataires,created_at,timestamp with time zone,YES
+locataires,updated_at,timestamp with time zone,YES
+locataires,signature_url,text,YES
+locataires,regie_id,uuid,NO
+logements,id,uuid,NO
+logements,numero,text,NO
+logements,etage,integer,YES
+logements,superficie,numeric,YES
+logements,nombre_pieces,integer,YES
+logements,type_logement,text,YES
+logements,immeuble_id,uuid,YES
+logements,statut,text,YES
+logements,loyer_mensuel,numeric,YES
+logements,charges_mensuelles,numeric,YES
+logements,depot_garantie,numeric,YES
+logements,balcon,boolean,YES
+logements,parking,boolean,YES
+logements,cave,boolean,YES
+logements,meuble,boolean,YES
+logements,created_at,timestamp with time zone,YES
+logements,updated_at,timestamp with time zone,YES
+logements,photo_url,text,YES
+logements,regie_id,uuid,NO
+messages,id,uuid,NO
+messages,mission_id,uuid,NO
+messages,sender_user_id,uuid,NO
+messages,sender_name,text,NO
+messages,sender_role,text,NO
+messages,content,text,NO
+messages,type,text,NO
+messages,created_at,timestamp with time zone,NO
+migration_logs,id,uuid,NO
+migration_logs,migration_name,text,NO
+migration_logs,executed_at,timestamp with time zone,YES
+migration_logs,description,text,YES
+missions,id,uuid,NO
+missions,ticket_id,uuid,NO
+missions,entreprise_id,uuid,NO
+missions,technicien_id,uuid,YES
+missions,date_intervention_prevue,timestamp with time zone,YES
+missions,date_intervention_realisee,timestamp with time zone,YES
+missions,statut,USER-DEFINED,NO
+missions,created_at,timestamp with time zone,NO
+missions,started_at,timestamp with time zone,YES
+missions,completed_at,timestamp with time zone,YES
+missions,validated_at,timestamp with time zone,YES
+missions,notes,text,YES
+missions,devis_url,text,YES
+missions,facture_url,text,YES
+missions,montant,numeric,YES
+missions,updated_at,timestamp with time zone,NO
+missions,rapport_url,text,YES
+missions,signature_locataire_url,text,YES
+missions,signature_technicien_url,text,YES
+notifications,id,uuid,NO
+notifications,user_id,uuid,NO
+notifications,type,text,NO
+notifications,title,text,NO
+notifications,message,text,NO
+notifications,related_mission_id,uuid,YES
+notifications,related_ticket_id,uuid,YES
+notifications,related_facture_id,uuid,YES
+notifications,related_message_id,uuid,YES
+notifications,read,boolean,NO
+notifications,read_at,timestamp with time zone,YES
+notifications,created_at,timestamp with time zone,NO
+plans,id,uuid,NO
+plans,nom,character varying,NO
+plans,nom_affichage,character varying,NO
+plans,description,text,YES
+plans,prix_mensuel,numeric,NO
+plans,prix_annuel,numeric,NO
+plans,limite_missions_mois,integer,YES
+plans,limite_techniciens,integer,YES
+plans,limite_utilisateurs,integer,YES
+plans,modules_actifs,jsonb,YES
+plans,actif,boolean,YES
+plans,ordre_affichage,integer,YES
+plans,created_at,timestamp with time zone,YES
+plans,updated_at,timestamp with time zone,YES
+profiles,id,uuid,NO
+profiles,email,text,NO
+profiles,role,USER-DEFINED,NO
+profiles,language,text,NO
+profiles,is_demo,boolean,NO
+profiles,regie_id,uuid,YES
+profiles,entreprise_id,uuid,YES
+profiles,logement_id,uuid,YES
+profiles,created_at,timestamp with time zone,YES
+profiles,updated_at,timestamp with time zone,YES
+profiles_backup_20241220,id,uuid,YES
+profiles_backup_20241220,email,text,YES
+profiles_backup_20241220,role,USER-DEFINED,YES
+profiles_backup_20241220,language,text,YES
+profiles_backup_20241220,is_demo,boolean,YES
+profiles_backup_20241220,regie_id,uuid,YES
+profiles_backup_20241220,entreprise_id,uuid,YES
+profiles_backup_20241220,logement_id,uuid,YES
+profiles_backup_20241220,created_at,timestamp with time zone,YES
+profiles_backup_20241220,updated_at,timestamp with time zone,YES
+quotas_usage,client_nom,text,YES
+quotas_usage,client_type,text,YES
+quotas_usage,plan_nom,character varying,YES
+quotas_usage,statut,character varying,YES
+quotas_usage,missions_utilisees,integer,YES
+quotas_usage,missions_limite,integer,YES
+quotas_usage,missions_pourcentage,numeric,YES
+quotas_usage,techniciens_utilises,bigint,YES
+quotas_usage,techniciens_limite,integer,YES
+quotas_usage,utilisateurs_utilises,bigint,YES
+quotas_usage,utilisateurs_limite,integer,YES
+quotas_usage,date_fin,date,YES
+quotas_usage,jours_restants,integer,YES
+regies,id,uuid,NO
+regies,nom,text,NO
+regies,adresse,text,YES
+regies,code_postal,text,YES
+regies,ville,text,YES
+regies,telephone,text,YES
+regies,email,text,YES
+regies,siret,text,YES
+regies,nb_collaborateurs,integer,NO
+regies,nb_logements_geres,integer,NO
+regies,statut_validation,text,NO
+regies,date_validation,timestamp with time zone,YES
+regies,admin_validateur_id,uuid,YES
+regies,commentaire_refus,text,YES
+regies,profile_id,uuid,YES
+regies,created_at,timestamp with time zone,YES
+regies,updated_at,timestamp with time zone,YES
+regies_backup_20241220,id,uuid,YES
+regies_backup_20241220,nom,text,YES
+regies_backup_20241220,adresse,text,YES
+regies_backup_20241220,code_postal,text,YES
+regies_backup_20241220,ville,text,YES
+regies_backup_20241220,telephone,text,YES
+regies_backup_20241220,email,text,YES
+regies_backup_20241220,siret,text,YES
+regies_backup_20241220,nb_collaborateurs,integer,YES
+regies_backup_20241220,nb_logements_geres,integer,YES
+regies_backup_20241220,statut_validation,text,YES
+regies_backup_20241220,date_validation,timestamp with time zone,YES
+regies_backup_20241220,admin_validateur_id,uuid,YES
+regies_backup_20241220,commentaire_refus,text,YES
+regies_backup_20241220,profile_id,uuid,YES
+regies_backup_20241220,created_at,timestamp with time zone,YES
+regies_backup_20241220,updated_at,timestamp with time zone,YES
+regies_entreprises,id,uuid,NO
+regies_entreprises,regie_id,uuid,NO
+regies_entreprises,entreprise_id,uuid,NO
+regies_entreprises,mode_diffusion,text,NO
+regies_entreprises,date_autorisation,timestamp with time zone,YES
+regies_entreprises,created_at,timestamp with time zone,YES
+regies_entreprises,updated_at,timestamp with time zone,YES
+techniciens,id,uuid,NO
+techniciens,profile_id,uuid,NO
+techniciens,entreprise_id,uuid,NO
+techniciens,nom,text,NO
+techniciens,prenom,text,NO
+techniciens,telephone,text,YES
+techniciens,email,text,YES
+techniciens,specialites,ARRAY,YES
+techniciens,actif,boolean,NO
+techniciens,created_at,timestamp with time zone,NO
+techniciens,updated_at,timestamp with time zone,NO
+tickets,id,uuid,NO
+tickets,titre,text,NO
+tickets,description,text,NO
+tickets,categorie,text,NO
+tickets,priorite,text,NO
+tickets,statut,USER-DEFINED,NO
+tickets,logement_id,uuid,NO
+tickets,locataire_id,uuid,NO
+tickets,regie_id,uuid,NO
+tickets,entreprise_id,uuid,YES
+tickets,technicien_id,uuid,YES
+tickets,date_creation,timestamp with time zone,YES
+tickets,date_cloture,timestamp with time zone,YES
+tickets,date_limite,timestamp with time zone,YES
+tickets,photos,ARRAY,YES
+tickets,urgence,boolean,YES
+tickets,created_at,timestamp with time zone,YES
+tickets,updated_at,timestamp with time zone,YES
+tickets,locked_at,timestamp with time zone,YES
+tickets_complets,ticket_id,uuid,YES
+tickets_complets,titre,text,YES
+tickets_complets,description,text,YES
+tickets_complets,categorie,text,YES
+tickets_complets,priorite,text,YES
+tickets_complets,statut,USER-DEFINED,YES
+tickets_complets,created_at,timestamp with time zone,YES
+tickets_complets,updated_at,timestamp with time zone,YES
+tickets_complets,locataire_id,uuid,YES
+tickets_complets,logement_id,uuid,YES
+tickets_complets,regie_id,uuid,YES
+tickets_complets,entreprise_id,uuid,YES
+tickets_complets,locataire_nom,text,YES
+tickets_complets,locataire_prenom,text,YES
+tickets_complets,locataire_email,text,YES
+tickets_complets,locataire_telephone,text,YES
+tickets_complets,logement_numero,text,YES
+tickets_complets,logement_etage,integer,YES
+tickets_complets,immeuble_nom,text,YES
+tickets_complets,immeuble_adresse,text,YES
+tickets_complets,immeuble_code_postal,text,YES
+tickets_complets,immeuble_ville,text,YES
+tickets_complets,regie_nom,text,YES
+tickets_visibles_entreprise,ticket_id,uuid,YES
+tickets_visibles_entreprise,titre,text,YES
+tickets_visibles_entreprise,description,text,YES
+tickets_visibles_entreprise,categorie,text,YES
+tickets_visibles_entreprise,priorite,text,YES
+tickets_visibles_entreprise,statut,USER-DEFINED,YES
+tickets_visibles_entreprise,created_at,timestamp with time zone,YES
+tickets_visibles_entreprise,updated_at,timestamp with time zone,YES
+tickets_visibles_entreprise,locataire_id,uuid,YES
+tickets_visibles_entreprise,logement_id,uuid,YES
+tickets_visibles_entreprise,regie_id,uuid,YES
+tickets_visibles_entreprise,entreprise_id,uuid,YES
+tickets_visibles_entreprise,mode_diffusion,text,YES
+tickets_visibles_entreprise,locataire_nom,text,YES
+tickets_visibles_entreprise,locataire_prenom,text,YES
+tickets_visibles_entreprise,logement_numero,text,YES
+tickets_visibles_entreprise,immeuble_nom,text,YES
+tickets_visibles_entreprise,immeuble_adresse,text,YES
+tickets_visibles_entreprise,regie_nom,text,YES
