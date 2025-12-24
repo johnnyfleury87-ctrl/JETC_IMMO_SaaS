@@ -684,12 +684,8 @@
   </div>
 
   <script>
-      </p>
-    </div>
-    </main>
-  </div>
-
-  <script>
+    console.log('[DASHBOARD] Script OK jusqu\'ici');
+    
     // Vérifier authentification et charger les données du locataire
     async function checkAuth() {
       try {
@@ -915,6 +911,8 @@
 
     // Déconnexion
     async function logout() {
+      console.log('[AUTH][LOGOUT] Click');
+      
       try {
         const { error } = await supabase.auth.signOut();
         if (error) {
