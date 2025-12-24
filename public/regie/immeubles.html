@@ -654,22 +654,54 @@
         // Récupérer la régie
         const { data: regie, error: regieError } = await supabase
           .from('regies')
-          .select('id, nom_agence')
+          .select('id, nom')
           .eq('profile_id', session.user.id)
           .maybeSingle();
         
         // ✅ CORRECTIF : Distinguer erreur DB (problème réel) VS pas de données (état normal)
         if (regieError) {
-          console.error('[IMMEUBLES] Erreur DB lors récupération régie:', regieError);
-          alert('Erreur technique lors de la récupération du profil régie');
-          window.location.href = '/login.html';
+          // 🐞 DEBUG : Logger l'erreur complète pour diagnostic
+          console.error('[IMMEUBLES][REGIE FETCH ERROR] Erreur complète:', regieError);
+          console.error('[IMMEUBLES][ERROR CODE]', regieError.code);
+          console.error('[IMMEUBLES][ERROR MESSAGE]', regieError.message);
+          console.error('[IMMEUBLES][ERROR DETAILS]', regieError.details);
+          console.error('[IMMEUBLES][ERROR HINT]', regieError.hint);
+          console.log('[IMMEUBLES][SESSION USER]', session.user);
+          console.log('[IMMEUBLES][USER ID]', session.user.id);
+          
+          // Ne PAS rediriger si session valide - afficher erreur non bloquante
+          const errorBanner = document.createElement('div');
+          errorBanner.style.cssText = 'background:#fee;border-left:4px solid #dc3545;padding:15px;margin:20px 0;border-radius:8px;';
+          errorBanner.innerHTML = `
+            <h4 style="color:#dc3545;margin:0 0 10px 0;">⚠️ Erreur technique</h4>
+            <p style="margin:0 0 5px 0;">Impossible de charger les données de votre régie.</p>
+            <p style="margin:0;font-size:13px;color:#666;"><strong>Erreur :</strong> ${regieError.message}</p>
+            <p style="margin:5px 0 0 0;font-size:13px;color:#666;"><strong>Code :</strong> ${regieError.code || 'N/A'}</p>
+            <p style="margin:10px 0 0 0;font-size:13px;">Ouvrez la console (F12) pour plus de détails.</p>
+          `;
+          document.querySelector('.main-content').prepend(errorBanner);
           return;
         }
         
         if (!regie) {
           console.error('[IMMEUBLES] ❌ Profil régie non trouvé pour profile_id:', session.user.id);
-          alert('Profil régie introuvable. Veuillez contacter un administrateur.');
-          window.location.href = '/login.html';
+          
+          // Ne PAS rediriger - afficher message informatif
+          const errorBanner = document.createElement('div');
+          errorBanner.style.cssText = 'background:#fef3c7;border-left:4px solid #f59e0b;padding:15px;margin:20px 0;border-radius:8px;';
+          errorBanner.innerHTML = `
+            <h4 style="color:#f59e0b;margin:0 0 10px 0;">⚠️ Configuration incomplète</h4>
+            <p style="margin:0 0 5px 0;">Votre compte régie existe mais n'est pas associé à une agence.</p>
+            <p style="margin:0;font-size:13px;color:#666;">Cela peut se produire si :</p>
+            <ul style="margin:10px 0;padding-left:20px;font-size:13px;color:#666;">
+              <li>Votre inscription n'est pas finalisée</li>
+              <li>Votre agence est en attente de validation</li>
+              <li>Une erreur technique s'est produite lors de l'inscription</li>
+            </ul>
+            <p style="margin:10px 0 0 0;font-size:13px;"><strong>Contactez l'administrateur :</strong> admin@jetc.ch</p>
+            <p style="margin:10px 0 0 0;font-size:13px;color:#666;">ID utilisateur : ${session.user.id}</p>
+          `;
+          document.querySelector('.main-content').prepend(errorBanner);
           return;
         }
 
@@ -679,7 +711,7 @@
         document.getElementById('userEmail').textContent = profile.email;
         document.getElementById('userAvatar').textContent = profile.email.charAt(0).toUpperCase();
         
-        console.log('[IMMEUBLES] ✅ Régie connectée:', regie.nom_agence);
+        console.log('[IMMEUBLES] ✅ Régie connectée:', regie.nom);
         
         // Charger les immeubles
         await loadImmeubles();
