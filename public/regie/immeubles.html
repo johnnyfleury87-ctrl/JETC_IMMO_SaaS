@@ -656,11 +656,19 @@
           .from('regies')
           .select('id, nom_agence')
           .eq('profile_id', session.user.id)
-          .single();
+          .maybeSingle();
         
-        if (regieError || !regie) {
-          console.error('[IMMEUBLES] Régie introuvable');
-          alert('Profil régie introuvable');
+        // ✅ CORRECTIF : Distinguer erreur DB (problème réel) VS pas de données (état normal)
+        if (regieError) {
+          console.error('[IMMEUBLES] Erreur DB lors récupération régie:', regieError);
+          alert('Erreur technique lors de la récupération du profil régie');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        if (!regie) {
+          console.error('[IMMEUBLES] ❌ Profil régie non trouvé pour profile_id:', session.user.id);
+          alert('Profil régie introuvable. Veuillez contacter un administrateur.');
           window.location.href = '/login.html';
           return;
         }

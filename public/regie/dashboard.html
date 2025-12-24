@@ -392,7 +392,7 @@
           .from('regies')
           .select('id, nom, statut_validation, commentaire_refus')
           .eq('profile_id', session.user.id)
-          .single();
+          .maybeSingle();
         
         console.log('[REGIE][DATA]', {
           found: !!regie,
@@ -401,10 +401,27 @@
           error: regieError
         });
         
-        if (regieError || !regie) {
+        // ✅ CORRECTIF : Distinguer erreur DB (problème réel) VS pas de données (état normal)
+        if (regieError) {
+          console.error('[REGIE][DB_ERROR] Erreur technique lors récupération régie:', regieError);
+          
+          await supabase.auth.signOut();
+          
+          const errorMessage = document.createElement('div');
+          errorMessage.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);max-width:400px;text-align:center;z-index:10000;';
+          errorMessage.innerHTML = `
+            <h3 style="color:#ef4444;margin-bottom:15px;">⚠️ Erreur technique</h3>
+            <p style="color:#6b7280;margin-bottom:20px;">Impossible de charger les données de votre agence.</p>
+            <p style="color:#6b7280;font-size:14px;margin-bottom:20px;">Contactez l'administrateur : <strong>admin@jetc.ch</strong></p>
+            <a href="/login.html" style="display:inline-block;background:#2563eb;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600;">Retour à la connexion</a>
+          `;
+          document.body.appendChild(errorMessage);
+          return;
+        }
+        
+        if (!regie) {
           console.error('[REGIE][DATA_MISSING] Aucune régie associée au profil', {
-            profileId: session.user.id,
-            error: regieError
+            profileId: session.user.id
           });
           
           await supabase.auth.signOut();
