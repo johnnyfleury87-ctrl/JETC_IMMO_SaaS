@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion des Tickets - Régie immobilière - JETC_IMMO</title>
+  <link rel="stylesheet" href="/css/design-system.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--gray-50);
+      min-height: 100vh;
+    }
+
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: white;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      z-index: 1000;
+    }
+
+    .sidebar-header {
+      padding: 30px 20px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .logo-dashboard {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .logo-dashboard img {
+      height: 42px;
+      width: auto;
+    }
+
+    .logo-dashboard h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin: 0;
+    }
+
+    .sidebar-subtitle {
+      font-size: 13px;
+      color: var(--gray-600);
+      margin-top: 5px;
+      padding-left: 54px;
+    }
+
+    .sidebar-menu {
+      flex: 1;
+      padding: 20px 0;
+      overflow-y: auto;
+    }
+
+    .menu-item {
+      padding: 12px 20px;
+      color: var(--gray-700);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+    }
+
+    .menu-item:hover {
+      background: var(--gray-50);
+      color: var(--primary-blue);
+    }
+
+    .menu-item.active {
+      background: var(--blue-50);
+      color: var(--primary-blue);
+      border-left-color: var(--primary-blue);
+      font-weight: 600;
+    }
+
+    .sidebar-footer {
+      padding: 20px;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    .user-info-sidebar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .user-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-email {
+      font-size: 13px;
+      color: var(--gray-700);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-role {
+      font-size: 11px;
+      color: var(--gray-500);
+    }
+
+    .btn-logout {
+      width: 100%;
+      padding: 10px;
+      background: var(--gray-100);
+      color: var(--gray-700);
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .btn-logout:hover {
+      background: var(--gray-200);
+      color: var(--gray-900);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 30px 40px;
+    }
+
+    .page-header {
+      margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 10px;
+    }
+
+    .page-header p {
+      color: var(--gray-600);
+      font-size: 16px;
+    }
+
+    /* Tickets Sections */
+    .tickets-section {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tickets-section h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tickets-section h2 .count {
+      font-size: 16px;
+      color: var(--gray-500);
+      font-weight: 500;
+    }
+
+    .tickets-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 20px;
+    }
+
+    .ticket-card {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      transition: all 0.2s;
+    }
+
+    .ticket-card:hover {
+      box-shadow: var(--shadow-md);
+      border-color: var(--primary-blue);
+    }
+
+    .ticket-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--gray-900);
+      margin-bottom: 10px;
+    }
+
+    .ticket-card p {
+      font-size: 14px;
+      color: var(--gray-600);
+      line-height: 1.5;
+      margin-bottom: 15px;
+    }
+
+    .ticket-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .badge-statut {
+      padding: 4px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-nouveau { background: #fef3c7; color: #92400e; }
+    .badge-ouvert { background: #dbeafe; color: #1e40af; }
+    .badge-en_attente { background: #fce7f3; color: #9f1239; }
+    .badge-en_cours { background: #d1fae5; color: #065f46; }
+    .badge-termine { background: #e0e7ff; color: #3730a3; }
+    .badge-clos { background: #e5e7eb; color: #374151; }
+
+    .badge-priorite {
+      padding: 4px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-priorite.basse { background: #f3f4f6; color: #6b7280; }
+    .badge-priorite.normale { background: #dbeafe; color: #1e40af; }
+    .badge-priorite.haute { background: #fed7aa; color: #9a3412; }
+    .badge-priorite.urgente { background: #fecaca; color: #991b1b; }
+
+    .ticket-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .locataire {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--gray-700);
+    }
+
+    .btn-action {
+      padding: 8px 16px;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-valider {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-valider:hover {
+      background: #059669;
+    }
+
+    .btn-diffuser {
+      background: var(--primary-blue);
+      color: white;
+    }
+
+    .btn-diffuser:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-cloturer {
+      background: var(--gray-700);
+      color: white;
+    }
+
+    .btn-cloturer:hover {
+      background: var(--gray-900);
+    }
+
+    .loading-state, .empty-state, .error-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--gray-500);
+    }
+
+    .error-state {
+      color: #dc2626;
+      background: #fef2f2;
+      border-radius: var(--radius-md);
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: var(--shadow-xl);
+    }
+
+    .modal-content h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-700);
+      margin-bottom: 8px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 25px;
+    }
+
+    .modal-content button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .modal-content .btn-cancel {
+      background: var(--gray-200);
+      color: var(--gray-700);
+    }
+
+    .modal-content .btn-cancel:hover {
+      background: var(--gray-300);
+    }
+
+    .modal-content .btn-confirm {
+      background: var(--primary-blue);
+      color: white;
+    }
+
+    .modal-content .btn-confirm:hover {
+      background: #1d4ed8;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+      .main-content {
+        margin-left: 0;
+        padding: 15px;
+      }
+      .tickets-list {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-dashboard">
+          <img src="/logo_moi.png" alt="JETC_IMMO Logo">
+          <h1>JETC_IMMO</h1>
+        </div>
+        <div class="sidebar-subtitle">Régie immobilière</div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <a href="/regie/dashboard.html" class="menu-item">
+          <span>🏠</span>
+          <span>Dashboard</span>
+        </a>
+        <a href="/regie/immeubles.html" class="menu-item">
+          <span>🏢</span>
+          <span>Immeubles</span>
+        </a>
+        <a href="/regie/logements.html" class="menu-item">
+          <span>🏠</span>
+          <span>Logements</span>
+        </a>
+        <a href="/regie/locataires.html" class="menu-item">
+          <span>👥</span>
+          <span>Locataires</span>
+        </a>
+        <a href="/regie/tickets.html" class="menu-item active">
+          <span>🎫</span>
+          <span>Tickets</span>
+        </a>
+        <a href="#" class="menu-item">
+          <span>🛠️</span>
+          <span>Missions</span>
+        </a>
+        <a href="#" class="menu-item">
+          <span>📄</span>
+          <span>Factures</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-info-sidebar">
+          <div class="user-avatar" id="userAvatar">R</div>
+          <div class="user-details">
+            <div class="user-email" id="userEmail">Chargement...</div>
+            <div class="user-role" id="agenceName">Régie</div>
+          </div>
+        </div>
+        <button class="btn-logout" onclick="logout()">Déconnexion</button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="page-header">
+        <h1>🎫 Gestion des tickets</h1>
+        <p>Cycle de vie complet des tickets de maintenance</p>
+      </div>
+
+      <!-- Section 1: Tickets nouveaux -->
+      <div class="tickets-section">
+        <h2>🆕 Tickets nouveaux <span class="count" id="count-nouveau">(0)</span></h2>
+        <div id="tickets-nouveaux-list" class="tickets-list">
+          <div class="loading-state">Chargement...</div>
+        </div>
+      </div>
+
+      <!-- Section 2: Tickets ouverts -->
+      <div class="tickets-section">
+        <h2>📂 Tickets ouverts <span class="count" id="count-ouvert">(0)</span></h2>
+        <div id="tickets-ouverts-list" class="tickets-list">
+          <div class="loading-state">Chargement...</div>
+        </div>
+      </div>
+
+      <!-- Section 3: Tickets en attente -->
+      <div class="tickets-section">
+        <h2>⏳ Tickets en attente <span class="count" id="count-en_attente">(0)</span></h2>
+        <div id="tickets-attente-list" class="tickets-list">
+          <div class="loading-state">Chargement...</div>
+        </div>
+      </div>
+
+      <!-- Section 4: Tickets en cours -->
+      <div class="tickets-section">
+        <h2>🔧 Tickets en cours <span class="count" id="count-en_cours">(0)</span></h2>
+        <div id="tickets-encours-list" class="tickets-list">
+          <div class="loading-state">Chargement...</div>
+        </div>
+      </div>
+
+      <!-- Section 5: Tickets terminés -->
+      <div class="tickets-section">
+        <h2>✅ Tickets terminés <span class="count" id="count-termine">(0)</span></h2>
+        <div id="tickets-termines-list" class="tickets-list">
+          <div class="loading-state">Chargement...</div>
+        </div>
+      </div>
+
+      <!-- Section 6: Tickets clos -->
+      <div class="tickets-section">
+        <h2>🔒 Tickets clos <span class="count" id="count-clos">(0)</span></h2>
+        <div id="tickets-clos-list" class="tickets-list">
+          <div class="loading-state">Chargement...</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Modal Validation (nouveau → ouvert) -->
+    <div id="modal-validation" class="modal-overlay">
+      <div class="modal-content">
+        <h3>✅ Valider le ticket</h3>
+        <p style="color: var(--gray-600); margin-bottom: 20px;">Définir la priorité et le plafond d'intervention</p>
+        
+        <div class="form-group">
+          <label for="validation-priorite">Priorité *</label>
+          <select id="validation-priorite">
+            <option value="basse">Basse</option>
+            <option value="normale" selected>Normale</option>
+            <option value="haute">Haute</option>
+            <option value="urgente">Urgente</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="validation-plafond">Plafond d'intervention (CHF)</label>
+          <input type="number" id="validation-plafond" placeholder="Ex: 500" min="0" step="50">
+        </div>
+
+        <div class="btn-group">
+          <button class="btn-cancel" onclick="closeValidationModal()">Annuler</button>
+          <button class="btn-confirm" onclick="confirmValidation()">Valider le ticket</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Diffusion (ouvert → en_attente) -->
+    <div id="modal-diffusion" class="modal-overlay">
+      <div class="modal-content">
+        <h3>📢 Diffuser le ticket</h3>
+        
+        <div class="form-group">
+          <label for="mode-diffusion">Mode de diffusion *</label>
+          <select id="mode-diffusion">
+            <option value="public">Public (toutes entreprises autorisées)</option>
+            <option value="assigné">Assigné (entreprise spécifique)</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="entreprise-group" style="display: none;">
+          <label for="entreprise-id">ID Entreprise *</label>
+          <input type="text" id="entreprise-id" placeholder="UUID de l'entreprise">
+        </div>
+
+        <div class="btn-group">
+          <button class="btn-cancel" onclick="closeDiffuserModal()">Annuler</button>
+          <button class="btn-confirm" onclick="confirmDiffusion()">Diffuser</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabaseClient.js"></script>
+  
+  <script>
+    // ============================================
+    // VARIABLES GLOBALES
+    // ============================================
+    let window.currentRegieId = null;
+    let currentTicketIdForValidation = null;
+    let currentTicketIdForDiffusion = null;
+
+    // ============================================
+    // DÉCONNEXION GLOBALE
+    // ============================================
+    async function logout() {
+      console.log('[LOGOUT] Déconnexion en cours...');
+      try {
+        await supabase.auth.signOut();
+        console.log('[LOGOUT] Déconnexion réussie');
+      } catch (error) {
+        console.error('[LOGOUT] Erreur:', error);
+      }
+      window.location.href = '/login.html';
+    }
+
+    // ============================================
+    // AUTHENTIFICATION
+    // ============================================
+    async function checkAuth() {
+      console.log('[TICKETS][AUTH] Vérification...');
+      
+      if (typeof supabase === 'undefined') {
+        console.error('[TICKETS][FATAL] Supabase client not loaded');
+        alert('Erreur technique: Client Supabase non chargé. Rechargez la page.');
+        return;
+      }
+      
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !session) {
+          console.log('[TICKETS][REDIRECT] Pas de session');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, email, role')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (profileError || !profile) {
+          console.error('[TICKETS][PROFILE_MISSING]', profileError);
+          await supabase.auth.signOut();
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        if (profile.role !== 'regie') {
+          console.log('[TICKETS][REDIRECT] Rôle incorrect:', profile.role);
+          await supabase.auth.signOut();
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        // Récupérer régie
+        const { data: regie, error: regieError } = await supabase
+          .from('regies')
+          .select('id, nom_agence')
+          .eq('profile_id', profile.id)
+          .single();
+        
+        if (regieError || !regie) {
+          console.error('[TICKETS][REGIE_MISSING]', regieError);
+          await supabase.auth.signOut();
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        window.currentRegieId = regie.id;
+        
+        // Afficher infos utilisateur
+        document.getElementById('userEmail').textContent = profile.email;
+        document.getElementById('agenceName').textContent = regie.nom_agence;
+        document.getElementById('userAvatar').textContent = profile.email.charAt(0).toUpperCase();
+        
+        console.log('[TICKETS][AUTH] OK, regie_id:', window.currentRegieId);
+        
+        // Charger tickets
+        loadAllTickets();
+        
+      } catch (error) {
+        console.error('[TICKETS][AUTH] Exception:', error);
+        window.location.href = '/login.html';
+      }
+    }
+
+    // ============================================
+    // CHARGEMENT TICKETS
+    // ============================================
+    
+    // Charger tickets par statut
+    async function loadTicketsByStatut(statut, containerId, countId) {
+      console.log(`[TICKETS] Chargement statut=${statut}`);
+      
+      try {
+        const { data: tickets, error } = await supabase
+          .from('tickets')
+          .select(`
+            id, 
+            titre, 
+            description, 
+            statut, 
+            priorite, 
+            categorie,
+            sous_categorie,
+            piece,
+            created_at,
+            plafond_intervention_chf,
+            locataire:locataires!inner(nom, prenom),
+            logement:logements!inner(numero)
+          `)
+          .eq('statut', statut)
+          .eq('regie_id', window.currentRegieId)
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error(`[TICKETS] Erreur chargement ${statut}:`, error);
+          document.getElementById(containerId).innerHTML = 
+            `<div class="error-state">Erreur chargement: ${error.message}</div>`;
+          return;
+        }
+        
+        console.log(`[TICKETS] ${tickets.length} tickets ${statut} chargés`);
+        
+        // Mettre à jour compteur
+        document.getElementById(countId).textContent = `(${tickets.length})`;
+        
+        // Afficher tickets
+        const container = document.getElementById(containerId);
+        if (tickets.length === 0) {
+          container.innerHTML = '<div class="empty-state">Aucun ticket</div>';
+        } else {
+          container.innerHTML = tickets.map(ticket => renderTicketCard(ticket, statut)).join('');
+        }
+        
+      } catch (error) {
+        console.error(`[TICKETS] Exception chargement ${statut}:`, error);
+        document.getElementById(containerId).innerHTML = 
+          `<div class="error-state">Erreur: ${error.message}</div>`;
+      }
+    }
+
+    // Rendu carte ticket
+    function renderTicketCard(ticket, statut) {
+      const locataireNom = ticket.locataire ? `${ticket.locataire.prenom} ${ticket.locataire.nom}` : 'Non défini';
+      const logementNum = ticket.logement ? ticket.logement.numero : 'N/A';
+      
+      const statutCssClass = statut.replace(/_/g, '_');
+      
+      // Actions selon statut
+      let actionButtons = '';
+      if (statut === 'nouveau') {
+        actionButtons = `<button class="btn-action btn-valider" onclick="openValidationModal('${ticket.id}', '${escapeHtml(ticket.titre)}')">✅ Valider</button>`;
+      } else if (statut === 'ouvert') {
+        actionButtons = `<button class="btn-action btn-diffuser" onclick="openDiffuserModal('${ticket.id}', '${escapeHtml(ticket.titre)}')">📢 Diffuser</button>`;
+      } else if (statut === 'termine') {
+        actionButtons = `<button class="btn-action btn-cloturer" onclick="cloturerTicket('${ticket.id}', '${escapeHtml(ticket.titre)}')">🔒 Clôturer</button>`;
+      }
+      
+      const plafondHtml = ticket.plafond_intervention_chf 
+        ? `<span style="font-size: 12px; color: var(--gray-600);">Plafond: ${ticket.plafond_intervention_chf} CHF</span>` 
+        : '';
+      
+      const prioriteHtml = ticket.priorite 
+        ? `<span class="badge-priorite ${ticket.priorite}">${ticket.priorite}</span>`
+        : '';
+      
+      return `
+        <div class="ticket-card">
+          <h3>${escapeHtml(ticket.titre)}</h3>
+          <p>${escapeHtml(ticket.description)}</p>
+          <div class="ticket-meta">
+            <span class="badge-statut badge-${statutCssClass}">${statut}</span>
+            ${prioriteHtml}
+            <span style="font-size: 12px; color: var(--gray-600);">${ticket.categorie}</span>
+            ${ticket.sous_categorie ? `<span style="font-size: 11px; color: var(--gray-500);">${ticket.sous_categorie}</span>` : ''}
+            ${ticket.piece ? `<span style="font-size: 11px; color: var(--gray-500);">📍 ${ticket.piece}</span>` : ''}
+          </div>
+          <div class="ticket-footer">
+            <div>
+              <div class="locataire">${escapeHtml(locataireNom)}</div>
+              <div style="font-size: 11px; color: var(--gray-500);">Logement: ${escapeHtml(logementNum)}</div>
+              ${plafondHtml}
+            </div>
+            ${actionButtons}
+          </div>
+        </div>
+      `;
+    }
+
+    // Escape HTML
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return text ? String(text).replace(/[&<>"']/g, m => map[m]) : '';
+    }
+
+    // Charger tous les tickets
+    async function loadAllTickets() {
+      console.log('[TICKETS] Chargement toutes sections...');
+      await Promise.all([
+        loadTicketsByStatut('nouveau', 'tickets-nouveaux-list', 'count-nouveau'),
+        loadTicketsByStatut('ouvert', 'tickets-ouverts-list', 'count-ouvert'),
+        loadTicketsByStatut('en_attente', 'tickets-attente-list', 'count-en_attente'),
+        loadTicketsByStatut('en_cours', 'tickets-encours-list', 'count-en_cours'),
+        loadTicketsByStatut('termine', 'tickets-termines-list', 'count-termine'),
+        loadTicketsByStatut('clos', 'tickets-clos-list', 'count-clos')
+      ]);
+      console.log('[TICKETS] Toutes sections chargées');
+    }
+
+    // ============================================
+    // ACTIONS RÉGIE
+    // ============================================
+
+    // VALIDATION (nouveau → ouvert)
+    function openValidationModal(ticketId, ticketTitre) {
+      console.log('[MODAL] Ouverture modal validation:', ticketId);
+      currentTicketIdForValidation = ticketId;
+      document.getElementById('modal-validation').classList.add('active');
+      
+      // Reset formulaire
+      document.getElementById('validation-priorite').value = 'normale';
+      document.getElementById('validation-plafond').value = '';
+    }
+
+    function closeValidationModal() {
+      console.log('[MODAL] Fermeture modal validation');
+      document.getElementById('modal-validation').classList.remove('active');
+      currentTicketIdForValidation = null;
+    }
+
+    async function confirmValidation() {
+      if (!currentTicketIdForValidation) {
+        alert('❌ Erreur: Aucun ticket sélectionné');
+        return;
+      }
+      
+      const priorite = document.getElementById('validation-priorite').value;
+      const plafondStr = document.getElementById('validation-plafond').value.trim();
+      const plafond = plafondStr ? parseFloat(plafondStr) : null;
+      
+      console.log('[ACTION] Validation ticket:', {
+        ticketId: currentTicketIdForValidation,
+        priorite,
+        plafond
+      });
+      
+      try {
+        // 1. Mettre à jour priorité et plafond
+        const { error: updateError } = await supabase
+          .from('tickets')
+          .update({
+            priorite: priorite,
+            plafond_intervention_chf: plafond
+          })
+          .eq('id', currentTicketIdForValidation);
+        
+        if (updateError) {
+          console.error('[ACTION] Erreur mise à jour:', updateError);
+          alert(`❌ Erreur mise à jour:\n${updateError.message}`);
+          return;
+        }
+        
+        // 2. Changer statut via RPC
+        const { error: rpcError } = await supabase.rpc('update_ticket_statut', {
+          p_ticket_id: currentTicketIdForValidation,
+          p_nouveau_statut: 'ouvert'
+        });
+        
+        if (rpcError) {
+          console.error('[ACTION] Erreur RPC:', rpcError);
+          alert(`❌ Erreur validation:\n${rpcError.message}`);
+          return;
+        }
+        
+        console.log('[ACTION] Ticket validé avec succès');
+        alert('✅ Ticket validé avec succès !');
+        
+        closeValidationModal();
+        
+        // Recharger sections
+        await loadTicketsByStatut('nouveau', 'tickets-nouveaux-list', 'count-nouveau');
+        await loadTicketsByStatut('ouvert', 'tickets-ouverts-list', 'count-ouvert');
+        
+      } catch (error) {
+        console.error('[ACTION] Exception validation:', error);
+        alert(`❌ Erreur technique:\n${error.message}`);
+      }
+    }
+
+    // DIFFUSION (ouvert → en_attente)
+    function openDiffuserModal(ticketId, ticketTitre) {
+      console.log('[MODAL] Ouverture modal diffusion:', ticketId);
+      currentTicketIdForDiffusion = ticketId;
+      document.getElementById('modal-diffusion').classList.add('active');
+      
+      // Reset formulaire
+      document.getElementById('mode-diffusion').value = 'public';
+      document.getElementById('entreprise-id').value = '';
+      document.getElementById('entreprise-group').style.display = 'none';
+    }
+
+    function closeDiffuserModal() {
+      console.log('[MODAL] Fermeture modal diffusion');
+      document.getElementById('modal-diffusion').classList.remove('active');
+      currentTicketIdForDiffusion = null;
+    }
+
+    async function confirmDiffusion() {
+      if (!currentTicketIdForDiffusion) {
+        alert('❌ Erreur: Aucun ticket sélectionné');
+        return;
+      }
+      
+      const modeDiffusion = document.getElementById('mode-diffusion').value;
+      let entrepriseId = null;
+      
+      if (modeDiffusion === 'assigné') {
+        entrepriseId = document.getElementById('entreprise-id').value.trim();
+        if (!entrepriseId) {
+          alert('❌ Veuillez saisir l\'ID de l\'entreprise pour une diffusion assignée');
+          return;
+        }
+      }
+      
+      console.log('[ACTION] Diffusion ticket:', {
+        ticketId: currentTicketIdForDiffusion,
+        mode: modeDiffusion,
+        entrepriseId
+      });
+      
+      try {
+        const { error } = await supabase.rpc('diffuser_ticket', {
+          p_ticket_id: currentTicketIdForDiffusion,
+          p_mode_diffusion: modeDiffusion,
+          p_entreprise_id: entrepriseId
+        });
+        
+        if (error) {
+          console.error('[ACTION] Erreur diffusion:', error);
+          alert(`❌ Erreur diffusion:\n${error.message}`);
+          return;
+        }
+        
+        console.log('[ACTION] Ticket diffusé avec succès');
+        alert('✅ Ticket diffusé avec succès !');
+        
+        closeDiffuserModal();
+        
+        // Recharger sections
+        await loadTicketsByStatut('ouvert', 'tickets-ouverts-list', 'count-ouvert');
+        await loadTicketsByStatut('en_attente', 'tickets-attente-list', 'count-en_attente');
+        
+      } catch (error) {
+        console.error('[ACTION] Exception diffusion:', error);
+        alert(`❌ Erreur technique:\n${error.message}`);
+      }
+    }
+
+    // CLÔTURE (termine → clos)
+    async function cloturerTicket(ticketId, ticketTitre) {
+      if (!confirm(`Clôturer le ticket "${ticketTitre}" ?\n\nCette action fera passer le ticket de "terminé" à "clos" (statut final).`)) {
+        return;
+      }
+      
+      console.log('[ACTION] Clôture ticket:', ticketId);
+      
+      try {
+        const { error } = await supabase.rpc('update_ticket_statut', {
+          p_ticket_id: ticketId,
+          p_nouveau_statut: 'clos'
+        });
+        
+        if (error) {
+          console.error('[ACTION] Erreur clôture:', error);
+          alert(`❌ Erreur clôture:\n${error.message}`);
+          return;
+        }
+        
+        console.log('[ACTION] Ticket clôturé avec succès');
+        alert('✅ Ticket clôturé avec succès !');
+        
+        // Recharger sections
+        await loadTicketsByStatut('termine', 'tickets-termines-list', 'count-termine');
+        await loadTicketsByStatut('clos', 'tickets-clos-list', 'count-clos');
+        
+      } catch (error) {
+        console.error('[ACTION] Exception clôture:', error);
+        alert(`❌ Erreur technique:\n${error.message}`);
+      }
+    }
+
+    // Toggle champ entreprise_id selon mode
+    document.addEventListener('DOMContentLoaded', () => {
+      const modeSelect = document.getElementById('mode-diffusion');
+      if (modeSelect) {
+        modeSelect.addEventListener('change', (e) => {
+          const entrepriseGroup = document.getElementById('entreprise-group');
+          entrepriseGroup.style.display = e.target.value === 'assigné' ? 'block' : 'none';
+        });
+      }
+    });
+
+    // Fermer modal au clic sur overlay
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal-overlay')) {
+        closeValidationModal();
+        closeDiffuserModal();
+      }
+    });
+
+    // ============================================
+    // INITIALISATION
+    // ============================================
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        checkAuth();
+      }, 100);
+    });
+  </script>
+
+  <!-- Mobile Menu Handler -->
+  <script src="/js/mobile-menu.js"></script>
+</body>
+</html>
