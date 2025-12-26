@@ -204,6 +204,275 @@
       margin: 8px 0;
     }
 
+    /* Badges statuts */
+    .badge-statut {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-block;
+    }
+    .badge-nouveau { background: #fef3c7; color: #92400e; }
+    .badge-ouvert { background: #dbeafe; color: #1e40af; }
+    .badge-en_attente { background: #fed7aa; color: #9a3412; }
+    .badge-en_cours { background: #bfdbfe; color: #1e3a8a; }
+    .badge-termine { background: #d1fae5; color: #065f46; }
+    .badge-clos { background: #e5e7eb; color: #374151; }
+    .badge-annule { background: #fecaca; color: #991b1b; }
+
+    .badge-priorite {
+      padding: 3px 8px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-block;
+    }
+    .badge-priorite.urgente { background: #fee; color: #c00; }
+    .badge-priorite.haute { background: #fed; color: #d63; }
+    .badge-priorite.normale { background: #eef; color: #36c; }
+    .badge-priorite.basse { background: #efe; color: #3a3; }
+
+    /* Sections tickets */
+    .tickets-container {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+
+    .tickets-section {
+      background: white;
+      padding: 25px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tickets-section h2 {
+      margin-bottom: 20px;
+      color: var(--gray-900);
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tickets-section h2 .count {
+      font-size: 16px;
+      color: var(--gray-500);
+      font-weight: 400;
+    }
+
+    .tickets-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .ticket-card {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .ticket-card:hover {
+      border-color: var(--primary-blue);
+      box-shadow: var(--shadow-md);
+    }
+
+    .ticket-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--gray-900);
+      margin-bottom: 10px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .ticket-card p {
+      font-size: 14px;
+      color: var(--gray-600);
+      margin-bottom: 15px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .ticket-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .ticket-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 15px;
+      border-top: 1px solid var(--gray-200);
+      font-size: 13px;
+      color: var(--gray-600);
+    }
+
+    .ticket-footer .locataire {
+      font-weight: 500;
+    }
+
+    .btn-action {
+      padding: 8px 16px;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-valider {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .btn-valider:hover {
+      background: #bbf7d0;
+    }
+
+    .btn-diffuser {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .btn-diffuser:hover {
+      background: #bfdbfe;
+    }
+
+    .btn-cloturer {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .btn-cloturer:hover {
+      background: #d1d5db;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--gray-500);
+      font-size: 14px;
+    }
+
+    .loading-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--primary-blue);
+      font-size: 14px;
+    }
+
+    .error-state {
+      text-align: center;
+      padding: 20px;
+      background: #fee;
+      color: #c00;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+    }
+
+    /* Modal diffusion */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      max-width: 500px;
+      width: 90%;
+    }
+
+    .modal-content h3 {
+      margin-bottom: 20px;
+      color: var(--gray-900);
+      font-size: 20px;
+    }
+
+    .modal-content .form-group {
+      margin-bottom: 20px;
+    }
+
+    .modal-content label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--gray-700);
+      font-size: 14px;
+    }
+
+    .modal-content select,
+    .modal-content input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+    }
+
+    .modal-content .btn-group {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 25px;
+    }
+
+    .modal-content button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .modal-content .btn-cancel {
+      background: var(--gray-200);
+      color: var(--gray-700);
+    }
+
+    .modal-content .btn-cancel:hover {
+      background: var(--gray-300);
+    }
+
+    .modal-content .btn-confirm {
+      background: var(--primary-blue);
+      color: white;
+    }
+
+    .modal-content .btn-confirm:hover {
+      background: #1d4ed8;
+    }
+
     @media (max-width: 768px) {
       .sidebar {
         display: none;
@@ -211,6 +480,9 @@
       .main-content {
         margin-left: 0;
         padding: 15px;
+      }
+      .tickets-list {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -272,28 +544,78 @@
 
     <!-- Main Content -->
     <main class="main-content">
-    <div class="welcome-card">
-      <h2>🎉 Bienvenue sur votre dashboard</h2>
-      <p><strong>Rôle :</strong> Régie immobilière</p>
-      <p>Agence : <strong id="agenceName">Chargement...</strong></p>
-      <p>Email : <strong id="userEmailDisplay">Chargement...</strong></p>
-      
-      <div class="info-box">
-        <h3>📋 Fonctionnalités à venir (ÉTAPES suivantes)</h3>
-        <ul style="text-align: left;">
-          <li><strong>ÉTAPE 4</strong> : Gérer immeubles et logements</li>
-          <li><strong>ÉTAPE 5</strong> : Valider les tickets locataires</li>
-          <li><strong>ÉTAPE 6</strong> : Diffuser les tickets (général/restreint)</li>
-          <li><strong>ÉTAPE 13</strong> : Consulter les factures</li>
-        </ul>
-      </div>
+      <div class="tickets-container">
+        <!-- Section 1: Tickets nouveaux -->
+        <div class="tickets-section">
+          <h2>🆕 Tickets nouveaux <span class="count" id="count-nouveau">(0)</span></h2>
+          <div id="tickets-nouveaux-list" class="tickets-list">
+            <div class="loading-state">Chargement...</div>
+          </div>
+        </div>
 
-      <p style="margin-top: 30px; color: #999;">
-        <small>✅ ÉTAPE 2 - Authentification Supabase fonctionnelle</small><br>
-        <small>✅ ÉTAPE 3 - Validation admin JTEC fonctionnelle</small>
-      </p>
-    </div>
+        <!-- Section 2: Tickets ouverts -->
+        <div class="tickets-section">
+          <h2>📂 Tickets ouverts <span class="count" id="count-ouvert">(0)</span></h2>
+          <div id="tickets-ouverts-list" class="tickets-list">
+            <div class="loading-state">Chargement...</div>
+          </div>
+        </div>
+
+        <!-- Section 3: Tickets en attente -->
+        <div class="tickets-section">
+          <h2>⏳ Tickets en attente <span class="count" id="count-en_attente">(0)</span></h2>
+          <div id="tickets-attente-list" class="tickets-list">
+            <div class="loading-state">Chargement...</div>
+          </div>
+        </div>
+
+        <!-- Section 4: Tickets en cours -->
+        <div class="tickets-section">
+          <h2>🔧 Tickets en cours <span class="count" id="count-en_cours">(0)</span></h2>
+          <div id="tickets-encours-list" class="tickets-list">
+            <div class="loading-state">Chargement...</div>
+          </div>
+        </div>
+
+        <!-- Section 5: Tickets terminés -->
+        <div class="tickets-section">
+          <h2>✅ Tickets terminés <span class="count" id="count-termine">(0)</span></h2>
+          <div id="tickets-termines-list" class="tickets-list">
+            <div class="loading-state">Chargement...</div>
+          </div>
+        </div>
+
+        <!-- Section 6: Tickets clos -->
+        <div class="tickets-section">
+          <h2>🔒 Tickets clos <span class="count" id="count-clos">(0)</span></h2>
+          <div id="tickets-clos-list" class="tickets-list">
+            <div class="loading-state">Chargement...</div>
+          </div>
+        </div>
+      </div>
     </main>
+
+    <!-- Modal Diffusion -->
+    <div id="modal-diffusion" class="modal-overlay">
+      <div class="modal-content">
+        <h3>📢 Diffuser le ticket</h3>
+        <div class="form-group">
+          <label for="mode-diffusion">Mode de diffusion</label>
+          <select id="mode-diffusion">
+            <option value="public">Public (toutes entreprises autorisées)</option>
+            <option value="assigné">Assigné (entreprise spécifique)</option>
+          </select>
+        </div>
+        <div class="form-group" id="entreprise-group" style="display: none;">
+          <label for="entreprise-id">ID Entreprise</label>
+          <input type="text" id="entreprise-id" placeholder="UUID de l'entreprise">
+        </div>
+        <div class="btn-group">
+          <button class="btn-cancel" onclick="closeDiffuserModal()">Annuler</button>
+          <button class="btn-confirm" onclick="confirmDiffusion()">Diffuser</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- 🔴 ACTION 2 : Charger Supabase (SOURCE DE VÉRITÉ) -->
@@ -509,6 +831,13 @@
           agence: regie.nom,
           statut: regie.statut_validation
         });
+
+        // 7️⃣ Stocker regie_id pour requêtes tickets
+        window.currentRegieId = regie.id;
+        window.currentRegieName = regie.nom;
+        
+        // 8️⃣ Charger les tickets après authentification
+        await loadAllTickets();
         
       } catch (error) {
         console.error('[REGIE][ERROR]', error);
@@ -517,6 +846,301 @@
         window.location.href = '/login.html';
       }
     }
+
+    // ============================================
+    // GESTION TICKETS
+    // ============================================
+    
+    // Variable pour modal diffusion
+    let currentTicketIdForDiffusion = null;
+
+    // Charger tickets par statut
+    async function loadTicketsByStatut(statut, containerId, countId) {
+      console.log(`[TICKETS] Chargement tickets statut=${statut}`);
+      
+      try {
+        const { data: tickets, error } = await supabase
+          .from('tickets')
+          .select(`
+            id, 
+            titre, 
+            description, 
+            statut, 
+            priorite, 
+            categorie,
+            sous_categorie,
+            piece,
+            created_at,
+            plafond_intervention_chf,
+            locataire:locataires!inner(nom, prenom),
+            logement:logements!inner(numero_logement)
+          `)
+          .eq('statut', statut)
+          .eq('regie_id', window.currentRegieId)
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error(`[TICKETS] Erreur chargement ${statut}:`, error);
+          document.getElementById(containerId).innerHTML = 
+            `<div class="error-state">Erreur chargement: ${error.message}</div>`;
+          return;
+        }
+        
+        console.log(`[TICKETS] ${tickets.length} tickets ${statut} chargés`);
+        
+        // Mettre à jour compteur
+        document.getElementById(countId).textContent = `(${tickets.length})`;
+        
+        // Afficher tickets
+        const container = document.getElementById(containerId);
+        if (tickets.length === 0) {
+          container.innerHTML = '<div class="empty-state">Aucun ticket</div>';
+        } else {
+          container.innerHTML = tickets.map(ticket => renderTicketCard(ticket, statut)).join('');
+        }
+        
+      } catch (error) {
+        console.error(`[TICKETS] Exception chargement ${statut}:`, error);
+        document.getElementById(containerId).innerHTML = 
+          `<div class="error-state">Erreur: ${error.message}</div>`;
+      }
+    }
+
+    // Rendu carte ticket
+    function renderTicketCard(ticket, statut) {
+      const locataireNom = ticket.locataire ? `${ticket.locataire.prenom} ${ticket.locataire.nom}` : 'Non défini';
+      const logementNum = ticket.logement ? ticket.logement.numero_logement : 'N/A';
+      
+      // Formatage statut pour badge CSS (remplacer _ par -)
+      const statutCssClass = statut.replace(/_/g, '_');
+      
+      // Actions selon statut
+      let actionButtons = '';
+      if (statut === 'nouveau') {
+        actionButtons = `<button class="btn-action btn-valider" onclick="validerTicket('${ticket.id}', '${ticket.titre}')">✅ Valider</button>`;
+      } else if (statut === 'ouvert') {
+        actionButtons = `<button class="btn-action btn-diffuser" onclick="openDiffuserModal('${ticket.id}', '${ticket.titre}')">📢 Diffuser</button>`;
+      } else if (statut === 'termine') {
+        actionButtons = `<button class="btn-action btn-cloturer" onclick="cloturerTicket('${ticket.id}', '${ticket.titre}')">🔒 Clôturer</button>`;
+      }
+      
+      // Plafond CHF si défini
+      const plafondHtml = ticket.plafond_intervention_chf 
+        ? `<span style="font-size: 12px; color: var(--gray-600);">Plafond: ${ticket.plafond_intervention_chf} CHF</span>` 
+        : '';
+      
+      return `
+        <div class="ticket-card">
+          <h3>${escapeHtml(ticket.titre)}</h3>
+          <p>${escapeHtml(ticket.description)}</p>
+          <div class="ticket-meta">
+            <span class="badge-statut badge-${statutCssClass}">${statut}</span>
+            <span class="badge-priorite ${ticket.priorite}">${ticket.priorite}</span>
+            <span style="font-size: 12px; color: var(--gray-600);">${ticket.categorie}</span>
+            ${ticket.sous_categorie ? `<span style="font-size: 11px; color: var(--gray-500);">${ticket.sous_categorie}</span>` : ''}
+            ${ticket.piece ? `<span style="font-size: 11px; color: var(--gray-500);">📍 ${ticket.piece}</span>` : ''}
+          </div>
+          <div class="ticket-footer">
+            <div>
+              <div class="locataire">${escapeHtml(locataireNom)}</div>
+              <div style="font-size: 11px; color: var(--gray-500);">Logement: ${escapeHtml(logementNum)}</div>
+              ${plafondHtml}
+            </div>
+            ${actionButtons}
+          </div>
+        </div>
+      `;
+    }
+
+    // Escape HTML pour sécurité XSS
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return text ? String(text).replace(/[&<>"']/g, m => map[m]) : '';
+    }
+
+    // Charger tous les tickets
+    async function loadAllTickets() {
+      console.log('[TICKETS] Chargement toutes sections...');
+      await Promise.all([
+        loadTicketsByStatut('nouveau', 'tickets-nouveaux-list', 'count-nouveau'),
+        loadTicketsByStatut('ouvert', 'tickets-ouverts-list', 'count-ouvert'),
+        loadTicketsByStatut('en_attente', 'tickets-attente-list', 'count-en_attente'),
+        loadTicketsByStatut('en_cours', 'tickets-encours-list', 'count-en_cours'),
+        loadTicketsByStatut('termine', 'tickets-termines-list', 'count-termine'),
+        loadTicketsByStatut('clos', 'tickets-clos-list', 'count-clos')
+      ]);
+      console.log('[TICKETS] Toutes sections chargées');
+    }
+
+    // ============================================
+    // ACTIONS RÉGIE
+    // ============================================
+
+    // Valider ticket (nouveau → ouvert)
+    async function validerTicket(ticketId, ticketTitre) {
+      if (!confirm(`Valider le ticket "${ticketTitre}" ?\n\nCette action fera passer le ticket de "nouveau" à "ouvert".`)) {
+        return;
+      }
+      
+      console.log('[ACTION] Validation ticket:', ticketId);
+      
+      try {
+        const { data, error } = await supabase.rpc('update_ticket_statut', {
+          p_ticket_id: ticketId,
+          p_nouveau_statut: 'ouvert'
+        });
+        
+        if (error) {
+          console.error('[ACTION] Erreur validation:', error);
+          alert(`❌ Erreur validation:\n${error.message}`);
+          return;
+        }
+        
+        console.log('[ACTION] Ticket validé avec succès');
+        alert('✅ Ticket validé avec succès !');
+        
+        // Recharger sections impactées
+        await loadTicketsByStatut('nouveau', 'tickets-nouveaux-list', 'count-nouveau');
+        await loadTicketsByStatut('ouvert', 'tickets-ouverts-list', 'count-ouvert');
+        
+      } catch (error) {
+        console.error('[ACTION] Exception validation:', error);
+        alert(`❌ Erreur technique:\n${error.message}`);
+      }
+    }
+
+    // Ouvrir modal diffusion
+    function openDiffuserModal(ticketId, ticketTitre) {
+      console.log('[MODAL] Ouverture modal diffusion:', ticketId);
+      currentTicketIdForDiffusion = ticketId;
+      document.getElementById('modal-diffusion').classList.add('active');
+      
+      // Reset formulaire
+      document.getElementById('mode-diffusion').value = 'public';
+      document.getElementById('entreprise-id').value = '';
+      document.getElementById('entreprise-group').style.display = 'none';
+    }
+
+    // Fermer modal diffusion
+    function closeDiffuserModal() {
+      console.log('[MODAL] Fermeture modal diffusion');
+      document.getElementById('modal-diffusion').classList.remove('active');
+      currentTicketIdForDiffusion = null;
+    }
+
+    // Toggle champ entreprise_id selon mode
+    document.addEventListener('DOMContentLoaded', () => {
+      const modeSelect = document.getElementById('mode-diffusion');
+      if (modeSelect) {
+        modeSelect.addEventListener('change', (e) => {
+          const entrepriseGroup = document.getElementById('entreprise-group');
+          entrepriseGroup.style.display = e.target.value === 'assigné' ? 'block' : 'none';
+        });
+      }
+    });
+
+    // Confirmer diffusion
+    async function confirmDiffusion() {
+      if (!currentTicketIdForDiffusion) {
+        alert('❌ Erreur: Aucun ticket sélectionné');
+        return;
+      }
+      
+      const modeDiffusion = document.getElementById('mode-diffusion').value;
+      let entrepriseId = null;
+      
+      if (modeDiffusion === 'assigné') {
+        entrepriseId = document.getElementById('entreprise-id').value.trim();
+        if (!entrepriseId) {
+          alert('❌ Veuillez saisir l\'ID de l\'entreprise pour une diffusion assignée');
+          return;
+        }
+      }
+      
+      console.log('[ACTION] Diffusion ticket:', {
+        ticketId: currentTicketIdForDiffusion,
+        mode: modeDiffusion,
+        entrepriseId
+      });
+      
+      try {
+        const { data, error } = await supabase.rpc('diffuser_ticket', {
+          p_ticket_id: currentTicketIdForDiffusion,
+          p_mode_diffusion: modeDiffusion,
+          p_entreprise_id: entrepriseId
+        });
+        
+        if (error) {
+          console.error('[ACTION] Erreur diffusion:', error);
+          alert(`❌ Erreur diffusion:\n${error.message}`);
+          return;
+        }
+        
+        console.log('[ACTION] Ticket diffusé avec succès');
+        alert('✅ Ticket diffusé avec succès !');
+        
+        // Fermer modal
+        closeDiffuserModal();
+        
+        // Recharger sections impactées
+        await loadTicketsByStatut('ouvert', 'tickets-ouverts-list', 'count-ouvert');
+        await loadTicketsByStatut('en_attente', 'tickets-attente-list', 'count-en_attente');
+        
+      } catch (error) {
+        console.error('[ACTION] Exception diffusion:', error);
+        alert(`❌ Erreur technique:\n${error.message}`);
+      }
+    }
+
+    // Clôturer ticket (termine → clos)
+    async function cloturerTicket(ticketId, ticketTitre) {
+      if (!confirm(`Clôturer le ticket "${ticketTitre}" ?\n\nCette action fera passer le ticket de "terminé" à "clos" (statut final).`)) {
+        return;
+      }
+      
+      console.log('[ACTION] Clôture ticket:', ticketId);
+      
+      try {
+        const { data, error } = await supabase.rpc('update_ticket_statut', {
+          p_ticket_id: ticketId,
+          p_nouveau_statut: 'clos'
+        });
+        
+        if (error) {
+          console.error('[ACTION] Erreur clôture:', error);
+          alert(`❌ Erreur clôture:\n${error.message}`);
+          return;
+        }
+        
+        console.log('[ACTION] Ticket clôturé avec succès');
+        alert('✅ Ticket clôturé avec succès !');
+        
+        // Recharger sections impactées
+        await loadTicketsByStatut('termine', 'tickets-termines-list', 'count-termine');
+        await loadTicketsByStatut('clos', 'tickets-clos-list', 'count-clos');
+        
+      } catch (error) {
+        console.error('[ACTION] Exception clôture:', error);
+        alert(`❌ Erreur technique:\n${error.message}`);
+      }
+    }
+
+    // Fermer modal au clic sur overlay
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal-overlay')) {
+        closeDiffuserModal();
+      }
+    });
+
+    // ============================================
+    // INITIALISATION
+    // ============================================
 
     // 🔴 ACTION 2 : Déconnexion avec Supabase
     async function logout() {

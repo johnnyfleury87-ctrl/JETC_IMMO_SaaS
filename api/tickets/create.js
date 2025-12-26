@@ -98,9 +98,18 @@ module.exports = async (req, res) => {
 
     req.on('end', async () => {
       try {
-        const { titre, description, categorie, priorite, urgence } = JSON.parse(body);
+        const { 
+          titre, 
+          description, 
+          categorie,
+          sous_categorie,
+          piece,
+          priorite,
+          plafond_intervention_chf,
+          disponibilites
+        } = JSON.parse(body);
 
-        // Validation des champs
+        // Validation des champs obligatoires
         if (!titre || !description || !categorie) {
           res.writeHead(400, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ 
@@ -112,8 +121,8 @@ module.exports = async (req, res) => {
 
         // Validation de la catégorie
         const categoriesValides = [
-          'plomberie', 'électricité', 'chauffage', 'serrurerie',
-          'vitrerie', 'menuiserie', 'peinture', 'autre'
+          'plomberie', 'electricite', 'chauffage', 'ventilation',
+          'serrurerie', 'vitrerie', 'menuiserie', 'peinture', 'autre'
         ];
         if (!categoriesValides.includes(categorie)) {
           res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -125,26 +134,54 @@ module.exports = async (req, res) => {
         }
 
         // Validation de la priorité
-        const prioritesValides = ['faible', 'normale', 'haute', 'urgente'];
+        const prioritesValides = ['basse', 'normale', 'haute', 'urgente'];
         const prioriteFinale = priorite && prioritesValides.includes(priorite) 
           ? priorite 
           : 'normale';
 
+        // Validation des disponibilités (3 créneaux obligatoires - M09)
+        if (!disponibilites || !Array.isArray(disponibilites) || disponibilites.length !== 3) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ 
+            success: false, 
+            message: '3 créneaux de disponibilité sont obligatoires' 
+          }));
+          return;
+        }
+
+        // Valider chaque créneau
+        for (let i = 0; i < disponibilites.length; i++) {
+          const dispo = disponibilites[i];
+          if (!dispo.date_debut || !dispo.date_fin || !dispo.preference) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ 
+              success: false, 
+              message: `Créneau ${i + 1} incomplet (date_debut, date_fin, preference requis)` 
+            }));
+            return;
+          }
+        }
+
         // Créer le ticket
+        // ⚠️ M12 FIX: Ne PAS forcer statut='ouvert', laisser DEFAULT SQL 'nouveau'
         // La regie_id sera calculée automatiquement par le trigger SQL
+        const ticketData = {
+          titre,
+          description,
+          categorie,
+          sous_categorie: sous_categorie || null,
+          piece: piece || null,
+          priorite: prioriteFinale,
+          plafond_intervention_chf: plafond_intervention_chf || null,
+          logement_id: locataire.logement_id,
+          locataire_id: locataire.id
+          // ✅ M12: Pas de statut forcé, DEFAULT SQL = 'nouveau'
+        };
+
         const { data: ticket, error: ticketError } = await supabaseAdmin
           .from('tickets')
-          .insert({
-            titre,
-            description,
-            categorie,
-            priorite: prioriteFinale,
-            urgence: urgence === true,
-            logement_id: locataire.logement_id,
-            locataire_id: locataire.id,
-            statut: 'ouvert'
-          })
-          .select('*, logements(numero, etage, immeubles(nom, adresse, regies(nom)))')
+          .insert(ticketData)
+          .select('*')
           .single();
 
         if (ticketError) {
@@ -156,6 +193,24 @@ module.exports = async (req, res) => {
             error: ticketError.message
           }));
           return;
+        }
+
+        // Insérer les 3 disponibilités (M09)
+        const disponibilitesData = disponibilites.map(d => ({
+          ticket_id: ticket.id,
+          date_debut: d.date_debut,
+          date_fin: d.date_fin,
+          preference: d.preference
+        }));
+
+        const { error: dispoError } = await supabaseAdmin
+          .from('tickets_disponibilites')
+          .insert(disponibilitesData);
+
+        if (dispoError) {
+          console.error('Erreur création disponibilités:', dispoError);
+          // Ne pas bloquer, mais logger l'erreur
+          console.warn('⚠️ Disponibilités non créées, mais ticket créé:', ticket.id);
         }
 
         res.writeHead(201, { 'Content-Type': 'application/json' });
