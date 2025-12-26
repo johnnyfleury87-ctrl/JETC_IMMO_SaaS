@@ -188,6 +188,21 @@ module.exports = async (req, res) => {
           return;
         }
 
+        // ✅ VÉRIFICATION CRITIQUE: S'assurer que tous les IDs sont présents
+        if (!locataire.id || !locataire.logement_id || !logement.regie_id) {
+          console.error('🚨 IDs manquants:', {
+            locataire_id: locataire.id,
+            logement_id: locataire.logement_id,
+            regie_id: logement.regie_id
+          });
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ 
+            success: false, 
+            message: 'Données incomplètes: IDs manquants' 
+          }));
+          return;
+        }
+
         // Créer le ticket
         // ⚠️ M12 FIX: Ne PAS forcer statut='ouvert', laisser DEFAULT SQL 'nouveau'
         // ⚠️ SÉCURITÉ: IDs viennent du JWT, pas du frontend
@@ -209,6 +224,16 @@ module.exports = async (req, res) => {
           locataire_id_type: typeof ticketData.locataire_id,
           logement_id_type: typeof ticketData.logement_id,
           regie_id_type: typeof ticketData.regie_id
+        });
+
+        // 🚨 DEBUG CRITIQUE AVANT INSERT
+        console.error('🔍 DEBUG PRE-INSERT:', {
+          auth_uid: user.id,
+          locataire_id: locataire.id,
+          logement_id: locataire.logement_id,
+          regie_id: logement.regie_id,
+          ticket_data_keys: Object.keys(ticketData),
+          ticket_data_values: ticketData
         });
 
         // ✅ CORRECTION: Supabase client ajoute automatiquement le schéma public
