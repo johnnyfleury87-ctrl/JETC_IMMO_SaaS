@@ -232,6 +232,14 @@
     .badge-priorite.normale { background: #eef; color: #36c; }
     .badge-priorite.basse { background: #efe; color: #3a3; }
 
+    /* Dashboard content */
+    .dashboard-content {
+      background: white;
+      padding: 30px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+
     /* Sections tickets */
     .tickets-container {
       display: flex;
@@ -500,7 +508,7 @@
       </div>
 
       <nav class="sidebar-menu">
-        <a href="/regie/dashboard.html" class="menu-item active">
+        <a href="#" class="menu-item active" onclick="switchView('dashboard'); return false;">
           <span>🏠</span>
           <span>Dashboard</span>
         </a>
@@ -516,7 +524,7 @@
           <span>👥</span>
           <span>Locataires</span>
         </a>
-        <a href="#" class="menu-item">
+        <a href="#tickets" class="menu-item" onclick="switchView('tickets'); return false;">
           <span>🎫</span>
           <span>Tickets</span>
         </a>
@@ -544,7 +552,36 @@
 
     <!-- Main Content -->
     <main class="main-content">
-      <div class="tickets-container">
+      <!-- ✅ Dashboard simple : alerte ou message -->
+      <div class="dashboard-content">
+        <h1>🏠 Tableau de bord</h1>
+        <p style="color: var(--gray-600); margin-bottom: 30px;">Vue d'ensemble de votre régie immobilière</p>
+        
+        <!-- Alerte tickets nouveaux (si présents) -->
+        <div id="alerteNouveauxTickets" style="display: none;">
+          <div class="info-box" style="background: #fef3c7; border-left: 4px solid #fbbf24; padding: 20px; border-radius: var(--radius-md); margin-bottom: 20px;">
+            <h3 style="color: #92400e; font-size: 18px; margin-bottom: 10px;">🔔 Nouveaux tickets en attente</h3>
+            <p style="color: #78350f; margin: 0;" id="alerteTexte"></p>
+            <a href="#tickets" style="display: inline-block; margin-top: 15px; background: var(--primary-blue); color: white; padding: 10px 20px; border-radius: var(--radius-md); text-decoration: none; font-weight: 600;">Voir les tickets →</a>
+          </div>
+        </div>
+        
+        <!-- Message aucun ticket (si aucun) -->
+        <div id="messageAucunTicket" style="display: none;">
+          <div class="info-box" style="background: var(--gray-50); border-left: 4px solid var(--gray-300); padding: 20px; border-radius: var(--radius-md);">
+            <h3 style="color: var(--gray-700); font-size: 18px; margin-bottom: 10px;">✅ Tout est en ordre</h3>
+            <p style="color: var(--gray-600); margin: 0;">Aucun ticket actuellement.</p>
+          </div>
+        </div>
+        
+        <!-- Loading -->
+        <div id="dashboardLoading" class="loading-state">Chargement du tableau de bord...</div>
+      </div>
+
+      <!-- Section complète des tickets (accessible via menu Tickets) -->
+      <div class="tickets-container" id="ticketsSection" style="display: none;">
+        <h1 style="margin-bottom: 30px;">🎫 Gestion des tickets</h1>
+        
         <!-- Section 1: Tickets nouveaux -->
         <div class="tickets-section">
           <h2>🆕 Tickets nouveaux <span class="count" id="count-nouveau">(0)</span></h2>
@@ -836,8 +873,84 @@
         window.currentRegieId = regie.id;
         window.currentRegieName = regie.nom;
         
-        // 8️⃣ Charger les tickets après authentification
-        await loadAllTickets();
+        // 8️⃣ Charger le dashboard simple (pas les tickets complets)
+        await loadDashboard();
+        
+      } catch (error) {
+        console.error('[REGIE][ERROR]', error);
+        console.log('[REGIE][REDIRECT] Raison: Exception', error.message);
+        alert('Erreur technique. Reconnexion requise.');
+        window.location.href = '/login.html';
+      }
+    }
+
+    // ============================================
+    // GESTION DES VUES
+    // ============================================
+    
+    function switchView(view) {
+      console.log('[VIEW] Switch to:', view);
+      
+      // Masquer toutes sections
+      document.querySelector('.dashboard-content').style.display = 'none';
+      document.getElementById('ticketsSection').style.display = 'none';
+      
+      // Retirer classe active des menu items
+      document.querySelectorAll('.menu-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      
+      // Afficher section demandée
+      if (view === 'dashboard') {
+        document.querySelector('.dashboard-content').style.display = 'block';
+        document.querySelectorAll('.menu-item')[0].classList.add('active'); // Dashboard
+        loadDashboard();
+      } else if (view === 'tickets') {
+        document.getElementById('ticketsSection').style.display = 'block';
+        document.querySelectorAll('.menu-item')[4].classList.add('active'); // Tickets
+        loadAllTickets();
+      }
+    }
+    
+    // Charger dashboard simple (alerte ou message)
+    async function loadDashboard() {
+      console.log('[DASHBOARD] Chargement...');
+      
+      document.getElementById('dashboardLoading').style.display = 'block';
+      document.getElementById('alerteNouveauxTickets').style.display = 'none';
+      document.getElementById('messageAucunTicket').style.display = 'none';
+      
+      try {
+        // Compter tickets nouveaux
+        const { count, error } = await supabase
+          .from('tickets')
+          .select('id', { count: 'exact', head: true })
+          .eq('statut', 'nouveau')
+          .eq('regie_id', window.currentRegieId);
+        
+        if (error) {
+          console.error('[DASHBOARD] Erreur:', error);
+          document.getElementById('dashboardLoading').style.display = 'none';
+          return;
+        }
+        
+        console.log('[DASHBOARD] Tickets nouveaux:', count);
+        
+        document.getElementById('dashboardLoading').style.display = 'none';
+        
+        if (count > 0) {
+          // Afficher alerte
+          document.getElementById('alerteNouveauxTickets').style.display = 'block';
+          document.getElementById('alerteTexte').textContent = `${count} ticket${count > 1 ? 's' : ''} en attente de validation`;
+        } else {
+          // Afficher message
+          document.getElementById('messageAucunTicket').style.display = 'block';
+        }
+      } catch (error) {
+        console.error('[DASHBOARD] Exception:', error);
+        document.getElementById('dashboardLoading').style.display = 'none';
+      }
+    }
         
       } catch (error) {
         console.error('[REGIE][ERROR]', error);

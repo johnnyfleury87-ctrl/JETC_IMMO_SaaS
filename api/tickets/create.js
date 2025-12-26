@@ -133,18 +133,20 @@ module.exports = async (req, res) => {
           return;
         }
 
-        // Validation de la priorité
-        const prioritesValides = ['basse', 'normale', 'haute', 'urgente'];
-        const prioriteFinale = priorite && prioritesValides.includes(priorite) 
-          ? priorite 
-          : 'normale';
+        // Validation de la priorité (optionnelle, réservée à la régie)
+        // Si fournie par l'API, on la valide, sinon NULL
+        let prioriteFinale = null;
+        if (priorite) {
+          const prioritesValides = ['basse', 'normale', 'haute', 'urgente'];
+          prioriteFinale = prioritesValides.includes(priorite) ? priorite : null;
+        }
 
-        // Validation des disponibilités (3 créneaux obligatoires - M09)
-        if (!disponibilites || !Array.isArray(disponibilites) || disponibilites.length !== 3) {
+        // Validation des disponibilités (au moins 1 créneau obligatoire)
+        if (!disponibilites || !Array.isArray(disponibilites) || disponibilites.length < 1) {
           res.writeHead(400, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ 
             success: false, 
-            message: '3 créneaux de disponibilité sont obligatoires' 
+            message: 'Au moins 1 créneau de disponibilité est obligatoire' 
           }));
           return;
         }

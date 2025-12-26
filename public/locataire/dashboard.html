@@ -960,11 +960,6 @@
         
         <form id="ticketForm" onsubmit="event.preventDefault(); submitTicket();">
           <div class="form-group">
-            <label for="ticketTitre">Titre <span style="color: red;">*</span></label>
-            <input type="text" id="ticketTitre" required maxlength="200" placeholder="Ex: Fuite d'eau dans la salle de bain">
-          </div>
-          
-          <div class="form-group">
             <label for="ticketDescription">Description <span style="color: red;">*</span></label>
             <textarea id="ticketDescription" required rows="4" placeholder="Décrivez le problème en détail..."></textarea>
           </div>
@@ -1012,61 +1007,57 @@
                 <option value="autre">Autre</option>
               </select>
             </div>
-            
-            <div class="form-group">
-              <label for="ticketPriorite">Priorité <span style="color: red;">*</span></label>
-              <select id="ticketPriorite" required>
-                <option value="normale">Normale</option>
-                <option value="haute">Haute</option>
-                <option value="urgente">Urgente</option>
-                <option value="basse">Basse</option>
-              </select>
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label for="ticketPlafond">Plafond d'intervention (CHF)</label>
-            <input type="number" id="ticketPlafond" min="0" step="0.01" placeholder="Ex: 500.00">
-            <small style="color: var(--gray-500); display: block; margin-top: 5px;">Optionnel : montant maximum que vous autorisez sans validation</small>
           </div>
           
           <div class="disponibilites-container">
-            <h4>📅 Disponibilités (3 créneaux obligatoires) <span style="color: red;">*</span></h4>
-            <p style="font-size: 14px; color: var(--gray-600); margin-bottom: 15px;">Indiquez 3 créneaux où vous êtes disponible pour l'intervention.</p>
+            <h4>📅 Disponibilités (1 créneau obligatoire + 2 optionnels) <span style="color: red;">*</span></h4>
+            <p style="font-size: 14px; color: var(--gray-600); margin-bottom: 15px;">Indiquez au moins 1 créneau où vous êtes disponible pour l'intervention.</p>
             
             <div class="disponibilite-row">
-              <h5>Créneau 1 (préférence)</h5>
+              <h5>Créneau 1 (obligatoire) <span style="color: red;">*</span></h5>
               <div class="form-group">
-                <label for="dispo1Debut">Date/heure début <span style="color: red;">*</span></label>
-                <input type="datetime-local" id="dispo1Debut" required>
+                <label for="dispo1Date">Date <span style="color: red;">*</span></label>
+                <input type="date" id="dispo1Date" required>
               </div>
               <div class="form-group">
-                <label for="dispo1Fin">Date/heure fin <span style="color: red;">*</span></label>
-                <input type="datetime-local" id="dispo1Fin" required>
+                <label for="dispo1HeureDebut">Heure début <span style="color: red;">*</span></label>
+                <input type="time" id="dispo1HeureDebut" required>
+              </div>
+              <div class="form-group">
+                <label for="dispo1HeureFin">Heure fin <span style="color: red;">*</span></label>
+                <input type="time" id="dispo1HeureFin" required>
               </div>
             </div>
             
             <div class="disponibilite-row">
-              <h5>Créneau 2</h5>
+              <h5>Créneau 2 (optionnel)</h5>
               <div class="form-group">
-                <label for="dispo2Debut">Date/heure début <span style="color: red;">*</span></label>
-                <input type="datetime-local" id="dispo2Debut" required>
+                <label for="dispo2Date">Date</label>
+                <input type="date" id="dispo2Date">
               </div>
               <div class="form-group">
-                <label for="dispo2Fin">Date/heure fin <span style="color: red;">*</span></label>
-                <input type="datetime-local" id="dispo2Fin" required>
+                <label for="dispo2HeureDebut">Heure début</label>
+                <input type="time" id="dispo2HeureDebut">
+              </div>
+              <div class="form-group">
+                <label for="dispo2HeureFin">Heure fin</label>
+                <input type="time" id="dispo2HeureFin">
               </div>
             </div>
             
             <div class="disponibilite-row">
-              <h5>Créneau 3</h5>
+              <h5>Créneau 3 (optionnel)</h5>
               <div class="form-group">
-                <label for="dispo3Debut">Date/heure début <span style="color: red;">*</span></label>
-                <input type="datetime-local" id="dispo3Debut" required>
+                <label for="dispo3Date">Date</label>
+                <input type="date" id="dispo3Date">
               </div>
               <div class="form-group">
-                <label for="dispo3Fin">Date/heure fin <span style="color: red;">*</span></label>
-                <input type="datetime-local" id="dispo3Fin" required>
+                <label for="dispo3HeureDebut">Heure début</label>
+                <input type="time" id="dispo3HeureDebut">
+              </div>
+              <div class="form-group">
+                <label for="dispo3HeureFin">Heure fin</label>
+                <input type="time" id="dispo3HeureFin">
               </div>
             </div>
           </div>
@@ -1533,56 +1524,72 @@
 
     // ========== VALIDATION DISPONIBILITÉS ==========
     function validateDisponibilites() {
-      const dispos = [
-        {
-          debut: document.getElementById('dispo1Debut').value,
-          fin: document.getElementById('dispo1Fin').value,
-          num: 1
-        },
-        {
-          debut: document.getElementById('dispo2Debut').value,
-          fin: document.getElementById('dispo2Fin').value,
-          num: 2
-        },
-        {
-          debut: document.getElementById('dispo3Debut').value,
-          fin: document.getElementById('dispo3Fin').value,
-          num: 3
-        }
-      ];
+      const dispos = [];
       
-      // Vérifier que toutes les dates sont remplies
-      for (const dispo of dispos) {
-        if (!dispo.debut || !dispo.fin) {
-          return { valid: false, error: `Le créneau ${dispo.num} est incomplet.` };
-        }
-        
-        const debut = new Date(dispo.debut);
-        const fin = new Date(dispo.fin);
-        
-        // Vérifier date_fin > date_debut
-        if (fin <= debut) {
-          return { valid: false, error: `Créneau ${dispo.num}: la date de fin doit être après la date de début.` };
-        }
+      // Créneau 1 (obligatoire)
+      const dispo1Date = document.getElementById('dispo1Date').value;
+      const dispo1HeureDebut = document.getElementById('dispo1HeureDebut').value;
+      const dispo1HeureFin = document.getElementById('dispo1HeureFin').value;
+      
+      if (!dispo1Date || !dispo1HeureDebut || !dispo1HeureFin) {
+        return { valid: false, error: 'Le créneau 1 est obligatoire (date + heures).' };
       }
       
-      // Vérifier pas de chevauchement
-      for (let i = 0; i < dispos.length; i++) {
-        for (let j = i + 1; j < dispos.length; j++) {
-          const d1_debut = new Date(dispos[i].debut);
-          const d1_fin = new Date(dispos[i].fin);
-          const d2_debut = new Date(dispos[j].debut);
-          const d2_fin = new Date(dispos[j].fin);
-          
-          const overlap = (d1_debut < d2_fin && d1_fin > d2_debut);
-          
-          if (overlap) {
-            return { 
-              valid: false, 
-              error: `Les créneaux ${dispos[i].num} et ${dispos[j].num} se chevauchent.` 
-            };
-          }
+      // Construire datetime pour créneau 1
+      const debut1 = new Date(`${dispo1Date}T${dispo1HeureDebut}`);
+      const fin1 = new Date(`${dispo1Date}T${dispo1HeureFin}`);
+      
+      if (fin1 <= debut1) {
+        return { valid: false, error: 'Créneau 1 : l\'heure de fin doit être après l\'heure de début.' };
+      }
+      
+      dispos.push({
+        date_debut: `${dispo1Date}T${dispo1HeureDebut}`,
+        heure_debut: dispo1HeureDebut,
+        heure_fin: dispo1HeureFin,
+        preference: 1
+      });
+      
+      // Créneau 2 (optionnel)
+      const dispo2Date = document.getElementById('dispo2Date').value;
+      const dispo2HeureDebut = document.getElementById('dispo2HeureDebut').value;
+      const dispo2HeureFin = document.getElementById('dispo2HeureFin').value;
+      
+      if (dispo2Date && dispo2HeureDebut && dispo2HeureFin) {
+        const debut2 = new Date(`${dispo2Date}T${dispo2HeureDebut}`);
+        const fin2 = new Date(`${dispo2Date}T${dispo2HeureFin}`);
+        
+        if (fin2 <= debut2) {
+          return { valid: false, error: 'Créneau 2 : l\'heure de fin doit être après l\'heure de début.' };
         }
+        
+        dispos.push({
+          date_debut: `${dispo2Date}T${dispo2HeureDebut}`,
+          heure_debut: dispo2HeureDebut,
+          heure_fin: dispo2HeureFin,
+          preference: 2
+        });
+      }
+      
+      // Créneau 3 (optionnel)
+      const dispo3Date = document.getElementById('dispo3Date').value;
+      const dispo3HeureDebut = document.getElementById('dispo3HeureDebut').value;
+      const dispo3HeureFin = document.getElementById('dispo3HeureFin').value;
+      
+      if (dispo3Date && dispo3HeureDebut && dispo3HeureFin) {
+        const debut3 = new Date(`${dispo3Date}T${dispo3HeureDebut}`);
+        const fin3 = new Date(`${dispo3Date}T${dispo3HeureFin}`);
+        
+        if (fin3 <= debut3) {
+          return { valid: false, error: 'Créneau 3 : l\'heure de fin doit être après l\'heure de début.' };
+        }
+        
+        dispos.push({
+          date_debut: `${dispo3Date}T${dispo3HeureDebut}`,
+          heure_debut: dispo3HeureDebut,
+          heure_fin: dispo3HeureFin,
+          preference: 3
+        });
       }
       
       return { valid: true, dispos };
@@ -1617,13 +1624,15 @@
         }
         
         // Récupérer données formulaire
-        const titre = document.getElementById('ticketTitre').value.trim();
         const description = document.getElementById('ticketDescription').value.trim();
         const categorie = document.getElementById('ticketCategorie').value;
         const sous_categorie = document.getElementById('ticketSousCategorie').value;
         const piece = document.getElementById('ticketPiece').value;
-        const priorite = document.getElementById('ticketPriorite').value;
-        const plafond = document.getElementById('ticketPlafond').value;
+        
+        // ✅ Générer le titre automatiquement : "{Catégorie} // {Sous-catégorie}"
+        const titre = `${categorie.charAt(0).toUpperCase() + categorie.slice(1)} // ${sous_categorie}`;
+        
+        console.log('[TICKET] Titre généré automatiquement:', titre);
         
         const ticketData = {
           titre,
@@ -1631,15 +1640,14 @@
           categorie,
           sous_categorie,
           piece,
-          priorite,
-          plafond_intervention_chf: plafond ? parseFloat(plafond) : null,
+          // ❌ Pas de priorité ni plafond (réservés à la régie)
           logement_id: window.currentLocataire.logement_id,
           locataire_id: window.currentLocataire.id,
           regie_id: window.currentLocataire.logements.regie_id,
-          disponibilites: validation.dispos.dispos.map((d, idx) => ({
-            date_debut: d.debut,
-            date_fin: d.fin,
-            preference: idx + 1
+          disponibilites: validation.dispos.map(d => ({
+            date_debut: d.date_debut,
+            date_fin: d.date_debut.split('T')[0] + 'T' + d.heure_fin, // Calculer date_fin avec même date
+            preference: d.preference
           }))
         };
         
