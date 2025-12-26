@@ -418,31 +418,46 @@ create trigger technicien_assignment_notification
 create or replace function notify_new_ticket()
 returns trigger
 language plpgsql
+security definer
+set search_path = public
 as $$
 declare
-  v_actor record;
+  v_profile_id uuid;
 begin
-  -- Notifier la régie et le locataire
-  for v_actor in 
-    select id from profiles 
-    where regie_id = NEW.regie_id or locataire_id = NEW.locataire_id
-  loop
-    insert into notifications (
-      user_id,
-      type,
-      title,
-      message,
-      related_ticket_id
-    )
-    values (
-      v_actor.user_id,
-      'new_ticket',
-      'Nouveau ticket créé',
-      'Ticket ' || NEW.numero || ' : ' || left(NEW.description, 100),
-      NEW.id
-    );
-  end loop;
-  
+  -- Notifier la régie (via regie_id dans profiles)
+  insert into notifications (
+    user_id,
+    type,
+    title,
+    message,
+    related_ticket_id
+  )
+  select 
+    p.id,
+    'new_ticket',
+    'Nouveau ticket créé',
+    'Ticket #' || NEW.id || ' : ' || left(NEW.description, 100),
+    NEW.id
+  from profiles p
+  where p.regie_id = NEW.regie_id;
+
+  -- Notifier le locataire (via locataires.profile_id)
+  insert into notifications (
+    user_id,
+    type,
+    title,
+    message,
+    related_ticket_id
+  )
+  select 
+    l.profile_id,
+    'new_ticket',
+    'Nouveau ticket créé',
+    'Ticket #' || NEW.id || ' : ' || left(NEW.description, 100),
+    NEW.id
+  from locataires l
+  where l.id = NEW.locataire_id;
+
   return NEW;
 end;
 $$;

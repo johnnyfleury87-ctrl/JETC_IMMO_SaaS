@@ -33,7 +33,7 @@ BEGIN
     p.id,
     'new_ticket',
     'Nouveau ticket créé',
-    'Ticket ' || COALESCE(NEW.numero, NEW.id::text) || ' : ' || left(NEW.description, 100),
+    'Ticket #' || NEW.id || ' : ' || left(NEW.description, 100),
     NEW.id
   FROM profiles p
   WHERE p.regie_id = NEW.regie_id;
@@ -50,7 +50,7 @@ BEGIN
     l.profile_id,
     'new_ticket',
     'Nouveau ticket créé',
-    'Ticket ' || COALESCE(NEW.numero, NEW.id::text) || ' : ' || left(NEW.description, 100),
+    'Ticket #' || NEW.id || ' : ' || left(NEW.description, 100),
     NEW.id
   FROM locataires l
   WHERE l.id = NEW.locataire_id;
