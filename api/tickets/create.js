@@ -2,9 +2,9 @@
  * Route API : Création de tickets
  * POST /api/tickets/create
  * 
- * M18: Utilise la fonction RPC create_ticket_locataire
- * La RPC résout automatiquement locataire_id, logement_id, regie_id depuis auth.uid()
- * Plus de problème avec triggers + RLS + PostgREST
+ * M21: Utilise la fonction RPC create_ticket_locataire
+ * CAUSE: PostgREST .insert() incompatible avec table métier (RLS + triggers)
+ * SOLUTION: RPC SQL SECURITY DEFINER bypass PostgREST, triggers actifs
  */
 
 const { supabaseAdmin } = require('../_supabase');
@@ -17,11 +17,6 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // === STEP A: Logger l'environnement Vercel ===
-    console.log('[AUDIT][ENV] SUPABASE_URL=', process.env.SUPABASE_URL);
-    console.log('[AUDIT][ENV] VERCEL_ENV=', process.env.VERCEL_ENV);
-    console.log('[AUDIT][ENV] KEY_PREFIX=', (process.env.SUPABASE_SERVICE_ROLE_KEY||'').slice(0, 16));
-
     // Vérifier le token
     const authHeader = req.headers['authorization'];
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -143,48 +138,24 @@ module.exports = async (req, res) => {
           return;
         }
 
-        // === STEP B: Test SELECT metadata (même client service_role) ===
-        const r = await supabaseAdmin
-          .from('tickets')
-          .select('locataire_id')
-          .limit(1);
+        // === INSERT via RPC (bypass PostgREST incompatible) ===
+        // PostgREST .insert() ne fonctionne pas avec cette table métier (RLS + triggers)
+        // Solution définitive: RPC SQL SECURITY DEFINER
+        const { data: ticketId, error: ticketError } = await supabaseAdmin.rpc(
+          'create_ticket_locataire',
+          {
+            p_titre: titre,
+            p_description: description,
+            p_categorie: categorie,
+            p_sous_categorie: sous_categorie || null,
+            p_piece: piece || null,
+            p_locataire_id: locataire.id,
+            p_logement_id: locataire.logement_id
+          }
+        );
         
-        console.log('[AUDIT][POSTGREST_SELECT]', r.error ? r.error : 'OK');
-
-        // === STEP D: Payload explicite + logs ===
-        // INSERT direct - regie_id sera injecté par le trigger set_ticket_regie_id
-        const insertPayload = {
-          titre: titre,
-          description: description,
-          categorie: categorie,
-          sous_categorie: sous_categorie || null,
-          piece: piece || null,
-          locataire_id: locataire.id,
-          logement_id: locataire.logement_id
-          // regie_id injecté automatiquement par trigger
-        };
-
-        console.log('[AUDIT][FINAL_PAYLOAD_KEYS]', Object.keys(insertPayload));
-        console.log('[AUDIT][FINAL_PAYLOAD]', JSON.stringify(insertPayload, null, 2));
-
-        // === STEP 4: Force schema public (explicite) ===
-        const { data: ticket, error: ticketError } = await supabaseAdmin
-          .from('tickets')
-          .insert(insertPayload)
-          .select()
-          .single();
-        
-        // === STEP 8: Diagnostic complet si erreur ===
         if (ticketError) {
-          console.error('[TICKET CREATE] Erreur INSERT complète:', {
-            message: ticketError.message,
-            details: ticketError.details,
-            hint: ticketError.hint,
-            code: ticketError.code,
-            error_full: JSON.stringify(ticketError, null, 2)
-          });
-          console.error('[TICKET CREATE] Payload utilisé:', JSON.stringify(insertPayload, null, 2));
-          
+          console.error('[TICKET CREATE][RPC ERROR]', ticketError);
           res.writeHead(500, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ 
             success: false, 
@@ -195,11 +166,22 @@ module.exports = async (req, res) => {
           return;
         }
 
-        console.log('[TICKET CREATE] INSERT réussi, ticket ID:', ticket.id);
+        console.log('[TICKET CREATE] OK ticket_id=', ticketId);
+
+        // Récupérer le ticket créé pour la réponse
+        const { data: ticket, error: selectError } = await supabaseAdmin
+          .from('tickets')
+          .select()
+          .eq('id', ticketId)
+          .single();
+        
+        if (selectError) {
+          console.error('[TICKET SELECT] Erreur:', selectError);
+        }
 
         // Insérer les disponibilités
         const disponibilitesData = disponibilites.map(d => ({
-          ticket_id: ticket.id,
+          ticket_id: ticketId,
           date_debut: d.date_debut,
           date_fin: d.date_fin,
           preference: d.preference
@@ -213,7 +195,7 @@ module.exports = async (req, res) => {
         res.end(JSON.stringify({ 
           success: true, 
           message: 'Ticket créé avec succès',
-          ticket: ticket
+          ticket: ticket || { id: ticketId }
         }));
 
       } catch (parseError) {
