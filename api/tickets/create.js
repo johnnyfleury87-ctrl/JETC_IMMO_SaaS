@@ -211,8 +211,9 @@ module.exports = async (req, res) => {
           regie_id_type: typeof ticketData.regie_id
         });
 
+        // ⚠️ CRITIQUE: Forcer schéma public.tickets explicitement (pas de vue)
         const { data: ticket, error: ticketError } = await supabaseAdmin
-          .from('tickets')
+          .from('public.tickets')
           .insert(ticketData)
           .select('*')
           .single();
