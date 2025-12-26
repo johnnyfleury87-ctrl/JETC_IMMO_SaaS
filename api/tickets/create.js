@@ -226,54 +226,31 @@ module.exports = async (req, res) => {
           regie_id_type: typeof ticketData.regie_id
         });
 
-        // 🚨 DEBUG CRITIQUE AVANT INSERT
-        console.error('🔍 DEBUG PRE-INSERT:', {
-          auth_uid: user.id,
+        // � LOG CRITIQUE AVANT INSERT (TEMPORAIRE)
+        console.log('[TICKET INSERT PAYLOAD]', {
           locataire_id: locataire.id,
           logement_id: locataire.logement_id,
           regie_id: logement.regie_id,
-          ticket_data_keys: Object.keys(ticketData),
-          ticket_data_values: ticketData
+          typeof_locataire: typeof locataire.id
         });
 
-        // 🔥 DEBUG INSERT RAW - PAYLOAD EXACT
-        console.error('[DEBUG INSERT RAW]', {
-          table: 'tickets',
-          payload: ticketData,
-          keys: Object.keys(ticketData),
-          values: Object.values(ticketData),
-          has_locataire_id: Object.prototype.hasOwnProperty.call(ticketData, 'locataire_id'),
-          type_locataire_id: typeof ticketData.locataire_id
-        });
-
-        // 🔥 INSERT EXPLICITE - ZERO SPREAD, ZERO MUTATION
-        // Ne PAS utiliser .insert(ticketData) ou .insert({ ...ticketData })
+        // 🔥 INSERT POSTGREST - OBJET LITTÉRAL AUCUN SPREAD
+        // Valeurs DIRECTES depuis locataire.id, locataire.logement_id, logement.regie_id
+        // PAS ticketData.locataire_id mais locataire.id DIRECTEMENT
         const { data: ticket, error: ticketError } = await supabaseAdmin
           .from('tickets')
-          .insert({
-            titre: ticketData.titre,
-            description: ticketData.description,
-            categorie: ticketData.categorie,
-            sous_categorie: ticketData.sous_categorie,
-            piece: ticketData.piece,
-            locataire_id: ticketData.locataire_id,
-            logement_id: ticketData.logement_id,
-            regie_id: ticketData.regie_id
-          })
-          .select('*')
+          .insert([{
+            titre,
+            description,
+            categorie,
+            sous_categorie: sous_categorie || null,
+            piece: piece || null,
+            locataire_id: locataire.id,
+            logement_id: locataire.logement_id,
+            regie_id: logement.regie_id
+          }])
+          .select('id, statut, locataire_id')
           .single();
-
-        // 🔥 DEBUG POSTGREST RESULT COMPLET
-        console.error('[DEBUG POSTGREST RESULT]', { 
-          data: ticket, 
-          error: ticketError,
-          error_details: ticketError ? {
-            code: ticketError.code,
-            message: ticketError.message,
-            details: ticketError.details,
-            hint: ticketError.hint
-          } : null
-        });
 
         if (ticketError) {
           console.error('[TICKET CREATE] Erreur création ticket:', ticketError);
