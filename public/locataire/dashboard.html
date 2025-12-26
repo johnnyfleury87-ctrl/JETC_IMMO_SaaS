@@ -1430,62 +1430,60 @@
     }
 
     // ========== SOUS-CATÉGORIES DYNAMIQUES ==========
+    // ⚠️ VALEURS ALIGNÉES SUR CONTRAINTE SQL check_sous_categorie_valide (M08)
     const sousCategories = {
       plomberie: [
         "Fuite d'eau",
         "WC bouché",
-        "Chauffe-eau défectueux",
-        "Robinet cassé",
-        "Évacuation bouchée",
-        "Autre"
+        "Chauffe-eau",
+        "Robinetterie",
+        "Autre plomberie"
       ],
       electricite: [
         "Panne générale",
         "Prise défectueuse",
-        "Interrupteur cassé",
-        "Éclairage défectueux",
-        "Disjoncteur",
-        "Autre"
+        "Interrupteur",
+        "Éclairage",
+        "Autre électricité"
       ],
       chauffage: [
-        "Radiateur ne chauffe pas",
-        "Chaudière en panne",
-        "Thermostat défectueux",
-        "Fuite radiateur",
-        "Autre"
+        "Radiateur",
+        "Chaudière",
+        "Thermostat",
+        "Autre chauffage"
       ],
       ventilation: [
         "VMC défectueuse",
         "Grille cassée",
         "Bruit anormal",
-        "Autre"
+        "Autre ventilation"
       ],
       menuiserie: [
-        "Porte cassée",
-        "Fenêtre bloquée",
-        "Poignée défectueuse",
-        "Placard endommagé",
-        "Autre"
+        "Porte",
+        "Fenêtre",
+        "Parquet",
+        "Autre menuiserie"
       ],
       serrurerie: [
-        "Serrure bloquée",
+        "Porte bloquée",
         "Clé perdue",
-        "Porte claquée",
-        "Cylindre défectueux",
-        "Autre"
+        "Verrou défectueux",
+        "Autre serrurerie"
       ],
       peinture: [
-        "Mur abîmé",
-        "Peinture écaillée",
-        "Fissures",
-        "Autre"
+        "Murs",
+        "Plafond",
+        "Boiseries",
+        "Autre peinture"
       ],
       vitrerie: [
         "Vitre cassée",
-        "Joint défectueux",
-        "Autre"
+        "Double vitrage",
+        "Autre vitrerie"
       ],
-      autre: ["Non spécifié"]
+      autre: [
+        "Autre intervention"
+      ]
     };
 
     function updateSousCategories() {
