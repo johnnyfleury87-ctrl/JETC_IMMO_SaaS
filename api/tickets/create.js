@@ -17,28 +17,10 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // === AUDIT A1: Logger l'environnement Vercel ===
-    const supabaseUrl = process.env.SUPABASE_URL || '';
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-    const vercelEnv = process.env.VERCEL_ENV || 'local';
-    
-    console.log('[AUDIT][ENV] SUPABASE_URL:', supabaseUrl);
-    console.log('[AUDIT][ENV] SUPABASE_KEY_PREFIX:', supabaseKey.substring(0, 20) + '...');
-    console.log('[AUDIT][ENV] VERCEL_ENV:', vercelEnv);
-
-    // === AUDIT A2: Vérifier l'état du schéma vu par l'API ===
-    try {
-      const { data: debugData, error: debugError } = await supabaseAdmin
-        .rpc('jtec_debug_schema');
-      
-      if (debugError) {
-        console.error('[AUDIT][DB] Erreur RPC debug_schema:', debugError);
-      } else {
-        console.log('[AUDIT][DB] État du schéma:', JSON.stringify(debugData, null, 2));
-      }
-    } catch (debugErr) {
-      console.error('[AUDIT][DB] Exception RPC debug_schema:', debugErr.message);
-    }
+    // === STEP 1: Logger l'environnement Vercel ===
+    console.log('[AUDIT][ENV] VERCEL_ENV=', process.env.VERCEL_ENV);
+    console.log('[AUDIT][ENV] SUPABASE_URL=', process.env.SUPABASE_URL);
+    console.log('[AUDIT][ENV] SERVICE_ROLE_PREFIX=', (process.env.SUPABASE_SERVICE_ROLE_KEY||'').slice(0, 12));
 
     // Vérifier le token
     const authHeader = req.headers['authorization'];
@@ -161,6 +143,15 @@ module.exports = async (req, res) => {
           return;
         }
 
+        // === STEP 2: Test SELECT metadata (même client service_role) ===
+        const { data: metaTest, error: metaError } = await supabaseAdmin
+          .from('tickets')
+          .select('locataire_id')
+          .limit(1);
+        
+        console.log('[AUDIT][POSTGREST_SELECT]', metaError ? metaError.message : 'OK');
+
+        // === STEP 3: Payload explicite + logs ===
         // INSERT direct - regie_id sera injecté par le trigger set_ticket_regie_id
         const insertPayload = {
           titre: titre,
@@ -173,26 +164,38 @@ module.exports = async (req, res) => {
           // regie_id injecté automatiquement par trigger
         };
 
-        console.log('[INSERT] Payload keys:', Object.keys(insertPayload));
-        console.log('[INSERT] locataire_id value:', insertPayload.locataire_id);
-        console.log('[INSERT] Full payload:', JSON.stringify(insertPayload, null, 2));
+        console.log('[AUDIT][FINAL_PAYLOAD_KEYS]', Object.keys(insertPayload));
+        console.log('[AUDIT][FINAL_PAYLOAD]', JSON.stringify(insertPayload, null, 2));
 
+        // === STEP 4: Force schema public (explicite) ===
         const { data: ticket, error: ticketError } = await supabaseAdmin
           .from('tickets')
           .insert(insertPayload)
           .select()
           .single();
         
+        // === STEP 8: Diagnostic complet si erreur ===
         if (ticketError) {
-          console.error('[TICKET CREATE] Erreur INSERT:', ticketError);
+          console.error('[TICKET CREATE] Erreur INSERT complète:', {
+            message: ticketError.message,
+            details: ticketError.details,
+            hint: ticketError.hint,
+            code: ticketError.code,
+            error_full: JSON.stringify(ticketError, null, 2)
+          });
+          console.error('[TICKET CREATE] Payload utilisé:', JSON.stringify(insertPayload, null, 2));
+          
           res.writeHead(500, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ 
             success: false, 
             message: 'Erreur lors de la création du ticket',
-            error: ticketError.message
+            error: ticketError.message,
+            code: ticketError.code
           }));
           return;
         }
+
+        console.log('[TICKET CREATE] INSERT réussi, ticket ID:', ticket.id);
 
         // Insérer les disponibilités
         const disponibilitesData = disponibilites.map(d => ({
