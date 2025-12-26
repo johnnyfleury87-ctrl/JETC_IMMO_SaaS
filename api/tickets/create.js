@@ -17,10 +17,10 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // === STEP 1: Logger l'environnement Vercel ===
-    console.log('[AUDIT][ENV] VERCEL_ENV=', process.env.VERCEL_ENV);
+    // === STEP A: Logger l'environnement Vercel ===
     console.log('[AUDIT][ENV] SUPABASE_URL=', process.env.SUPABASE_URL);
-    console.log('[AUDIT][ENV] SERVICE_ROLE_PREFIX=', (process.env.SUPABASE_SERVICE_ROLE_KEY||'').slice(0, 12));
+    console.log('[AUDIT][ENV] VERCEL_ENV=', process.env.VERCEL_ENV);
+    console.log('[AUDIT][ENV] KEY_PREFIX=', (process.env.SUPABASE_SERVICE_ROLE_KEY||'').slice(0, 16));
 
     // Vérifier le token
     const authHeader = req.headers['authorization'];
@@ -143,15 +143,15 @@ module.exports = async (req, res) => {
           return;
         }
 
-        // === STEP 2: Test SELECT metadata (même client service_role) ===
-        const { data: metaTest, error: metaError } = await supabaseAdmin
+        // === STEP B: Test SELECT metadata (même client service_role) ===
+        const r = await supabaseAdmin
           .from('tickets')
           .select('locataire_id')
           .limit(1);
         
-        console.log('[AUDIT][POSTGREST_SELECT]', metaError ? metaError.message : 'OK');
+        console.log('[AUDIT][POSTGREST_SELECT]', r.error ? r.error : 'OK');
 
-        // === STEP 3: Payload explicite + logs ===
+        // === STEP D: Payload explicite + logs ===
         // INSERT direct - regie_id sera injecté par le trigger set_ticket_regie_id
         const insertPayload = {
           titre: titre,

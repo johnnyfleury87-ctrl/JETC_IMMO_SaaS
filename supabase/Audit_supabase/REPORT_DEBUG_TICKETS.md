@@ -2,7 +2,7 @@
 
 **Date**: 2024-12-26  
 **Objectif**: Résoudre définitivement l'erreur PostgreSQL 42703 sur `/api/tickets/create`  
-**Méthode**: Audit pas à pas avec validation à chaque étape
+**Méthode**: Audit pas à pas avec PREUVES RÉELLES à chaque étape
 
 ---
 
@@ -19,47 +19,308 @@
 - ✅ INSERT SQL direct fonctionne (via SQL Editor)
 - ❌ INSERT via PostgREST (Supabase JS) échoue avec 42703
 
-### Hypothèse Principale
-**RLS Policy INSERT** référence `tickets.locataire_id` dans un contexte où la colonne n'est pas accessible (évaluation WITH CHECK avant insertion).
-
 ---
 
-## 🔬 AUDIT PAS À PAS
+## 🔬 AUDIT PAS À PAS (PREUVES OBLIGATOIRES)
 
-### STEP 1 — Confirmer la DB ciblée par l'API
+### STEP A — Prouver qu'on vise le BON Supabase
 
-**Objectif**: Prouver que Vercel pointe sur le bon projet Supabase.
-
-**Action**: Logs environnement Vercel
+**Objectif**: Confirmer que Vercel utilise le bon projet Supabase (URL + KEY).
 
 **Code ajouté** dans `api/tickets/create.js`:
 ```javascript
-console.log('[AUDIT][ENV] VERCEL_ENV=', process.env.VERCEL_ENV);
 console.log('[AUDIT][ENV] SUPABASE_URL=', process.env.SUPABASE_URL);
-console.log('[AUDIT][ENV] SERVICE_ROLE_PREFIX=', (process.env.SUPABASE_SERVICE_ROLE_KEY||'').slice(0, 12));
+console.log('[AUDIT][ENV] VERCEL_ENV=', process.env.VERCEL_ENV);
+console.log('[AUDIT][ENV] KEY_PREFIX=', (process.env.SUPABASE_SERVICE_ROLE_KEY||'').slice(0, 16));
 ```
 
-**Validation Attendue**:
+**RÉSULTAT RÉEL (logs Vercel)**:
 ```
+COLLER ICI LES LOGS VERCEL EXACTS
+Exemple attendu:
+[AUDIT][ENV] SUPABASE_URL= https://xyzproject.supabase.co
 [AUDIT][ENV] VERCEL_ENV= production
-[AUDIT][ENV] SUPABASE_URL= https://<project-id>.supabase.co
-[AUDIT][ENV] SERVICE_ROLE_PREFIX= eyJhbGciOiJI...
+[AUDIT][ENV] KEY_PREFIX= eyJhbGciOiJIUzI1
 ```
 
-**Critère de Succès**:
-- ✅ `SUPABASE_URL` correspond au projet attendu
-- ✅ `SERVICE_ROLE_KEY` commence par `eyJ` (JWT valide)
+**VALIDATION**:
+- [ ] SUPABASE_URL correspond au projet où `tickets.locataire_id` existe
+- [ ] KEY_PREFIX commence par `eyJ` (JWT valide)
+- [ ] VERCEL_ENV = production (ou preview/development)
 
-**Résultat**:
+**CONCLUSION STEP A**:
 ```
-[ ] À valider après déploiement
+ÉCRIRE ICI:
+✅ URL correcte, on est sur le bon projet
+OU
+❌ URL incorrecte, on pointait sur le mauvais projet Supabase
 ```
 
-**Conclusion STEP 1**:
+---
+
+### STEP B — Preuve PostgREST: est-ce qu'il voit locataire_id ?
+
+**Objectif**: Vérifier que PostgREST (même client que l'INSERT) peut lire la colonne.
+
+**Code ajouté** dans `api/tickets/create.js`:
+```javascript
+const r = await supabaseAdmin.from('tickets').select('locataire_id').limit(1);
+console.log('[AUDIT][POSTGREST_SELECT]', r.error ? r.error : 'OK');
 ```
-[ ] ✅ Validé - URL correcte
-[ ] ❌ KO - URL incorrecte → Corriger variables d'environnement Vercel
+
+**RÉSULTAT RÉEL (logs Vercel)**:
 ```
+COLLER ICI LE LOG EXACT
+Exemple si OK:
+[AUDIT][POSTGREST_SELECT] OK
+
+Exemple si KO:
+[AUDIT][POSTGREST_SELECT] { message: "column \"locataire_id\" does not exist", code: "42703" }
+```
+
+**INTERPRÉTATION**:
+- Si `OK` → PostgREST voit la colonne, problème est ailleurs (payload/INSERT/RLS)
+- Si erreur 42703 → PostgREST ne voit PAS la colonne → cache/schéma/projet faux
+
+**CONCLUSION STEP B**:
+```
+ÉCRIRE ICI:
+✅ PostgREST voit locataire_id en SELECT, on passe au payload
+OU
+❌ PostgREST ne voit PAS locataire_id → passer au STEP E (diagnostic schéma)
+```
+
+---
+
+### STEP C — Preuve relation: existe-t-il plusieurs tickets ?
+
+**Objectif**: Confirmer qu'il n'y a qu'UNE SEULE table `tickets` dans `public` et qu'elle a `locataire_id`.
+
+**Requêtes SQL** (à exécuter dans Supabase SQL Editor):
+
+```sql
+-- 1. Lister tous les objets nommés "tickets" (table, view, etc.)
+SELECT n.nspname AS schema, c.relkind, c.relname
+FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE c.relname = 'tickets'
+ORDER BY 1;
+```
+
+**RÉSULTAT RÉEL**:
+```
+COLLER ICI LE RÉSULTAT EXACT
+Exemple attendu:
+schema  | relkind | relname
+--------+---------+---------
+public  | r       | tickets
+```
+
+```sql
+-- 2. Vérifier locataire_id dans tous les schémas
+SELECT table_schema, table_name, column_name
+FROM information_schema.columns
+WHERE table_name = 'tickets'
+  AND column_name = 'locataire_id'
+ORDER BY table_schema;
+```
+
+**RÉSULTAT RÉEL**:
+```
+COLLER ICI LE RÉSULTAT EXACT
+Exemple attendu:
+table_schema | table_name | column_name
+-------------+------------+-------------
+public       | tickets    | locataire_id
+```
+
+**CONCLUSION STEP C**:
+```
+ÉCRIRE ICI:
+✅ Une seule table public.tickets avec locataire_id
+OU
+❌ Plusieurs objets tickets détectés dans différents schémas
+OU
+❌ locataire_id absente de la table tickets
+```
+
+---
+
+### STEP D — Prouver le payload final de l'INSERT
+
+**Objectif**: Confirmer que le payload envoyé à `.insert()` contient bien `locataire_id` (snake_case, pas camelCase).
+
+**Code ajouté** dans `api/tickets/create.js`:
+```javascript
+console.log('[AUDIT][FINAL_PAYLOAD_KEYS]', Object.keys(insertPayload));
+console.log('[AUDIT][FINAL_PAYLOAD]', JSON.stringify(insertPayload, null, 2));
+```
+
+**RÉSULTAT RÉEL (logs Vercel)**:
+```
+COLLER ICI LE LOG EXACT
+Exemple attendu:
+[AUDIT][FINAL_PAYLOAD_KEYS] [ 'titre', 'description', 'categorie', 'sous_categorie', 'piece', 'locataire_id', 'logement_id' ]
+[AUDIT][FINAL_PAYLOAD] {
+  "titre": "Plomberie",
+  "description": "Fuite cuisine",
+  "categorie": "plomberie",
+  "sous_categorie": null,
+  "piece": "cuisine",
+  "locataire_id": "a1b2c3d4-...",
+  "logement_id": "e5f6g7h8-..."
+}
+```
+
+**VALIDATION**:
+- [ ] Clé exacte `locataire_id` présente (PAS `locataireId`)
+- [ ] Valeur uuid valide (pas null, pas undefined)
+- [ ] `logement_id` présent
+
+**CONCLUSION STEP D**:
+```
+ÉCRIRE ICI:
+✅ Payload correct, locataire_id présent en snake_case
+OU
+❌ Payload incorrect: clé manquante ou camelCase
+```
+
+---
+
+### STEP E — Si PostgREST ne voit pas la colonne: fixer la CAUSE réelle
+
+**Objectif**: Diagnostiquer pourquoi PostgREST ne voit pas `locataire_id` (si STEP B a échoué).
+
+**ATTENTION**: Ne faire ce STEP QUE SI STEP B = ❌
+
+#### E1. Reload schema PostgREST (déjà fait)
+
+```sql
+NOTIFY pgrst, 'reload schema';
+```
+
+**RÉSULTAT**:
+```
+COLLER ICI: Date/heure où NOTIFY a été exécuté
+```
+
+#### E2. Vérifier schémas exposés PostgREST
+
+```sql
+SHOW pgrst.db_schemas;
+SHOW search_path;
+```
+
+**RÉSULTAT RÉEL**:
+```
+COLLER ICI LE RÉSULTAT EXACT
+Exemple attendu:
+pgrst.db_schemas = "public"
+search_path = "$user", public
+```
+
+#### E3. Vérifier URL/KEY utilisée par l'API
+
+**Vérifier dans Vercel Dashboard → Settings → Environment Variables**:
+- `SUPABASE_URL` pointe vers quel projet ?
+- `SUPABASE_SERVICE_ROLE_KEY` correspond à quel projet ?
+
+**RÉSULTAT**:
+```
+COLLER ICI:
+- SUPABASE_URL utilisée par Vercel: https://...
+- Projet Supabase où locataire_id existe: https://...
+- Correspondance: OUI / NON
+```
+
+**CONCLUSION STEP E**:
+```
+ÉCRIRE ICI LA CAUSE IDENTIFIÉE:
+❌ Mauvais projet Supabase (URL/KEY incorrecte dans Vercel)
+OU
+❌ PostgREST n'expose pas le schéma public (db_schemas incorrect)
+OU
+❌ Cache PostgREST pas rechargé après migration
+```
+
+---
+
+### STEP F — STOP théorie RLS
+
+**RÈGLE ABSOLUE**: On ne touche PAS aux RLS policies tant que STEP B n'est pas ✅ OK.
+
+**Raison**: Si PostgREST dit "colonne inconnue", RLS n'est même pas évalué. Le problème est AVANT RLS (metadata/schéma/cache).
+
+**CONCLUSION STEP F**:
+```
+[ ] STEP B OK → On peut maintenant analyser RLS si l'erreur persiste après INSERT
+[ ] STEP B KO → RLS n'est PAS la cause, ne pas y toucher
+```
+
+---
+
+## 🎯 CONCLUSION FINALE (basée sur preuves)
+
+**CAUSE RACINE IDENTIFIÉE**:
+```
+ÉCRIRE ICI LA CONCLUSION BASÉE SUR LES PREUVES RÉELLES:
+
+Option 1: "Le problème était un mauvais projet Supabase (URL/KEY dans Vercel pointaient sur projet XYZ au lieu de ABC)"
+
+Option 2: "Le problème était PostgREST (schema cache non rechargé après migration / db_schemas incorrect)"
+
+Option 3: "Le problème était une autre relation tickets (view tickets_complets masquait la table)"
+
+Option 4: "Le problème était payload (clé camelCase locataireId au lieu de locataire_id)"
+
+Option 5: "Le problème était RLS Policy INSERT WITH CHECK référençant tickets.locataire_id dans contexte inaccessible"
+```
+
+**SOLUTION APPLIQUÉE**:
+```
+ÉCRIRE ICI LA SOLUTION CONCRÈTE QUI A FONCTIONNÉ:
+Exemple: "Correction env vars Vercel: SUPABASE_URL + KEY mis à jour vers bon projet"
+OU: "Migration M20: Simplification RLS Policy INSERT (WITH CHECK sur profiles.role uniquement)"
+OU: "NOTIFY pgrst reload + redémarrage PostgREST"
+```
+
+**TEST DE VALIDATION**:
+```
+COLLER ICI LE RÉSULTAT DU TEST POST-FIX:
+
+Requête: POST /api/tickets/create
+Status: 201 (attendu) OU 500 (échec)
+
+Logs Vercel:
+[...]
+
+Ticket créé en DB:
+SELECT id, titre, locataire_id, logement_id, regie_id FROM tickets ORDER BY created_at DESC LIMIT 1;
+Résultat: [coller ici]
+```
+
+---
+
+## 📁 Fichiers Modifiés
+
+1. **api/tickets/create.js**
+   - STEP A: Logs ENV (SUPABASE_URL, VERCEL_ENV, KEY_PREFIX)
+   - STEP B: Test SELECT PostgREST
+   - STEP D: Logs payload final
+
+2. **supabase/Audit_supabase/PROBES_TICKETS.sql**
+   - STEP C: Requêtes diagnostic relations
+   - STEP E: Requêtes diagnostic PostgREST
+
+3. **supabase/migrations/20251226220000_m20_fix_rls_policy_insert.sql** (si applicable)
+   - Correction RLS Policy INSERT
+
+---
+
+**Statut**: 🟡 EN ATTENTE PREUVES RÉELLES - À compléter après test production
+
+**Auteur**: GitHub Copilot (Claude Sonnet 4.5)  
+**Date**: 2024-12-26
 
 ---
 
