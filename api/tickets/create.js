@@ -17,6 +17,29 @@ module.exports = async (req, res) => {
   }
 
   try {
+    // === AUDIT A1: Logger l'environnement Vercel ===
+    const supabaseUrl = process.env.SUPABASE_URL || '';
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+    const vercelEnv = process.env.VERCEL_ENV || 'local';
+    
+    console.log('[AUDIT][ENV] SUPABASE_URL:', supabaseUrl);
+    console.log('[AUDIT][ENV] SUPABASE_KEY_PREFIX:', supabaseKey.substring(0, 20) + '...');
+    console.log('[AUDIT][ENV] VERCEL_ENV:', vercelEnv);
+
+    // === AUDIT A2: Vérifier l'état du schéma vu par l'API ===
+    try {
+      const { data: debugData, error: debugError } = await supabaseAdmin
+        .rpc('jtec_debug_schema');
+      
+      if (debugError) {
+        console.error('[AUDIT][DB] Erreur RPC debug_schema:', debugError);
+      } else {
+        console.log('[AUDIT][DB] État du schéma:', JSON.stringify(debugData, null, 2));
+      }
+    } catch (debugErr) {
+      console.error('[AUDIT][DB] Exception RPC debug_schema:', debugErr.message);
+    }
+
     // Vérifier le token
     const authHeader = req.headers['authorization'];
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
