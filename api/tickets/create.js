@@ -236,13 +236,44 @@ module.exports = async (req, res) => {
           ticket_data_values: ticketData
         });
 
-        // ✅ CORRECTION: Supabase client ajoute automatiquement le schéma public
-        // Ne PAS mettre 'public.tickets' sinon → public.public.tickets
+        // 🔥 DEBUG INSERT RAW - PAYLOAD EXACT
+        console.error('[DEBUG INSERT RAW]', {
+          table: 'tickets',
+          payload: ticketData,
+          keys: Object.keys(ticketData),
+          values: Object.values(ticketData),
+          has_locataire_id: Object.prototype.hasOwnProperty.call(ticketData, 'locataire_id'),
+          type_locataire_id: typeof ticketData.locataire_id
+        });
+
+        // 🔥 INSERT EXPLICITE - ZERO SPREAD, ZERO MUTATION
+        // Ne PAS utiliser .insert(ticketData) ou .insert({ ...ticketData })
         const { data: ticket, error: ticketError } = await supabaseAdmin
           .from('tickets')
-          .insert(ticketData)
+          .insert({
+            titre: ticketData.titre,
+            description: ticketData.description,
+            categorie: ticketData.categorie,
+            sous_categorie: ticketData.sous_categorie,
+            piece: ticketData.piece,
+            locataire_id: ticketData.locataire_id,
+            logement_id: ticketData.logement_id,
+            regie_id: ticketData.regie_id
+          })
           .select('*')
           .single();
+
+        // 🔥 DEBUG POSTGREST RESULT COMPLET
+        console.error('[DEBUG POSTGREST RESULT]', { 
+          data: ticket, 
+          error: ticketError,
+          error_details: ticketError ? {
+            code: ticketError.code,
+            message: ticketError.message,
+            details: ticketError.details,
+            hint: ticketError.hint
+          } : null
+        });
 
         if (ticketError) {
           console.error('[TICKET CREATE] Erreur création ticket:', ticketError);
