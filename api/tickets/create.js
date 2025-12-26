@@ -211,9 +211,10 @@ module.exports = async (req, res) => {
           regie_id_type: typeof ticketData.regie_id
         });
 
-        // ⚠️ CRITIQUE: Forcer schéma public.tickets explicitement (pas de vue)
+        // ✅ CORRECTION: Supabase client ajoute automatiquement le schéma public
+        // Ne PAS mettre 'public.tickets' sinon → public.public.tickets
         const { data: ticket, error: ticketError } = await supabaseAdmin
-          .from('public.tickets')
+          .from('tickets')
           .insert(ticketData)
           .select('*')
           .single();
