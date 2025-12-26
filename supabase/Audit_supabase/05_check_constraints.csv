@@ -1,0 +1,75 @@
+schema_name,table_name,constraint_name,definition
+auth,oauth_authorizations,oauth_authorizations_code_challenge_length,CHECK ((char_length(code_challenge) <= 128))
+auth,oauth_authorizations,oauth_authorizations_authorization_code_length,CHECK ((char_length(authorization_code) <= 255))
+auth,oauth_authorizations,oauth_authorizations_expires_at_future,CHECK ((expires_at > created_at))
+auth,oauth_authorizations,oauth_authorizations_nonce_length,CHECK ((char_length(nonce) <= 255))
+auth,oauth_authorizations,oauth_authorizations_redirect_uri_length,CHECK ((char_length(redirect_uri) <= 2048))
+auth,oauth_authorizations,oauth_authorizations_scope_length,CHECK ((char_length(scope) <= 4096))
+auth,oauth_authorizations,oauth_authorizations_state_length,CHECK ((char_length(state) <= 4096))
+auth,oauth_authorizations,oauth_authorizations_resource_length,CHECK ((char_length(resource) <= 2048))
+auth,oauth_clients,oauth_clients_logo_uri_length,CHECK ((char_length(logo_uri) <= 2048))
+auth,oauth_clients,oauth_clients_client_uri_length,CHECK ((char_length(client_uri) <= 2048))
+auth,oauth_clients,oauth_clients_client_name_length,CHECK ((char_length(client_name) <= 1024))
+auth,oauth_consents,oauth_consents_revoked_after_granted,CHECK (((revoked_at IS NULL) OR (revoked_at >= granted_at)))
+auth,oauth_consents,oauth_consents_scopes_length,CHECK ((char_length(scopes) <= 2048))
+auth,oauth_consents,oauth_consents_scopes_not_empty,CHECK ((char_length(TRIM(BOTH FROM scopes)) > 0))
+auth,one_time_tokens,one_time_tokens_token_hash_check,CHECK ((char_length(token_hash) > 0))
+auth,saml_providers,metadata_xml not empty,CHECK ((char_length(metadata_xml) > 0))
+auth,saml_providers,metadata_url not empty,CHECK (((metadata_url = NULL::text) OR (char_length(metadata_url) > 0)))
+auth,saml_providers,entity_id not empty,CHECK ((char_length(entity_id) > 0))
+auth,saml_relay_states,request_id not empty,CHECK ((char_length(request_id) > 0))
+auth,sessions,sessions_scopes_length,CHECK ((char_length(scopes) <= 4096))
+auth,sso_domains,domain not empty,CHECK ((char_length(domain) > 0))
+auth,sso_providers,resource_id not empty,CHECK (((resource_id = NULL::text) OR (char_length(resource_id) > 0)))
+auth,users,users_email_change_confirm_status_check,CHECK (((email_change_confirm_status >= 0) AND (email_change_confirm_status <= 2)))
+public,abonnements,abonnements_missions_ce_mois_check,CHECK ((missions_ce_mois >= 0))
+"public,abonnements,abonnements_statut_check,""CHECK (((statut)::text = ANY ((ARRAY['actif'::character varying, 'suspendu'::character varying, 'annule'::character varying, 'expire'::character varying])::text[])))"""
+public,abonnements,date_fin_apres_debut,CHECK ((date_fin > date_debut))
+public,abonnements,abonnement_client_unique,CHECK ((((entreprise_id IS NOT NULL) AND (regie_id IS NULL)) OR ((entreprise_id IS NULL) AND (regie_id IS NOT NULL))))
+public,abonnements,abonnements_montant_paye_check,CHECK ((montant_paye >= (0)::numeric))
+"public,abonnements,abonnements_type_periode_check,""CHECK (((type_periode)::text = ANY ((ARRAY['mensuel'::character varying, 'annuel'::character varying])::text[])))"""
+"public,entreprises,check_email_entreprise,""CHECK ((email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$'::text))"""
+public,entreprises,check_telephone_entreprise,CHECK (((telephone ~ '^[0-9+\s\-().]+$'::text) OR (telephone IS NULL)))
+"public,factures,factures_statut_check,""CHECK ((statut = ANY (ARRAY['brouillon'::text, 'envoyee'::text, 'payee'::text, 'annulee'::text])))"""
+public,factures,factures_taux_tva_check,CHECK (((taux_tva >= (0)::numeric) AND (taux_tva <= (100)::numeric)))
+public,factures,factures_montant_ht_check,CHECK ((montant_ht >= (0)::numeric))
+public,factures,factures_taux_commission_check,CHECK (((taux_commission >= (0)::numeric) AND (taux_commission <= (100)::numeric)))
+public,immeubles,check_annee_construction,CHECK ((((annee_construction >= 1800) AND ((annee_construction)::numeric <= EXTRACT(year FROM now()))) OR (annee_construction IS NULL)))
+public,immeubles,check_nombre_etages,CHECK ((nombre_etages >= 0))
+public,immeubles,check_immeubles_npa_format,CHECK (((npa IS NULL) OR (npa ~ '^[0-9]{4}$'::text)))
+public,locataires,check_dates,CHECK (((date_sortie IS NULL) OR (date_entree IS NULL) OR (date_sortie >= date_entree)))
+"public,locataires,check_email_locataire,""CHECK ((email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$'::text))"""
+public,locataires,check_telephone_locataire,CHECK (((telephone ~ '^[0-9+\s\-().]+$'::text) OR (telephone IS NULL)))
+public,logements,check_charges,CHECK (((charges_mensuelles >= (0)::numeric) OR (charges_mensuelles IS NULL)))
+public,logements,check_loyer,CHECK (((loyer_mensuel >= (0)::numeric) OR (loyer_mensuel IS NULL)))
+public,logements,check_nombre_pieces,CHECK (((nombre_pieces > 0) OR (nombre_pieces IS NULL)))
+public,logements,check_superficie,CHECK (((superficie > (0)::numeric) OR (superficie IS NULL)))
+"public,logements,check_statut,""CHECK ((statut = ANY (ARRAY['vacant'::text, 'occupé'::text, 'en_travaux'::text])))"""
+public,logements,check_npa_format,CHECK (((npa IS NULL) OR (npa ~ '^[0-9]{4}$'::text)))
+public,logements,check_annee_renovation,CHECK (((annee_renovation IS NULL) OR ((annee_renovation >= 1800) AND (annee_renovation <= 2100))))
+"public,messages,messages_type_check,""CHECK ((type = ANY (ARRAY['message'::text, 'system'::text])))"""
+public,missions,check_montant_reel_chf_positif,CHECK (((montant_reel_chf IS NULL) OR (montant_reel_chf >= (0)::numeric)))
+public,missions,check_mission_devise_chf,CHECK ((devise = 'CHF'::text))
+"public,notifications,notifications_type_check,""CHECK ((type = ANY (ARRAY['new_message'::text, 'mission_status_change'::text, 'ticket_status_change'::text, 'mission_assigned'::text, 'facture_status_change'::text, 'new_ticket'::text])))"""
+public,plans,plans_limite_missions_mois_check,CHECK (((limite_missions_mois > 0) OR (limite_missions_mois IS NULL)))
+"public,plans,plans_nom_check,""CHECK (((nom)::text = ANY ((ARRAY['basic'::character varying, 'pro'::character varying, 'enterprise'::character varying])::text[])))"""
+public,plans,plans_prix_mensuel_check,CHECK ((prix_mensuel >= (0)::numeric))
+public,plans,plans_prix_annuel_check,CHECK ((prix_annuel >= (0)::numeric))
+public,plans,plans_limite_techniciens_check,CHECK (((limite_techniciens > 0) OR (limite_techniciens IS NULL)))
+public,plans,plans_limite_utilisateurs_check,CHECK (((limite_utilisateurs > 0) OR (limite_utilisateurs IS NULL)))
+"public,profiles,check_language,""CHECK ((language = ANY (ARRAY['fr'::text, 'en'::text, 'de'::text])))"""
+"public,regies,regies_statut_validation_check,""CHECK ((statut_validation = ANY (ARRAY['en_attente'::text, 'valide'::text, 'refuse'::text])))"""
+public,regies,check_telephone,CHECK (((telephone ~ '^[0-9+\s\-().]+$'::text) OR (telephone IS NULL)))
+public,regies,check_nb_logements,CHECK ((nb_logements_geres >= 0))
+"public,regies,check_email,""CHECK (((email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$'::text) OR (email IS NULL)))"""
+public,regies,check_nb_collaborateurs,CHECK ((nb_collaborateurs >= 1))
+"public,regies_entreprises,check_mode_diffusion,""CHECK ((mode_diffusion = ANY (ARRAY['general'::text, 'restreint'::text])))"""
+"public,tickets,check_piece_valide,""CHECK (((piece IS NULL) OR (lower(piece) = ANY (ARRAY['cuisine'::text, 'salle_de_bain'::text, 'chambre'::text, 'salon'::text, 'wc'::text, 'entree'::text, 'couloir'::text, 'balcon'::text, 'cave'::text, 'garage'::text, 'exterieur'::text, 'parties_communes'::text, 'autre'::text]))))"""
+"public,tickets,check_categorie,""CHECK ((categorie = ANY (ARRAY['plomberie'::text, 'électricité'::text, 'chauffage'::text, 'serrurerie'::text, 'vitrerie'::text, 'menuiserie'::text, 'peinture'::text, 'autre'::text])))"""
+"public,tickets,check_priorite,""CHECK ((priorite = ANY (ARRAY['faible'::text, 'normale'::text, 'haute'::text, 'urgente'::text])))"""
+public,tickets,check_plafond_positif,CHECK ((plafond_intervention_chf >= (0)::numeric))
+public,tickets,check_devise_chf,CHECK ((devise = 'CHF'::text))
+"public,tickets,check_sous_categorie_valide,""CHECK (((sous_categorie IS NULL) OR ((categorie = 'plomberie'::text) AND (sous_categorie = ANY (ARRAY['Fuite d''eau'::text, 'WC bouché'::text, 'Chauffe-eau'::text, 'Robinetterie'::text, 'Autre plomberie'::text]))) OR ((categorie = 'electricite'::text) AND (sous_categorie = ANY (ARRAY['Panne générale'::text, 'Prise défectueuse'::text, 'Interrupteur'::text, 'Éclairage'::text, 'Autre électricité'::text]))) OR ((categorie = 'chauffage'::text) AND (sous_categorie = ANY (ARRAY['Radiateur'::text, 'Chaudière'::text, 'Thermostat'::text, 'Autre chauffage'::text]))) OR ((categorie = 'ventilation'::text) AND (sous_categorie = ANY (ARRAY['VMC défectueuse'::text, 'Grille cassée'::text, 'Bruit anormal'::text, 'Autre ventilation'::text]))) OR ((categorie = 'serrurerie'::text) AND (sous_categorie = ANY (ARRAY['Porte bloquée'::text, 'Clé perdue'::text, 'Verrou défectueux'::text, 'Autre serrurerie'::text]))) OR ((categorie = 'vitrerie'::text) AND (sous_categorie = ANY (ARRAY['Vitre cassée'::text, 'Double vitrage'::text, 'Autre vitrerie'::text]))) OR ((categorie = 'menuiserie'::text) AND (sous_categorie = ANY (ARRAY['Porte'::text, 'Fenêtre'::text, 'Parquet'::text, 'Autre menuiserie'::text]))) OR ((categorie = 'peinture'::text) AND (sous_categorie = ANY (ARRAY['Murs'::text, 'Plafond'::text, 'Boiseries'::text, 'Autre peinture'::text]))) OR ((categorie = 'autre'::text) AND (sous_categorie = 'Autre intervention'::text))))"""
+public,tickets,check_dates,CHECK (((date_cloture IS NULL) OR (date_cloture >= date_creation)))
+public,tickets_disponibilites,check_preference_valide,CHECK (((preference >= 1) AND (preference <= 3)))
+public,tickets_disponibilites,check_date_fin_apres_debut,CHECK ((date_fin > date_debut))

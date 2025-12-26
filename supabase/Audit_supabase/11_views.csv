@@ -1,0 +1,356 @@
+table_schema,table_name,view_definition;
+"extensions,pg_stat_statements,"" SELECT userid,";
+    dbid,;
+    toplevel,;
+    queryid,;
+    query,;
+    plans,;
+    total_plan_time,;
+    min_plan_time,;
+    max_plan_time,;
+    mean_plan_time,;
+    stddev_plan_time,;
+    calls,;
+    total_exec_time,;
+    min_exec_time,;
+    max_exec_time,;
+    mean_exec_time,;
+    stddev_exec_time,;
+    rows,;
+    shared_blks_hit,;
+    shared_blks_read,;
+    shared_blks_dirtied,;
+    shared_blks_written,;
+    local_blks_hit,;
+    local_blks_read,;
+    local_blks_dirtied,;
+    local_blks_written,;
+    temp_blks_read,;
+    temp_blks_written,;
+    shared_blk_read_time,;
+    shared_blk_write_time,;
+    local_blk_read_time,;
+    local_blk_write_time,;
+    temp_blk_read_time,;
+    temp_blk_write_time,;
+    wal_records,;
+    wal_fpi,;
+    wal_bytes,;
+    jit_functions,;
+    jit_generation_time,;
+    jit_inlining_count,;
+    jit_inlining_time,;
+    jit_optimization_count,;
+    jit_optimization_time,;
+    jit_emission_count,;
+    jit_emission_time,;
+    jit_deform_count,;
+    jit_deform_time,;
+    stats_since,;
+    minmax_stats_since;
+   FROM pg_stat_statements(true) pg_stat_statements(userid, dbid, toplevel, queryid, query, plans, total_plan_time, min_plan_time, max_plan_time, mean_plan_time, stddev_plan_time, calls, total_exec_time, min_exec_time, max_exec_time, mean_exec_time, stddev_exec_time, rows, shared_blks_hit, shared_blks_read, shared_blks_dirtied, shared_blks_written, local_blks_hit, local_blks_read, local_blks_dirtied, local_blks_written, temp_blks_read, temp_blks_written, shared_blk_read_time, shared_blk_write_time, local_blk_read_time, local_blk_write_time, temp_blk_read_time, temp_blk_write_time, wal_records, wal_fpi, wal_bytes, jit_functions, jit_generation_time, jit_inlining_count, jit_inlining_time, jit_optimization_count, jit_optimization_time, jit_emission_count, jit_emission_time, jit_deform_count, jit_deform_time, stats_since, minmax_stats_since);"
+extensions,pg_stat_statements_info, SELECT dealloc,"
+    stats_reset;
+   FROM pg_stat_statements_info() pg_stat_statements_info(dealloc, stats_reset);"
+public,abonnements_stats, SELECT p.nom AS plan_nom,"
+    p.nom_affichage,;
+    count(a.id) AS nombre_abonnements,;
+    count(a.id) FILTER (WHERE ((a.statut)::text = 'actif'::text)) AS abonnements_actifs,;
+    count(a.id) FILTER (WHERE ((a.type_periode)::text = 'mensuel'::text)) AS abonnements_mensuels,;
+    count(a.id) FILTER (WHERE ((a.type_periode)::text = 'annuel'::text)) AS abonnements_annuels,;
+    sum(;
+        CASE;
+            WHEN (((a.statut)::text = 'actif'::text) AND ((a.type_periode)::text = 'mensuel'::text)) THEN p.prix_mensuel;
+            ELSE (0)::numeric;
+        END) AS mrr_mensuel,;
+    sum(;
+        CASE;
+            WHEN (((a.statut)::text = 'actif'::text) AND ((a.type_periode)::text = 'annuel'::text)) THEN (p.prix_annuel / (12)::numeric);
+            ELSE (0)::numeric;
+        END) AS mrr_annuel,;
+    (sum(;
+        CASE;
+            WHEN (((a.statut)::text = 'actif'::text) AND ((a.type_periode)::text = 'mensuel'::text)) THEN p.prix_mensuel;
+            ELSE (0)::numeric;
+        END) + sum(;
+        CASE;
+            WHEN (((a.statut)::text = 'actif'::text) AND ((a.type_periode)::text = 'annuel'::text)) THEN (p.prix_annuel / (12)::numeric);
+            ELSE (0)::numeric;
+        END)) AS mrr_total;
+   FROM (plans p;
+     LEFT JOIN abonnements a ON ((p.id = a.plan_id)));
+  GROUP BY p.id, p.nom, p.nom_affichage, p.ordre_affichage;
+  ORDER BY p.ordre_affichage;"
+public,admin_agences_en_attente, SELECT r.id,"
+    r.nom AS nom_agence,;
+    r.email,;
+    r.siret,;
+    r.nb_collaborateurs,;
+    r.nb_logements_geres,;
+    r.statut_validation,;
+    r.created_at AS date_inscription,;
+    p.email AS email_contact,;
+    p.language;
+   FROM (regies r;
+     JOIN profiles p ON ((p.id = r.profile_id)));
+  WHERE (r.statut_validation = 'en_attente'::text);
+  ORDER BY r.created_at DESC;"
+public,admin_dashboard, SELECT ( SELECT admin_stats_regies.total_regies"
+           FROM admin_stats_regies) AS total_regies,;
+    ( SELECT admin_stats_regies.regies_30_jours;
+           FROM admin_stats_regies) AS regies_30_jours,;
+    ( SELECT admin_stats_immeubles.total_immeubles;
+           FROM admin_stats_immeubles) AS total_immeubles,;
+    ( SELECT admin_stats_immeubles.immeubles_30_jours;
+           FROM admin_stats_immeubles) AS immeubles_30_jours,;
+    ( SELECT admin_stats_logements.total_logements;
+           FROM admin_stats_logements) AS total_logements,;
+    ( SELECT admin_stats_logements.logements_30_jours;
+           FROM admin_stats_logements) AS logements_30_jours,;
+    ( SELECT admin_stats_locataires.total_locataires;
+           FROM admin_stats_locataires) AS total_locataires,;
+    ( SELECT admin_stats_locataires.locataires_30_jours;
+           FROM admin_stats_locataires) AS locataires_30_jours,;
+    ( SELECT admin_stats_tickets.total_tickets;
+           FROM admin_stats_tickets) AS total_tickets,;
+    ( SELECT admin_stats_tickets.tickets_30_jours;
+           FROM admin_stats_tickets) AS tickets_30_jours,;
+    ( SELECT admin_stats_tickets.tickets_ouverts;
+           FROM admin_stats_tickets) AS tickets_ouverts,;
+    ( SELECT admin_stats_tickets.tickets_en_cours;
+           FROM admin_stats_tickets) AS tickets_en_cours,;
+    ( SELECT admin_stats_tickets.tickets_termines;
+           FROM admin_stats_tickets) AS tickets_termines,;
+    ( SELECT admin_stats_entreprises.total_entreprises;
+           FROM admin_stats_entreprises) AS total_entreprises,;
+    ( SELECT admin_stats_entreprises.entreprises_30_jours;
+           FROM admin_stats_entreprises) AS entreprises_30_jours;"
+public,admin_stats_entreprises, SELECT count(*) AS total_entreprises,"
+    count(*) FILTER (WHERE (e.created_at >= (CURRENT_DATE - '30 days'::interval))) AS entreprises_30_jours,;
+    count(*) FILTER (WHERE (e.created_at >= (CURRENT_DATE - '7 days'::interval))) AS entreprises_7_jours,;
+    count(DISTINCT re.regie_id) AS regies_avec_entreprises,;
+    count(DISTINCT re.entreprise_id) AS entreprises_autorisees;
+   FROM (entreprises e;
+     LEFT JOIN regies_entreprises re ON ((re.entreprise_id = e.id)));"
+public,admin_stats_evolution, SELECT date_trunc('day'::text, regies.created_at) AS jour,"
+    'regies'::text AS type,;
+    count(*) AS nombre;
+   FROM regies;
+  WHERE (regies.created_at >= (CURRENT_DATE - '30 days'::interval));
+  GROUP BY (date_trunc('day'::text, regies.created_at));
+UNION ALL;
+ SELECT date_trunc('day'::text, immeubles.created_at) AS jour,;
+    'immeubles'::text AS type,;
+    count(*) AS nombre;
+   FROM immeubles;
+  WHERE (immeubles.created_at >= (CURRENT_DATE - '30 days'::interval));
+  GROUP BY (date_trunc('day'::text, immeubles.created_at));
+UNION ALL;
+ SELECT date_trunc('day'::text, logements.created_at) AS jour,;
+    'logements'::text AS type,;
+    count(*) AS nombre;
+   FROM logements;
+  WHERE (logements.created_at >= (CURRENT_DATE - '30 days'::interval));
+  GROUP BY (date_trunc('day'::text, logements.created_at));
+UNION ALL;
+ SELECT date_trunc('day'::text, tickets.created_at) AS jour,;
+    'tickets'::text AS type,;
+    count(*) AS nombre;
+   FROM tickets;
+  WHERE (tickets.created_at >= (CURRENT_DATE - '30 days'::interval));
+  GROUP BY (date_trunc('day'::text, tickets.created_at));
+  ORDER BY 1 DESC, 2;"
+public,admin_stats_immeubles, SELECT count(*) AS total_immeubles,"
+    count(*) FILTER (WHERE (created_at >= (CURRENT_DATE - '30 days'::interval))) AS immeubles_30_jours,;
+    count(*) FILTER (WHERE (created_at >= (CURRENT_DATE - '7 days'::interval))) AS immeubles_7_jours,;
+    count(DISTINCT regie_id) AS regies_avec_immeubles,;
+    round(avg(( SELECT count(*) AS count;
+           FROM immeubles i2;
+          WHERE (i2.regie_id = i.regie_id))), 2) AS moyenne_par_regie;
+   FROM immeubles i;"
+public,admin_stats_locataires, SELECT count(*) AS total_locataires,"
+    count(*) FILTER (WHERE (created_at >= (CURRENT_DATE - '30 days'::interval))) AS locataires_30_jours,;
+    count(*) FILTER (WHERE (created_at >= (CURRENT_DATE - '7 days'::interval))) AS locataires_7_jours,;
+    count(DISTINCT logement_id) AS logements_occupes;
+   FROM locataires;"
+public,admin_stats_logements, SELECT count(*) AS total_logements,"
+    count(*) FILTER (WHERE (created_at >= (CURRENT_DATE - '30 days'::interval))) AS logements_30_jours,;
+    count(*) FILTER (WHERE (created_at >= (CURRENT_DATE - '7 days'::interval))) AS logements_7_jours,;
+    count(DISTINCT immeuble_id) AS immeubles_avec_logements,;
+    round(avg(( SELECT count(*) AS count;
+           FROM logements l2;
+          WHERE (l2.immeuble_id = l.immeuble_id))), 2) AS moyenne_par_immeuble;
+   FROM logements l;"
+public,admin_stats_regies, SELECT count(*) AS total_regies,"
+    count(*) FILTER (WHERE (created_at >= (CURRENT_DATE - '30 days'::interval))) AS regies_30_jours,;
+    count(*) FILTER (WHERE (created_at >= (CURRENT_DATE - '7 days'::interval))) AS regies_7_jours,;
+    count(*) FILTER (WHERE (created_at >= CURRENT_DATE)) AS regies_aujourd_hui;
+   FROM regies;"
+public,admin_stats_tickets, SELECT count(*) AS total_tickets,"
+    count(*) FILTER (WHERE (created_at >= (CURRENT_DATE - '30 days'::interval))) AS tickets_30_jours,;
+    count(*) FILTER (WHERE (created_at >= (CURRENT_DATE - '7 days'::interval))) AS tickets_7_jours,;
+    count(*) FILTER (WHERE (created_at >= CURRENT_DATE)) AS tickets_aujourd_hui,;
+    count(*) FILTER (WHERE (statut = 'ouvert'::ticket_status)) AS tickets_ouverts,;
+    count(*) FILTER (WHERE (statut = 'en_cours'::ticket_status)) AS tickets_en_cours,;
+    count(*) FILTER (WHERE (statut = 'termine'::ticket_status)) AS tickets_termines,;
+    count(*) FILTER (WHERE (statut = 'annule'::ticket_status)) AS tickets_annules,;
+    count(*) FILTER (WHERE (priorite = 'haute'::text)) AS tickets_priorite_haute,;
+    count(*) FILTER (WHERE (priorite = 'moyenne'::text)) AS tickets_priorite_moyenne,;
+    count(*) FILTER (WHERE (priorite = 'basse'::text)) AS tickets_priorite_basse,;
+    count(DISTINCT regie_id) AS regies_avec_tickets,;
+    round(avg((EXTRACT(epoch FROM (COALESCE(updated_at, created_at) - created_at)) / (3600)::numeric)), 2) AS duree_moyenne_heures;
+   FROM tickets;"
+public,admin_stats_tickets_categories, SELECT categorie,"
+    count(*) AS total,;
+    count(*) FILTER (WHERE (statut = 'ouvert'::ticket_status)) AS ouverts,;
+    count(*) FILTER (WHERE (statut = 'en_cours'::ticket_status)) AS en_cours,;
+    count(*) FILTER (WHERE (statut = 'termine'::ticket_status)) AS termines;
+   FROM tickets;
+  GROUP BY categorie;
+  ORDER BY (count(*)) DESC;"
+public,admin_stats_tickets_priorites, SELECT priorite,"
+    count(*) AS total,;
+    count(*) FILTER (WHERE (statut = 'ouvert'::ticket_status)) AS ouverts,;
+    count(*) FILTER (WHERE (statut = 'en_cours'::ticket_status)) AS en_cours,;
+    count(*) FILTER (WHERE (statut = 'termine'::ticket_status)) AS termines;
+   FROM tickets;
+  GROUP BY priorite;
+  ORDER BY;
+        CASE;
+            WHEN (priorite = 'haute'::text) THEN 1;
+            WHEN (priorite = 'moyenne'::text) THEN 2;
+            WHEN (priorite = 'basse'::text) THEN 3;
+            ELSE NULL::integer;
+        END;"
+public,factures_commissions_jtec, SELECT f.id AS facture_id,"
+    f.numero,;
+    f.date_emission,;
+    f.statut,;
+    e.nom AS entreprise_nom,;
+    r.nom AS regie_nom,;
+    f.montant_ht,;
+    f.montant_ttc,;
+    f.taux_commission,;
+    f.montant_commission,;
+        CASE;
+            WHEN (f.statut = 'payee'::text) THEN 'percue'::text;
+            WHEN (f.statut = 'annulee'::text) THEN 'annulee'::text;
+            ELSE 'en_attente'::text;
+        END AS statut_commission;
+   FROM ((factures f;
+     JOIN entreprises e ON ((f.entreprise_id = e.id)));
+     JOIN regies r ON ((f.regie_id = r.id)));
+  ORDER BY f.date_emission DESC;"
+public,factures_stats, SELECT e.id AS entreprise_id,"
+    e.nom AS entreprise_nom,;
+    count(*) AS total_factures,;
+    count(*) FILTER (WHERE (f.statut = 'brouillon'::text)) AS factures_brouillon,;
+    count(*) FILTER (WHERE (f.statut = 'envoyee'::text)) AS factures_envoyees,;
+    count(*) FILTER (WHERE (f.statut = 'payee'::text)) AS factures_payees,;
+    count(*) FILTER (WHERE (f.statut = 'annulee'::text)) AS factures_annulees,;
+    COALESCE(sum(f.montant_ht) FILTER (WHERE (f.statut <> 'annulee'::text)), (0)::numeric) AS ca_ht_total,;
+    COALESCE(sum(f.montant_ttc) FILTER (WHERE (f.statut <> 'annulee'::text)), (0)::numeric) AS ca_ttc_total,;
+    COALESCE(sum(f.montant_commission) FILTER (WHERE (f.statut <> 'annulee'::text)), (0)::numeric) AS commissions_jtec_total,;
+    COALESCE(sum(f.montant_ht) FILTER (WHERE (f.statut = 'payee'::text)), (0)::numeric) AS ca_ht_paye,;
+    COALESCE(sum(f.montant_ttc) FILTER (WHERE (f.statut = 'payee'::text)), (0)::numeric) AS ca_ttc_paye,;
+    COALESCE(sum(f.montant_commission) FILTER (WHERE (f.statut = 'payee'::text)), (0)::numeric) AS commissions_jtec_payees,;
+    COALESCE(sum(f.montant_ttc) FILTER (WHERE (f.statut = ANY (ARRAY['brouillon'::text, 'envoyee'::text]))), (0)::numeric) AS ca_en_attente,;
+        CASE;
+            WHEN (count(*) FILTER (WHERE (f.statut <> 'annulee'::text)) > 0) THEN round((((count(*) FILTER (WHERE (f.statut = 'payee'::text)))::numeric / (count(*) FILTER (WHERE (f.statut <> 'annulee'::text)))::numeric) * (100)::numeric), 2);
+            ELSE (0)::numeric;
+        END AS taux_paiement,;
+    round(avg((EXTRACT(epoch FROM (f.date_paiement - (f.date_emission)::timestamp with time zone)) / (86400)::numeric)) FILTER (WHERE (f.statut = 'payee'::text)), 1) AS delai_moyen_paiement_jours;
+   FROM (entreprises e;
+     LEFT JOIN factures f ON ((e.id = f.entreprise_id)));
+  GROUP BY e.id, e.nom;"
+public,quotas_usage, SELECT COALESCE(e.nom, r.nom) AS client_nom,"
+        CASE;
+            WHEN (a.entreprise_id IS NOT NULL) THEN 'entreprise'::text;
+            ELSE 'regie'::text;
+        END AS client_type,;
+    p.nom AS plan_nom,;
+    a.statut,;
+    a.missions_ce_mois AS missions_utilisees,;
+    p.limite_missions_mois AS missions_limite,;
+        CASE;
+            WHEN (p.limite_missions_mois IS NULL) THEN (0)::numeric;
+            WHEN (a.missions_ce_mois >= p.limite_missions_mois) THEN (100)::numeric;
+            ELSE round((((a.missions_ce_mois)::numeric / (p.limite_missions_mois)::numeric) * (100)::numeric), 2);
+        END AS missions_pourcentage,;
+    ( SELECT count(*) AS count;
+           FROM techniciens;
+          WHERE (techniciens.entreprise_id = a.entreprise_id)) AS techniciens_utilises,;
+    p.limite_techniciens AS techniciens_limite,;
+        CASE;
+            WHEN (a.entreprise_id IS NOT NULL) THEN ( SELECT count(*) AS count;
+               FROM profiles;
+              WHERE (profiles.entreprise_id = a.entreprise_id));
+            ELSE ( SELECT count(*) AS count;
+               FROM profiles;
+              WHERE (profiles.regie_id = a.regie_id));
+        END AS utilisateurs_utilises,;
+    p.limite_utilisateurs AS utilisateurs_limite,;
+    a.date_fin,;
+    (a.date_fin - CURRENT_DATE) AS jours_restants;
+   FROM (((abonnements a;
+     JOIN plans p ON ((a.plan_id = p.id)));
+     LEFT JOIN entreprises e ON ((a.entreprise_id = e.id)));
+     LEFT JOIN regies r ON ((a.regie_id = r.id)));
+  WHERE ((a.statut)::text = 'actif'::text);
+  ORDER BY a.date_fin;"
+public,tickets_complets, SELECT t.id AS ticket_id,"
+    t.titre,;
+    t.description,;
+    t.categorie,;
+    t.priorite,;
+    t.statut,;
+    t.created_at,;
+    t.updated_at,;
+    t.locataire_id,;
+    t.logement_id,;
+    t.regie_id,;
+    t.entreprise_id,;
+    loc.nom AS locataire_nom,;
+    loc.prenom AS locataire_prenom,;
+    loc.email AS locataire_email,;
+    loc.telephone AS locataire_telephone,;
+    log.numero AS logement_numero,;
+    log.etage AS logement_etage,;
+    imm.nom AS immeuble_nom,;
+    imm.adresse AS immeuble_adresse,;
+    imm.npa AS immeuble_code_postal,;
+    imm.ville AS immeuble_ville,;
+    reg.nom AS regie_nom;
+   FROM ((((tickets t;
+     JOIN locataires loc ON ((t.locataire_id = loc.id)));
+     JOIN logements log ON ((t.logement_id = log.id)));
+     JOIN immeubles imm ON ((log.immeuble_id = imm.id)));
+     JOIN regies reg ON ((t.regie_id = reg.id)));"
+public,tickets_visibles_entreprise, SELECT t.id,"
+    t.titre,;
+    t.description,;
+    t.categorie,;
+    t.priorite,;
+    t.statut,;
+    t.logement_id,;
+    t.locataire_id,;
+    t.regie_id,;
+    t.entreprise_id,;
+    t.technicien_id,;
+    t.date_creation,;
+    t.date_cloture,;
+    t.date_limite,;
+    t.photos,;
+    t.urgence,;
+    t.created_at,;
+    t.updated_at,;
+    t.locked_at,;
+    t.plafond_intervention_chf,;
+    t.devise,;
+    t.mode_diffusion,;
+    re.entreprise_id AS visible_par_entreprise_id,;
+    re.mode_diffusion AS autorisation_mode;
+   FROM (tickets t;
+     JOIN regies_entreprises re ON ((re.regie_id = t.regie_id)));
+  WHERE (((re.mode_diffusion = 'general'::text) AND (t.mode_diffusion = 'public'::text) AND (t.statut = 'en_attente'::ticket_status) AND (t.locked_at IS NULL)) OR ((t.mode_diffusion = 'assigné'::text) AND (t.entreprise_id = re.entreprise_id) AND (t.statut = ANY (ARRAY['en_attente'::ticket_status, 'en_cours'::ticket_status, 'termine'::ticket_status]))) OR ((t.entreprise_id = re.entreprise_id) AND (t.statut = ANY (ARRAY['en_cours'::ticket_status, 'termine'::ticket_status, 'clos'::ticket_status]))));"
+vault,decrypted_secrets,null"

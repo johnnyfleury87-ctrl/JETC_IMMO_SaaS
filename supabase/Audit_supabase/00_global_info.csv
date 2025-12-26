@@ -1,0 +1,2 @@
+database_name,connected_as,session_user,postgres_version,search_path
+"postgres,postgres,postgres,""PostgreSQL 17.6 on aarch64-unknown-linux-gnu, compiled by gcc (GCC) 13.2.0, 64-bit"",""""""\$user"""", public, extensions"""
