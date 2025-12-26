@@ -99,22 +99,19 @@ module.exports = async (req, res) => {
     req.on('end', async () => {
       try {
         const { 
-          titre, 
           description, 
           categorie,
           sous_categorie,
           piece,
-          priorite,
-          plafond_intervention_chf,
           disponibilites
         } = JSON.parse(body);
 
         // Validation des champs obligatoires
-        if (!titre || !description || !categorie) {
+        if (!description || !categorie) {
           res.writeHead(400, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ 
             success: false, 
-            message: 'Titre, description et catégorie sont obligatoires' 
+            message: 'Description et catégorie sont obligatoires' 
           }));
           return;
         }
@@ -133,13 +130,11 @@ module.exports = async (req, res) => {
           return;
         }
 
-        // Validation de la priorité (optionnelle, réservée à la régie)
-        // Si fournie par l'API, on la valide, sinon NULL
-        let prioriteFinale = null;
-        if (priorite) {
-          const prioritesValides = ['basse', 'normale', 'haute', 'urgente'];
-          prioriteFinale = prioritesValides.includes(priorite) ? priorite : null;
-        }
+        // ✅ Générer le titre automatiquement : "Catégorie // Sous-catégorie"
+        const titreCapitalized = categorie.charAt(0).toUpperCase() + categorie.slice(1);
+        const titre = sous_categorie 
+          ? `${titreCapitalized} // ${sous_categorie}`
+          : titreCapitalized;
 
         // Validation des disponibilités (au moins 1 créneau obligatoire)
         if (!disponibilites || !Array.isArray(disponibilites) || disponibilites.length < 1) {
@@ -164,20 +159,36 @@ module.exports = async (req, res) => {
           }
         }
 
+        // ✅ SÉCURITÉ : Récupérer regie_id depuis logement
+        const { data: logement, error: logementError } = await supabaseAdmin
+          .from('logements')
+          .select('regie_id')
+          .eq('id', locataire.logement_id)
+          .single();
+
+        if (logementError || !logement) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ 
+            success: false, 
+            message: 'Erreur lors de la récupération du logement' 
+          }));
+          return;
+        }
+
         // Créer le ticket
         // ⚠️ M12 FIX: Ne PAS forcer statut='ouvert', laisser DEFAULT SQL 'nouveau'
-        // La regie_id sera calculée automatiquement par le trigger SQL
+        // ⚠️ SÉCURITÉ: IDs viennent du JWT, pas du frontend
         const ticketData = {
           titre,
           description,
           categorie,
           sous_categorie: sous_categorie || null,
           piece: piece || null,
-          priorite: prioriteFinale,
-          plafond_intervention_chf: plafond_intervention_chf || null,
+          locataire_id: locataire.id,
           logement_id: locataire.logement_id,
-          locataire_id: locataire.id
+          regie_id: logement.regie_id
           // ✅ M12: Pas de statut forcé, DEFAULT SQL = 'nouveau'
+          // ✅ SÉCURITÉ: priorite et plafond NULL (réservés à la régie)
         };
 
         const { data: ticket, error: ticketError } = await supabaseAdmin

@@ -1619,24 +1619,16 @@
         const sous_categorie = document.getElementById('ticketSousCategorie').value;
         const piece = document.getElementById('ticketPiece').value;
         
-        // ✅ Générer le titre automatiquement : "{Catégorie} // {Sous-catégorie}"
-        const titre = `${categorie.charAt(0).toUpperCase() + categorie.slice(1)} // ${sous_categorie}`;
-        
-        console.log('[TICKET] Titre généré automatiquement:', titre);
-        
+        // ✅ SÉCURITÉ : L'API génère le titre et récupère les IDs depuis le JWT
+        // Frontend n'envoie QUE les données métier
         const ticketData = {
-          titre,
           description,
           categorie,
           sous_categorie,
           piece,
-          // ❌ Pas de priorité ni plafond (réservés à la régie)
-          logement_id: window.currentLocataire.logement_id,
-          locataire_id: window.currentLocataire.id,
-          regie_id: window.currentLocataire.logements.regie_id,
           disponibilites: validation.dispos.map(d => ({
             date_debut: d.date_debut,
-            date_fin: d.date_debut.split('T')[0] + 'T' + d.heure_fin, // Calculer date_fin avec même date
+            date_fin: d.date_debut.split('T')[0] + 'T' + d.heure_fin,
             preference: d.preference
           }))
         };

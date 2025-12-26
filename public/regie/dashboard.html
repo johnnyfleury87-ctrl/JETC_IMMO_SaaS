@@ -968,7 +968,7 @@
             created_at,
             plafond_intervention_chf,
             locataire:locataires!inner(nom, prenom),
-            logement:logements!inner(numero_logement)
+            logement:logements!inner(numero)
           `)
           .eq('statut', statut)
           .eq('regie_id', window.currentRegieId)
@@ -1004,7 +1004,7 @@
     // Rendu carte ticket
     function renderTicketCard(ticket, statut) {
       const locataireNom = ticket.locataire ? `${ticket.locataire.prenom} ${ticket.locataire.nom}` : 'Non défini';
-      const logementNum = ticket.logement ? ticket.logement.numero_logement : 'N/A';
+      const logementNum = ticket.logement ? ticket.logement.numero : 'N/A';
       
       // Formatage statut pour badge CSS (remplacer _ par -)
       const statutCssClass = statut.replace(/_/g, '_');
