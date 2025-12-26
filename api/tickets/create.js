@@ -71,7 +71,14 @@ module.exports = async (req, res) => {
       .eq('profile_id', profile.id)
       .single();
 
+    console.log('[TICKET CREATE] Locataire récupéré:', {
+      locataire_id: locataire?.id,
+      logement_id: locataire?.logement_id,
+      profile_id: profile.id
+    });
+
     if (locataireError || !locataire) {
+      console.error('[TICKET CREATE] Erreur récupération locataire:', locataireError);
       res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ 
         success: false, 
@@ -166,7 +173,13 @@ module.exports = async (req, res) => {
           .eq('id', locataire.logement_id)
           .single();
 
+        console.log('[TICKET CREATE] Logement récupéré:', {
+          logement_id: locataire.logement_id,
+          regie_id: logement?.regie_id
+        });
+
         if (logementError || !logement) {
+          console.error('[TICKET CREATE] Erreur récupération logement:', logementError);
           res.writeHead(500, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ 
             success: false, 
@@ -191,6 +204,13 @@ module.exports = async (req, res) => {
           // ✅ SÉCURITÉ: priorite et plafond NULL (réservés à la régie)
         };
 
+        console.log('[TICKET CREATE] Données à insérer:', JSON.stringify(ticketData, null, 2));
+        console.log('[TICKET CREATE] Types:', {
+          locataire_id_type: typeof ticketData.locataire_id,
+          logement_id_type: typeof ticketData.logement_id,
+          regie_id_type: typeof ticketData.regie_id
+        });
+
         const { data: ticket, error: ticketError } = await supabaseAdmin
           .from('tickets')
           .insert(ticketData)
@@ -198,12 +218,19 @@ module.exports = async (req, res) => {
           .single();
 
         if (ticketError) {
-          console.error('Erreur création ticket:', ticketError);
+          console.error('[TICKET CREATE] Erreur création ticket:', ticketError);
+          console.error('[TICKET CREATE] Détails erreur:', {
+            code: ticketError.code,
+            message: ticketError.message,
+            details: ticketError.details,
+            hint: ticketError.hint
+          });
           res.writeHead(500, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ 
             success: false, 
             message: 'Erreur lors de la création du ticket',
-            error: ticketError.message
+            error: ticketError.message,
+            code: ticketError.code
           }));
           return;
         }
