@@ -508,7 +508,7 @@
       </div>
 
       <nav class="sidebar-menu">
-        <a href="#" class="menu-item active" onclick="switchView('dashboard'); return false;">
+        <a href="/regie/dashboard.html" class="menu-item active">
           <span>🏠</span>
           <span>Dashboard</span>
         </a>
@@ -524,7 +524,7 @@
           <span>👥</span>
           <span>Locataires</span>
         </a>
-        <a href="#tickets" class="menu-item" onclick="switchView('tickets'); return false;">
+        <a href="/regie/tickets.html" class="menu-item">
           <span>🎫</span>
           <span>Tickets</span>
         </a>
@@ -562,7 +562,7 @@
           <div class="info-box" style="background: #fef3c7; border-left: 4px solid #fbbf24; padding: 20px; border-radius: var(--radius-md); margin-bottom: 20px;">
             <h3 style="color: #92400e; font-size: 18px; margin-bottom: 10px;">🔔 Nouveaux tickets en attente</h3>
             <p style="color: #78350f; margin: 0;" id="alerteTexte"></p>
-            <a href="#tickets" style="display: inline-block; margin-top: 15px; background: var(--primary-blue); color: white; padding: 10px 20px; border-radius: var(--radius-md); text-decoration: none; font-weight: 600;">Voir les tickets →</a>
+            <a href="/regie/tickets.html" style="display: inline-block; margin-top: 15px; background: var(--primary-blue); color: white; padding: 10px 20px; border-radius: var(--radius-md); text-decoration: none; font-weight: 600;">Voir les tickets →</a>
           </div>
         </div>
         
@@ -899,32 +899,8 @@
     }
 
     // ============================================
-    // GESTION DES VUES
+    // GESTION DASHBOARD
     // ============================================
-    
-    function switchView(view) {
-      console.log('[VIEW] Switch to:', view);
-      
-      // Masquer toutes sections
-      document.querySelector('.dashboard-content').style.display = 'none';
-      document.getElementById('ticketsSection').style.display = 'none';
-      
-      // Retirer classe active des menu items
-      document.querySelectorAll('.menu-item').forEach(item => {
-        item.classList.remove('active');
-      });
-      
-      // Afficher section demandée
-      if (view === 'dashboard') {
-        document.querySelector('.dashboard-content').style.display = 'block';
-        document.querySelectorAll('.menu-item')[0].classList.add('active'); // Dashboard
-        loadDashboard();
-      } else if (view === 'tickets') {
-        document.getElementById('ticketsSection').style.display = 'block';
-        document.querySelectorAll('.menu-item')[4].classList.add('active'); // Tickets
-        loadAllTickets();
-      }
-    }
     
     // Charger dashboard simple (alerte ou message)
     async function loadDashboard() {
@@ -963,14 +939,6 @@
       } catch (error) {
         console.error('[DASHBOARD] Exception:', error);
         document.getElementById('dashboardLoading').style.display = 'none';
-      }
-    }
-        
-      } catch (error) {
-        console.error('[REGIE][ERROR]', error);
-        console.log('[REGIE][REDIRECT] Raison: Exception', error.message);
-        alert('Erreur technique. Reconnexion requise.');
-        window.location.href = '/login.html';
       }
     }
 
