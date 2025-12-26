@@ -162,18 +162,24 @@ module.exports = async (req, res) => {
         }
 
         // INSERT direct - regie_id sera injecté par le trigger set_ticket_regie_id
+        const insertPayload = {
+          titre: titre,
+          description: description,
+          categorie: categorie,
+          sous_categorie: sous_categorie || null,
+          piece: piece || null,
+          locataire_id: locataire.id,
+          logement_id: locataire.logement_id
+          // regie_id injecté automatiquement par trigger
+        };
+
+        console.log('[INSERT] Payload keys:', Object.keys(insertPayload));
+        console.log('[INSERT] locataire_id value:', insertPayload.locataire_id);
+        console.log('[INSERT] Full payload:', JSON.stringify(insertPayload, null, 2));
+
         const { data: ticket, error: ticketError } = await supabaseAdmin
           .from('tickets')
-          .insert({
-            titre,
-            description,
-            categorie,
-            sous_categorie: sous_categorie || null,
-            piece: piece || null,
-            locataire_id: locataire.id,
-            logement_id: locataire.logement_id
-            // regie_id injecté automatiquement par trigger
-          })
+          .insert(insertPayload)
           .select()
           .single();
         
