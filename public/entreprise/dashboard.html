@@ -5,6 +5,515 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Entreprise de services - JETC_IMMO</title>
   <link rel="stylesheet" href="/css/design-system.css">
+  <!-- ✅ CRITIQUE : Charger CDN Supabase AVANT supabaseClient.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabaseClient.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--gray-50);
+      min-height: 100vh;
+    }
+
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: white;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      z-index: 1000;
+    }
+
+    .sidebar-header {
+      padding: 30px 20px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .logo-dashboard {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .logo-dashboard img {
+      height: 42px;
+      width: auto;
+    }
+
+    .logo-dashboard h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin: 0;
+    }
+
+    .sidebar-subtitle {
+      font-size: 13px;
+      color: var(--gray-600);
+      margin-top: 5px;
+      padding-left: 54px;
+    }
+
+    .sidebar-menu {
+      flex: 1;
+      padding: 20px 0;
+      overflow-y: auto;
+    }
+
+    .menu-item {
+      padding: 12px 20px;
+      color: var(--gray-700);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+    }
+
+    .menu-item:hover:not(.disabled) {
+      background: var(--gray-50);
+      color: var(--primary-blue);
+    }
+
+    .menu-item.active {
+      background: var(--blue-50);
+      color: var(--primary-blue);
+      border-left-color: var(--primary-blue);
+      font-weight: 600;
+    }
+
+    .menu-item.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .menu-icon {
+      font-size: 18px;
+    }
+
+    .menu-label {
+      flex: 1;
+    }
+
+    .sidebar-footer {
+      padding: 20px;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    .user-info-sidebar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .user-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-email {
+      font-size: 13px;
+      color: var(--gray-700);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-role {
+      font-size: 11px;
+      color: var(--gray-500);
+    }
+
+    .btn-logout {
+      width: 100%;
+      padding: 10px;
+      background: var(--gray-100);
+      color: var(--gray-700);
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .btn-logout:hover {
+      background: var(--gray-200);
+      color: var(--gray-900);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 30px 40px;
+    }
+
+    /* Badges statuts tickets */
+    .badge-statut {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-nouveau { background: #fef3c7; color: #92400e; }
+    .badge-ouvert { background: #dbeafe; color: #1e40af; }
+    .badge-en_attente { background: #fed7aa; color: #9a3412; }
+    .badge-en_cours { background: #bfdbfe; color: #1e3a8a; }
+    .badge-termine { background: #d1fae5; color: #065f46; }
+    .badge-clos { background: #e5e7eb; color: #374151; }
+    .badge-annule { background: #fecaca; color: #991b1b; }
+
+    .badge-priorite {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-urgente { background: #fee2e2; color: #991b1b; }
+    .badge-haute { background: #fed7aa; color: #9a3412; }
+    .badge-normale { background: #dbeafe; color: #1e40af; }
+    .badge-basse { background: #e5e7eb; color: #6b7280; }
+
+    /* Section tickets disponibles */
+    .tickets-disponibles-section {
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+
+    .tickets-disponibles-section h2 {
+      color: var(--primary-blue);
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+
+    .tickets-list {
+      display: grid;
+      gap: 15px;
+    }
+
+    .ticket-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      transition: all 0.2s;
+    }
+
+    .ticket-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .ticket-card h3 {
+      color: var(--gray-900);
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .ticket-card-description {
+      color: var(--gray-600);
+      font-size: 14px;
+      margin-bottom: 15px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .ticket-card-meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+
+    .ticket-card-infos {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 15px;
+      padding: 15px;
+      background: var(--gray-50);
+      border-radius: var(--radius-md);
+    }
+
+    .ticket-card-info-item {
+      font-size: 13px;
+    }
+
+    .ticket-card-info-item label {
+      display: block;
+      color: var(--gray-500);
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .ticket-card-info-item span {
+      color: var(--gray-900);
+    }
+
+    .ticket-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ticket-card-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--primary-blue);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-blue);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: var(--gray-100);
+      color: var(--gray-700);
+      border: 1px solid var(--gray-300);
+    }
+
+    .btn-secondary:hover {
+      background: var(--gray-200);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--gray-500);
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+
+    .empty-state h3 {
+      color: var(--gray-700);
+      margin-bottom: 10px;
+    }
+
+    .loading-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--primary-blue);
+    }
+
+    .error-state {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .error-state h3 {
+      color: #991b1b;
+      margin-bottom: 10px;
+    }
+
+    .error-state p {
+      color: #7f1d1d;
+      margin: 0;
+    }
+
+    /* Modal détails ticket */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      width: 90%;
+      max-width: 700px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 0;
+    }
+
+    .modal-header {
+      padding: 20px 30px;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h3 {
+      color: var(--gray-900);
+      font-size: 20px;
+      margin: 0;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--gray-500);
+      padding: 0;
+      width: 30px;
+      height: 30px;
+    }
+
+    .modal-close:hover {
+      color: var(--gray-900);
+    }
+
+    .modal-body {
+      padding: 30px;
+    }
+
+    .modal-section {
+      margin-bottom: 25px;
+    }
+
+    .modal-section h4 {
+      color: var(--gray-700);
+      font-size: 16px;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .modal-section p {
+      color: var(--gray-600);
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .modal-info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .info-label {
+      font-size: 13px;
+      color: var(--gray-500);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .info-value {
+      font-size: 16px;
+      color: var(--gray-900);
+      font-weight: 600;
+    }
+
+    .disponibilite-item {
+      padding: 15px;
+      background: var(--gray-50);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--gray-200);
+    }
+
+    .disponibilite-item h5 {
+      color: var(--primary-blue);
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .disponibilite-item p {
+      font-size: 13px;
+      color: var(--gray-600);
+      margin: 3px 0;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+      .main-content {
+        margin-left: 0;
+        padding: 15px;
+      }
+      .modal-content {
+        width: 95%;
+        max-height: 95vh;
+      }
+      .ticket-card-infos {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -17,13 +526,13 @@
         <div class="sidebar-subtitle">Entreprise de services</div>
       </div>
       <nav class="sidebar-menu">
-        <a href="#" class="menu-item active">
-          <span class="menu-icon">🏗️</span>
-          <span class="menu-label">Dashboard</span>
-        </a>
-        <a href="#" class="menu-item disabled">
+        <a href="#" class="menu-item" data-view="tickets" onclick="switchView('tickets')">
           <span class="menu-icon">🎫</span>
           <span class="menu-label">Tickets disponibles</span>
+        </a>
+        <a href="#" class="menu-item disabled">
+          <span class="menu-icon">🏗️</span>
+          <span class="menu-label">Mes missions</span>
         </a>
         <a href="#" class="menu-item disabled">
           <span class="menu-icon">👥</span>
@@ -46,70 +555,517 @@
       </div>
     </aside>
     <main class="main-content">
-    <div class="welcome-card">
-      <h2>🎉 Bienvenue sur votre dashboard</h2>
-      <p><strong>Rôle :</strong> Entreprise de services</p>
-      <p>Vous êtes connecté en tant que <strong id="userEmailDisplay">utilisateur</strong></p>
-      
-      <div class="info-box">
-        <h3>📋 Fonctionnalités à venir (ÉTAPES suivantes)</h3>
-        <ul style="text-align: left;">
-          <li><strong>ÉTAPE 6</strong> : Voir les tickets disponibles</li>
-          <li><strong>ÉTAPE 10</strong> : Accepter/refuser des tickets</li>
-          <li><strong>ÉTAPE 11</strong> : Gérer vos techniciens</li>
-          <li><strong>ÉTAPE 13</strong> : Générer vos factures</li>
-        </ul>
+      <!-- Section Tickets Disponibles -->
+      <div id="ticketsDisponiblesSection" class="tickets-disponibles-section">
+        <h2>🎫 Tickets disponibles</h2>
+        <p style="color: var(--gray-600); margin-bottom: 20px;">
+          Tickets diffusés par les régies et disponibles pour acceptation.
+        </p>
+        
+        <div id="ticketsListContainer">
+          <div class="loading-state">
+            <div style="font-size: 32px; margin-bottom: 10px;">⏳</div>
+            <p>Chargement des tickets disponibles...</p>
+          </div>
+        </div>
       </div>
 
-      <p style="margin-top: 30px; color: #999;">
-        <small>ÉTAPE 2 - Authentification fonctionnelle ✅</small>
-      </p>
-    </div>
+      <!-- Modal Détails Ticket -->
+      <div id="modalTicketDetails" class="modal-overlay" onclick="closeModalIfOverlay(event)">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 id="modalTicketTitre">Détails du ticket</h3>
+            <button class="modal-close" onclick="closeTicketDetailsModal()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="modal-section">
+              <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <span id="modalTicketStatut" class="badge-statut"></span>
+                <span id="modalTicketPriorite" class="badge-priorite"></span>
+              </div>
+            </div>
+            
+            <div class="modal-section">
+              <h4>Description</h4>
+              <p id="modalTicketDescription"></p>
+            </div>
+            
+            <div class="modal-section">
+              <h4>Informations</h4>
+              <div class="modal-info-grid">
+                <div class="info-item">
+                  <span class="info-label">Catégorie</span>
+                  <span class="info-value" id="modalTicketCategorie"></span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Sous-catégorie</span>
+                  <span class="info-value" id="modalTicketSousCategorie"></span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Pièce</span>
+                  <span class="info-value" id="modalTicketPiece"></span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Plafond intervention</span>
+                  <span class="info-value" id="modalTicketPlafond"></span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Date création</span>
+                  <span class="info-value" id="modalTicketDate"></span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Ville</span>
+                  <span class="info-value" id="modalTicketVille"></span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="modal-section" id="modalDisponibilitesSection" style="display: none;">
+              <h4>📅 Créneaux de disponibilité</h4>
+              <div id="modalDisponibilites"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 
   <script>
-    // Vérifier l'authentification
+    console.log('[DASHBOARD ENTREPRISE] Script chargé');
+    
+    // ========== AUTHENTIFICATION ==========
     async function checkAuth() {
-      const token = localStorage.getItem('jetc_access_token');
-      const userStr = localStorage.getItem('jetc_user');
-      
-      if (!token || !userStr) {
-        console.log('[DASHBOARD] Non authentifié, redirection...');
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !session) {
+          console.log('[DASHBOARD ENTREPRISE] Non authentifié');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        // Vérifier que c'est bien une entreprise
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role, email')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (profileError || !profile) {
+          console.error('[DASHBOARD ENTREPRISE] Erreur chargement profil:', profileError);
+          alert('Erreur: impossible de charger votre profil');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        if (profile.role !== 'entreprise') {
+          console.error('[DASHBOARD ENTREPRISE] Accès refusé - rôle:', profile.role);
+          alert('Accès réservé aux entreprises');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        // Afficher email utilisateur
+        const email = profile.email || session.user.email;
+        document.getElementById('userEmail').textContent = email;
+        const firstLetter = email.charAt(0).toUpperCase();
+        document.getElementById('userAvatar').textContent = firstLetter;
+        
+        console.log('[DASHBOARD ENTREPRISE] ✅ Utilisateur connecté');
+        
+        // Charger données entreprise
+        await loadEntrepriseData(session.user.id);
+        
+        // Afficher vue tickets par défaut
+        switchView('tickets');
+        
+      } catch (error) {
+        console.error('[DASHBOARD ENTREPRISE] Exception:', error);
+        alert('Erreur technique lors de la vérification');
         window.location.href = '/login.html';
-        return;
       }
-      
-      const user = JSON.parse(userStr);
-      
-      // Vérifier le rôle (accepter aussi admin_jtec pour admin/)
-      const expectedRole = 'entreprise' === 'admin' ? 'admin_jtec' : 'entreprise';
-      if (user.role !== expectedRole) {
-        console.log('[DASHBOARD] Rôle incorrect:', user.role);
-        alert('Accès interdit : ce dashboard est réservé aux Entreprise de services');
-        window.location.href = '/login.html';
-        return;
-      }
-      
-      // Afficher les infos utilisateur
-      const email = user.email;
-      document.getElementById('userEmail').textContent = email;
-      document.getElementById('userEmailDisplay').textContent = email;
-      
-      // Première lettre pour l'avatar
-      const firstLetter = email.charAt(0).toUpperCase();
-      document.getElementById('userAvatar').textContent = firstLetter;
-      
-      console.log('[DASHBOARD] Utilisateur connecté:', user);
     }
 
-    // Déconnexion
-    function logout() {
-      localStorage.removeItem('jetc_access_token');
-      localStorage.removeItem('jetc_refresh_token');
-      localStorage.removeItem('jetc_user');
-      console.log('[DASHBOARD] Déconnexion');
-      window.location.href = '/index.html';
+    // Charger données entreprise
+    async function loadEntrepriseData(profileId) {
+      try {
+        console.log('[ENTREPRISE] Chargement données pour profile_id:', profileId);
+        
+        const { data: entreprise, error } = await supabase
+          .from('entreprises')
+          .select('id, nom, siret, adresse, ville')
+          .eq('profile_id', profileId)
+          .single();
+        
+        if (error) {
+          console.error('[ENTREPRISE] Erreur SQL:', error);
+          alert('Erreur lors du chargement de vos données entreprise');
+          return;
+        }
+        
+        if (!entreprise) {
+          console.error('[ENTREPRISE] Aucune entreprise trouvée');
+          alert('Aucune donnée entreprise associée à votre compte');
+          return;
+        }
+        
+        console.log('[ENTREPRISE] Données chargées:', entreprise);
+        
+        // Stocker dans window pour accès global
+        window.currentEntreprise = entreprise;
+        
+      } catch (error) {
+        console.error('[ENTREPRISE] Exception:', error);
+        alert('Erreur technique');
+      }
+    }
+
+    // ============================================
+    // DÉCONNEXION GLOBALE
+    // ============================================
+    async function logout() {
+      console.log('[LOGOUT] Déconnexion en cours...');
+      try {
+        await supabase.auth.signOut();
+        console.log('[LOGOUT] Déconnexion réussie');
+      } catch (error) {
+        console.error('[LOGOUT] Erreur:', error);
+      }
+      window.location.href = '/login.html';
+    }
+
+    // ========== GESTION DES VUES ==========
+    function switchView(view) {
+      console.log('[VIEW] Switch to:', view);
+      
+      // Masquer toutes les sections
+      document.getElementById('ticketsDisponiblesSection').style.display = 'none';
+      
+      // Retirer classe active des menu items
+      document.querySelectorAll('.menu-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      
+      // Afficher section demandée
+      if (view === 'tickets') {
+        document.getElementById('ticketsDisponiblesSection').style.display = 'block';
+        document.querySelector('[data-view="tickets"]').classList.add('active');
+        loadTicketsDisponibles();
+      }
+    }
+
+    // ========== LISTE TICKETS DISPONIBLES ==========
+    async function loadTicketsDisponibles() {
+      console.log('[TICKETS] Chargement tickets disponibles');
+      
+      const container = document.getElementById('ticketsListContainer');
+      container.innerHTML = '<div class="loading-state"><div style="font-size: 32px; margin-bottom: 10px;">⏳</div><p>Chargement des tickets disponibles...</p></div>';
+      
+      try {
+        if (!window.currentEntreprise?.id) {
+          container.innerHTML = '<div class="error-state"><h3>Erreur</h3><p>Aucune entreprise trouvée.</p></div>';
+          return;
+        }
+        
+        // Utiliser vue tickets_visibles_entreprise avec filtre entreprise_id
+        // La vue filtre déjà selon RLS + mode_diffusion + statut='en_attente' + locked_at IS NULL
+        const { data: tickets, error } = await supabase
+          .from('tickets_visibles_entreprise')
+          .select('*')
+          .eq('visible_par_entreprise_id', window.currentEntreprise.id)
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error('[TICKETS] Erreur:', error);
+          container.innerHTML = `<div class="error-state"><h3>Erreur</h3><p>${error.message}</p></div>`;
+          return;
+        }
+        
+        console.log('[TICKETS] Tickets chargés:', tickets?.length || 0);
+        
+        if (!tickets || tickets.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <h3>Aucun ticket disponible</h3>
+              <p>Il n'y a actuellement aucun ticket disponible pour votre entreprise.</p>
+              <p style="font-size: 13px; margin-top: 10px;">Les tickets diffusés par les régies apparaîtront ici.</p>
+            </div>
+          `;
+          return;
+        }
+        
+        // Charger disponibilités pour chaque ticket (en parallèle)
+        const ticketsWithDispos = await Promise.all(
+          tickets.map(async (ticket) => {
+            const { data: disponibilites } = await supabase
+              .from('tickets_disponibilites')
+              .select('*')
+              .eq('ticket_id', ticket.id)
+              .order('preference', { ascending: true });
+            
+            return { ...ticket, disponibilites: disponibilites || [] };
+          })
+        );
+        
+        // Afficher tickets
+        renderTicketsList(ticketsWithDispos);
+        
+      } catch (error) {
+        console.error('[TICKETS] Exception:', error);
+        container.innerHTML = `<div class="error-state"><h3>Erreur</h3><p>${error.message}</p></div>`;
+      }
+    }
+
+    function renderTicketsList(tickets) {
+      const container = document.getElementById('ticketsListContainer');
+      const html = `<div class="tickets-list">${tickets.map(renderTicketCard).join('')}</div>`;
+      container.innerHTML = html;
+    }
+
+    function renderTicketCard(ticket) {
+      const date = new Date(ticket.created_at).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+      
+      const dispoText = ticket.disponibilites?.length > 0 
+        ? `${ticket.disponibilites.length} créneau${ticket.disponibilites.length > 1 ? 'x' : ''}`
+        : 'Aucun créneau';
+      
+      return `
+        <div class="ticket-card">
+          <h3>${escapeHtml(ticket.titre)}</h3>
+          <p class="ticket-card-description">${escapeHtml(ticket.description || '')}</p>
+          
+          <div class="ticket-card-meta">
+            <span class="badge-statut badge-${ticket.statut}">${getStatutLabel(ticket.statut)}</span>
+            <span class="badge-priorite badge-${ticket.priorite}">${ticket.priorite}</span>
+            <span style="font-size: 12px; color: var(--gray-500);">${ticket.categorie}</span>
+            ${ticket.piece ? `<span style="font-size: 12px; color: var(--gray-500);">📍 ${ticket.piece}</span>` : ''}
+          </div>
+          
+          <div class="ticket-card-infos">
+            <div class="ticket-card-info-item">
+              <label>Sous-catégorie</label>
+              <span>${escapeHtml(ticket.sous_categorie || 'N/A')}</span>
+            </div>
+            <div class="ticket-card-info-item">
+              <label>Disponibilités</label>
+              <span>📅 ${dispoText}</span>
+            </div>
+            ${ticket.plafond_intervention_chf ? `
+            <div class="ticket-card-info-item">
+              <label>Plafond intervention</label>
+              <span>CHF ${ticket.plafond_intervention_chf.toFixed(2)}</span>
+            </div>
+            ` : ''}
+          </div>
+          
+          <div class="ticket-card-footer">
+            <span style="font-size: 13px; color: var(--gray-500);">Créé le ${date}</span>
+            <div class="ticket-card-actions">
+              <button class="btn btn-secondary" onclick="openTicketDetailsModal('${ticket.id}')">
+                📄 Détails
+              </button>
+              <button class="btn btn-primary" onclick="accepterTicket('${ticket.id}', '${escapeHtml(ticket.titre)}')">
+                ✅ Accepter
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function getStatutLabel(statut) {
+      const labels = {
+        nouveau: '🆕 Nouveau',
+        ouvert: '📂 Ouvert',
+        en_attente: '⏳ En attente',
+        en_cours: '🔧 En cours',
+        termine: '✅ Terminé',
+        clos: '🔒 Clos',
+        annule: '❌ Annulé'
+      };
+      return labels[statut] || statut;
+    }
+
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return text ? String(text).replace(/[&<>"']/g, m => map[m]) : '';
+    }
+
+    // ========== ACCEPTER TICKET ==========
+    async function accepterTicket(ticketId, titre) {
+      console.log('[ACTION] Acceptation ticket:', ticketId);
+      
+      if (!confirm(`Accepter le ticket "${titre}" ?\n\nCela créera une mission et le ticket ne sera plus visible par les autres entreprises.`)) {
+        return;
+      }
+      
+      try {
+        if (!window.currentEntreprise?.id) {
+          alert('Erreur: Entreprise non trouvée');
+          return;
+        }
+        
+        // Appel RPC accept_ticket_and_create_mission (M05)
+        const { data, error } = await supabase.rpc('accept_ticket_and_create_mission', {
+          p_ticket_id: ticketId,
+          p_entreprise_id: window.currentEntreprise.id
+        });
+        
+        if (error) {
+          console.error('[ACCEPTER] Erreur RPC:', error);
+          
+          // Gérer erreurs spécifiques
+          if (error.message.includes('déjà verrouillé')) {
+            alert('❌ Ce ticket a déjà été accepté par une autre entreprise.');
+          } else if (error.message.includes('non autorisée')) {
+            alert('❌ Vous n\'êtes pas autorisé à accepter ce ticket.');
+          } else {
+            alert(`❌ Erreur: ${error.message}`);
+          }
+          
+          // Recharger liste (ticket peut avoir disparu)
+          loadTicketsDisponibles();
+          return;
+        }
+        
+        console.log('[ACCEPTER] Mission créée:', data);
+        
+        alert('✅ Ticket accepté avec succès !\n\nUne mission a été créée.');
+        
+        // Recharger liste
+        loadTicketsDisponibles();
+        
+      } catch (error) {
+        console.error('[ACCEPTER] Exception:', error);
+        alert('Erreur: ' + error.message);
+      }
+    }
+
+    // ========== MODAL DÉTAILS TICKET ==========
+    async function openTicketDetailsModal(ticketId) {
+      console.log('[MODAL] Ouverture pour ticket:', ticketId);
+      
+      try {
+        // Charger ticket
+        const { data: ticket, error } = await supabase
+          .from('tickets_visibles_entreprise')
+          .select('*')
+          .eq('id', ticketId)
+          .eq('visible_par_entreprise_id', window.currentEntreprise.id)
+          .single();
+        
+        if (error) {
+          alert('Erreur: ' + error.message);
+          return;
+        }
+        
+        // Charger disponibilités
+        const { data: disponibilites } = await supabase
+          .from('tickets_disponibilites')
+          .select('*')
+          .eq('ticket_id', ticketId)
+          .order('preference', { ascending: true });
+        
+        // Charger infos logement (pour ville si dispo)
+        const { data: logement } = await supabase
+          .from('logements')
+          .select('ville, adresse')
+          .eq('id', ticket.logement_id)
+          .single();
+        
+        // Remplir modal
+        document.getElementById('modalTicketTitre').textContent = ticket.titre;
+        document.getElementById('modalTicketDescription').textContent = ticket.description || 'N/A';
+        
+        const statutBadge = document.getElementById('modalTicketStatut');
+        statutBadge.textContent = getStatutLabel(ticket.statut);
+        statutBadge.className = `badge-statut badge-${ticket.statut}`;
+        
+        const prioriteBadge = document.getElementById('modalTicketPriorite');
+        prioriteBadge.textContent = ticket.priorite;
+        prioriteBadge.className = `badge-priorite badge-${ticket.priorite}`;
+        
+        document.getElementById('modalTicketCategorie').textContent = ticket.categorie || 'N/A';
+        document.getElementById('modalTicketSousCategorie').textContent = ticket.sous_categorie || 'N/A';
+        document.getElementById('modalTicketPiece').textContent = ticket.piece || 'N/A';
+        
+        const plafond = ticket.plafond_intervention_chf 
+          ? `CHF ${ticket.plafond_intervention_chf.toFixed(2)}`
+          : 'Non spécifié';
+        document.getElementById('modalTicketPlafond').textContent = plafond;
+        
+        const dateCreation = new Date(ticket.created_at).toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        document.getElementById('modalTicketDate').textContent = dateCreation;
+        
+        document.getElementById('modalTicketVille').textContent = logement?.ville || 'N/A';
+        
+        // Disponibilités
+        if (disponibilites && disponibilites.length > 0) {
+          const dispoHtml = disponibilites.map(d => {
+            const debut = new Date(d.date_debut).toLocaleString('fr-FR', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+            const fin = new Date(d.date_fin).toLocaleString('fr-FR', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+            
+            return `
+              <div class="disponibilite-item">
+                <h5>Créneau ${d.preference}</h5>
+                <p><strong>Début:</strong> ${debut}</p>
+                <p><strong>Fin:</strong> ${fin}</p>
+              </div>
+            `;
+          }).join('');
+          
+          document.getElementById('modalDisponibilites').innerHTML = dispoHtml;
+          document.getElementById('modalDisponibilitesSection').style.display = 'block';
+        } else {
+          document.getElementById('modalDisponibilitesSection').style.display = 'none';
+        }
+        
+        // Afficher modal
+        document.getElementById('modalTicketDetails').classList.add('show');
+        
+      } catch (error) {
+        console.error('[MODAL] Erreur:', error);
+        alert('Erreur: ' + error.message);
+      }
+    }
+
+    function closeTicketDetailsModal() {
+      document.getElementById('modalTicketDetails').classList.remove('show');
+    }
+
+    function closeModalIfOverlay(event) {
+      if (event.target.id === 'modalTicketDetails') {
+        closeTicketDetailsModal();
+      }
     }
 
     // Initialisation

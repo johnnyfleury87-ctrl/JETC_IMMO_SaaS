@@ -661,6 +661,20 @@
   
   <script>
     // ============================================
+    // DÉCONNEXION GLOBALE
+    // ============================================
+    async function logout() {
+      console.log('[LOGOUT] Déconnexion en cours...');
+      try {
+        await supabase.auth.signOut();
+        console.log('[LOGOUT] Déconnexion réussie');
+      } catch (error) {
+        console.error('[LOGOUT] Erreur:', error);
+      }
+      window.location.href = '/login.html';
+    }
+
+    // ============================================
     // 🔴 ACTION 2 : AUTHENTIFICATION SUPABASE UNIQUEMENT
     // ============================================
     async function checkAuth() {
@@ -1254,16 +1268,6 @@
     // ============================================
     // INITIALISATION
     // ============================================
-
-    // 🔴 ACTION 2 : Déconnexion avec Supabase
-    async function logout() {
-      console.log('[REGIE] Déconnexion en cours...');
-      await supabase.auth.signOut();
-      console.log('[REGIE] Déconnexion effectuée');
-      window.location.href = '/index.html';
-    }
-
-    // Initialisation
     document.addEventListener('DOMContentLoaded', () => {
       // Attendre que Supabase soit initialisé
       setTimeout(() => {

@@ -1376,26 +1376,18 @@
       return nextMonth.toLocaleDateString('fr-FR', options);
     }
 
-    // Déconnexion
+    // ============================================
+    // DÉCONNEXION GLOBALE
+    // ============================================
     async function logout() {
-      console.log('[AUTH][LOGOUT] Click');
-      
+      console.log('[LOGOUT] Déconnexion en cours...');
       try {
-        const { error } = await supabase.auth.signOut();
-        if (error) {
-          console.error('[LOGOUT] Erreur Supabase:', error);
-        }
-        
-        localStorage.removeItem('jetc_access_token');
-        localStorage.removeItem('jetc_refresh_token');
-        localStorage.removeItem('jetc_user');
-        
-        console.log('[DASHBOARD LOCATAIRE] Déconnexion réussie');
-        window.location.href = '/index.html';
+        await supabase.auth.signOut();
+        console.log('[LOGOUT] Déconnexion réussie');
       } catch (error) {
-        console.error('[LOGOUT] Exception:', error);
-        window.location.href = '/index.html';
+        console.error('[LOGOUT] Erreur:', error);
       }
+      window.location.href = '/login.html';
     }
 
     // Initialisation

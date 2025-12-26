@@ -809,11 +809,18 @@
       }
     }
 
-    // Déconnexion
+    // ============================================
+    // DÉCONNEXION GLOBALE
+    // ============================================
     async function logout() {
-      await supabase.auth.signOut();
-      console.log('[DASHBOARD] Déconnexion');
-      window.location.href = '/index.html';
+      console.log('[LOGOUT] Déconnexion en cours...');
+      try {
+        await supabase.auth.signOut();
+        console.log('[LOGOUT] Déconnexion réussie');
+      } catch (error) {
+        console.error('[LOGOUT] Erreur:', error);
+      }
+      window.location.href = '/login.html';
     }
 
     // Initialisation
