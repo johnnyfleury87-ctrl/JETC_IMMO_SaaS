@@ -113,21 +113,49 @@ module.exports = async (req, res) => {
           }
         }
 
-        // M18: Appeler la fonction RPC SECURITY DEFINER
-        console.log('[TICKET CREATE] Appel RPC create_ticket_locataire');
-        
-        const { data: tickets, error: ticketError } = await supabaseAdmin
-          .rpc('create_ticket_locataire', {
-            p_titre: titre,
-            p_description: description,
-            p_categorie: categorie,
-            p_sous_categorie: sous_categorie || null,
-            p_piece: piece || null,
-            p_disponibilites: JSON.stringify(disponibilites)
-          });
+        // Récupérer locataire_id et logement_id depuis le JWT
+        const { data: locataire, error: locataireError } = await supabaseAdmin
+          .from('locataires')
+          .select('id, logement_id')
+          .eq('profile_id', user.id)
+          .single();
+
+        if (locataireError || !locataire) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ 
+            success: false, 
+            message: 'Fiche locataire non trouvée' 
+          }));
+          return;
+        }
+
+        if (!locataire.logement_id) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ 
+            success: false, 
+            message: 'Vous devez être rattaché à un logement pour créer un ticket' 
+          }));
+          return;
+        }
+
+        // INSERT direct - regie_id sera injecté par le trigger set_ticket_regie_id
+        const { data: ticket, error: ticketError } = await supabaseAdmin
+          .from('tickets')
+          .insert({
+            titre,
+            description,
+            categorie,
+            sous_categorie: sous_categorie || null,
+            piece: piece || null,
+            locataire_id: locataire.id,
+            logement_id: locataire.logement_id
+            // regie_id injecté automatiquement par trigger
+          })
+          .select()
+          .single();
         
         if (ticketError) {
-          console.error('[TICKET CREATE] Erreur RPC:', ticketError);
+          console.error('[TICKET CREATE] Erreur INSERT:', ticketError);
           res.writeHead(500, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ 
             success: false, 
@@ -137,7 +165,17 @@ module.exports = async (req, res) => {
           return;
         }
 
-        const ticket = tickets && tickets.length > 0 ? tickets[0] : tickets;
+        // Insérer les disponibilités
+        const disponibilitesData = disponibilites.map(d => ({
+          ticket_id: ticket.id,
+          date_debut: d.date_debut,
+          date_fin: d.date_fin,
+          preference: d.preference
+        }));
+
+        await supabaseAdmin
+          .from('tickets_disponibilites')
+          .insert(disponibilitesData);
 
         res.writeHead(201, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ 
