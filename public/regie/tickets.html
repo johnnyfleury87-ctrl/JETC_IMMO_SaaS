@@ -644,11 +644,16 @@
       }
       
       try {
+        console.log('[REGIE][DEBUG] 🚀 checkAuth() démarré');
+        
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        console.log('[REGIE][DEBUG] session=', session, 'sessionError=', sessionError);
         
         if (sessionError || !session) {
-          console.log('[TICKETS][REDIRECT] Pas de session');
-          window.location.href = '/login.html';
+          console.error('[REGIE][DEBUG] ❌ SESSION NULL - LOGOUT BLOQUÉ POUR DEBUG');
+          console.error('[REGIE][DEBUG] sessionError=', sessionError);
+          // 🛑 TEMPORAIREMENT DÉSACTIVÉ POUR DEBUG (ÉTAPE 1.6)
+          // window.location.href = '/login.html';
           return;
         }
         
@@ -658,17 +663,22 @@
           .eq('id', session.user.id)
           .single();
         
+        console.log('[REGIE][DEBUG] profile=', profile, 'profileError=', profileError);
+        
         if (profileError || !profile) {
-          console.error('[TICKETS][PROFILE_MISSING]', profileError);
-          await supabase.auth.signOut();
-          window.location.href = '/login.html';
+          console.error('[REGIE][DEBUG] ❌ PROFILE NULL - LOGOUT BLOQUÉ POUR DEBUG');
+          console.error('[REGIE][DEBUG] profileError=', profileError);
+          // 🛑 TEMPORAIREMENT DÉSACTIVÉ POUR DEBUG (ÉTAPE 1.6)
+          // await supabase.auth.signOut();
+          // window.location.href = '/login.html';
           return;
         }
         
         if (profile.role !== 'regie') {
-          console.log('[TICKETS][REDIRECT] Rôle incorrect:', profile.role);
-          await supabase.auth.signOut();
-          window.location.href = '/login.html';
+          console.error('[REGIE][DEBUG] ❌ ROLE INCORRECT:', profile.role, '- LOGOUT BLOQUÉ POUR DEBUG');
+          // 🛑 TEMPORAIREMENT DÉSACTIVÉ POUR DEBUG (ÉTAPE 1.6)
+          // await supabase.auth.signOut();
+          // window.location.href = '/login.html';
           return;
         }
         
@@ -679,10 +689,14 @@
           .eq('profile_id', profile.id)
           .single();
         
+        console.log('[REGIE][DEBUG] regie=', regie, 'regieError=', regieError);
+        
         if (regieError || !regie) {
-          console.error('[TICKETS][REGIE_MISSING]', regieError);
-          await supabase.auth.signOut();
-          window.location.href = '/login.html';
+          console.error('[REGIE][DEBUG] ❌ REGIE NULL - LOGOUT BLOQUÉ POUR DEBUG');
+          console.error('[REGIE][DEBUG] regieError=', regieError);
+          // 🛑 TEMPORAIREMENT DÉSACTIVÉ POUR DEBUG (ÉTAPE 1.6)
+          // await supabase.auth.signOut();
+          // window.location.href = '/login.html';
           return;
         }
         
@@ -699,8 +713,12 @@
         loadAllTickets();
         
       } catch (error) {
-        console.error('[TICKETS][AUTH] Exception:', error);
-        window.location.href = '/login.html';
+        console.error('[REGIE][DEBUG] ❌ EXCEPTION CATCH - LOGOUT BLOQUÉ POUR DEBUG');
+        console.error('[REGIE][DEBUG] error=', error);
+        console.error('[REGIE][DEBUG] error.message=', error.message);
+        console.error('[REGIE][DEBUG] error.stack=', error.stack);
+        // 🛑 TEMPORAIREMENT DÉSACTIVÉ POUR DEBUG (ÉTAPE 1.6)
+        // window.location.href = '/login.html';
       }
     }
 
@@ -710,24 +728,34 @@
     
     // Charger tickets par statut
     async function loadTicketsByStatut(statut, containerId, countId) {
-      console.log(`[REGIE][TICKETS] 🚀 Chargement statut=${statut} via RPC M22.5...`);
+      console.log(`[REGIE][DEBUG] 🔵 loadTicketsByStatut(${statut}) démarré`);
       
       try {
         // ✅ M22.5: Utiliser RPC au lieu de .from('tickets').select()
         // AVANT: .from('tickets').select(...).eq('statut', ...) → Récursion RLS
         // APRÈS: .rpc('get_tickets_list_regie', {p_statut: ...}) → Bypass RLS
+        console.log(`[REGIE][DEBUG] 🚀 Appel RPC get_tickets_list_regie avec p_statut=${statut}`);
+        
         const { data: tickets, error } = await supabase.rpc('get_tickets_list_regie', {
           p_statut: statut
         });
         
+        console.log(`[REGIE][DEBUG] 📥 Résultat RPC ${statut}:`, { tickets, error });
+        
         if (error) {
-          console.error(`[REGIE][TICKETS] ❌ Erreur RPC ${statut}:`, error);
+          console.error(`[REGIE][DEBUG] ❌ ERREUR RPC ${statut}:`);
+          console.error(`[REGIE][DEBUG]   - error.message:`, error.message);
+          console.error(`[REGIE][DEBUG]   - error.details:`, error.details);
+          console.error(`[REGIE][DEBUG]   - error.hint:`, error.hint);
+          console.error(`[REGIE][DEBUG]   - error.code:`, error.code);
+          console.error(`[REGIE][DEBUG]   - error complet:`, JSON.stringify(error, null, 2));
+          
           document.getElementById(containerId).innerHTML = 
             `<div class="error-state">Erreur chargement: ${error.message}</div>`;
           return;
         }
         
-        console.log(`[REGIE][TICKETS] ✅ ${tickets?.length || 0} tickets ${statut} chargés`);
+        console.log(`[REGIE][DEBUG] ✅ ${tickets?.length || 0} tickets ${statut} chargés`);
         
         // Mettre à jour compteur
         document.getElementById(countId).textContent = `(${tickets.length})`;
@@ -809,16 +837,25 @@
 
     // Charger tous les tickets
     async function loadAllTickets() {
-      console.log('[TICKETS] Chargement toutes sections...');
-      await Promise.all([
-        loadTicketsByStatut('nouveau', 'tickets-nouveaux-list', 'count-nouveau'),
-        loadTicketsByStatut('ouvert', 'tickets-ouverts-list', 'count-ouvert'),
-        loadTicketsByStatut('en_attente', 'tickets-attente-list', 'count-en_attente'),
-        loadTicketsByStatut('en_cours', 'tickets-encours-list', 'count-en_cours'),
-        loadTicketsByStatut('termine', 'tickets-termines-list', 'count-termine'),
-        loadTicketsByStatut('clos', 'tickets-clos-list', 'count-clos')
-      ]);
-      console.log('[TICKETS] Toutes sections chargées');
+      console.log('[REGIE][DEBUG] 🚀 loadAllTickets() démarré');
+      console.log('[REGIE][DEBUG] currentRegieId=', window.currentRegieId);
+      
+      try {
+        await Promise.all([
+          loadTicketsByStatut('nouveau', 'tickets-nouveaux-list', 'count-nouveau'),
+          loadTicketsByStatut('ouvert', 'tickets-ouverts-list', 'count-ouvert'),
+          loadTicketsByStatut('en_attente', 'tickets-attente-list', 'count-en_attente'),
+          loadTicketsByStatut('en_cours', 'tickets-encours-list', 'count-en_cours'),
+          loadTicketsByStatut('termine', 'tickets-termines-list', 'count-termine'),
+          loadTicketsByStatut('clos', 'tickets-clos-list', 'count-clos')
+        ]);
+        console.log('[REGIE][DEBUG] ✅ loadAllTickets() terminé avec succès');
+      } catch (error) {
+        console.error('[REGIE][DEBUG] ❌ loadAllTickets() EXCEPTION:', error);
+        console.error('[REGIE][DEBUG] error.message=', error.message);
+        console.error('[REGIE][DEBUG] error.stack=', error.stack);
+        throw error; // Re-throw pour propagation
+      }
     }
 
     // ============================================
