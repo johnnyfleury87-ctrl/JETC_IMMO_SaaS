@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion des entreprises - JETC_IMMO</title>
+  <link rel="stylesheet" href="/css/design-system.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabaseClient.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--gray-50);
+      min-height: 100vh;
+    }
+
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: white;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      z-index: 1000;
+    }
+
+    .sidebar-header {
+      padding: 30px 20px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .logo-dashboard {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .logo-dashboard img {
+      height: 42px;
+      width: auto;
+    }
+
+    .logo-dashboard h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin: 0;
+    }
+
+    .sidebar-subtitle {
+      font-size: 13px;
+      color: var(--gray-600);
+      margin-top: 5px;
+      padding-left: 54px;
+    }
+
+    .sidebar-menu {
+      flex: 1;
+      padding: 20px 0;
+      overflow-y: auto;
+    }
+
+    .menu-item {
+      padding: 12px 20px;
+      color: var(--gray-700);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+    }
+
+    .menu-item:hover {
+      background: var(--gray-50);
+      color: var(--primary-blue);
+    }
+
+    .menu-item.active {
+      background: var(--blue-50);
+      color: var(--primary-blue);
+      border-left-color: var(--primary-blue);
+      font-weight: 600;
+    }
+
+    .sidebar-footer {
+      padding: 20px;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    .user-info-sidebar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .user-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-email {
+      font-size: 13px;
+      color: var(--gray-700);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-role {
+      font-size: 11px;
+      color: var(--gray-500);
+    }
+
+    .btn-logout {
+      width: 100%;
+      padding: 10px;
+      background: var(--gray-100);
+      color: var(--gray-700);
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .btn-logout:hover {
+      background: var(--gray-200);
+      color: var(--gray-900);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 30px 40px;
+    }
+
+    .page-header {
+      margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+      font-size: 28px;
+      color: var(--gray-900);
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      color: var(--gray-600);
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 600;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--primary-blue);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-blue);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+      background: var(--gray-100);
+      color: var(--gray-700);
+    }
+
+    .btn-secondary:hover {
+      background: var(--gray-200);
+    }
+
+    /* Liste entreprises */
+    .entreprises-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 20px;
+    }
+
+    .entreprise-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .entreprise-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .entreprise-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 15px;
+      gap: 10px;
+    }
+
+    .entreprise-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .entreprise-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .entreprise-nom {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--gray-900);
+      margin-bottom: 5px;
+      word-break: break-word;
+    }
+
+    .entreprise-ville {
+      font-size: 13px;
+      color: var(--gray-600);
+      margin-bottom: 3px;
+    }
+
+    .entreprise-details {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid var(--gray-100);
+    }
+
+    .detail-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--gray-700);
+      margin-bottom: 8px;
+    }
+
+    .detail-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .detail-icon {
+      font-size: 16px;
+      color: var(--gray-400);
+    }
+
+    .badge-mode {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-general {
+      background: var(--green-50);
+      color: var(--green-700);
+    }
+
+    .badge-restreint {
+      background: var(--orange-50);
+      color: var(--orange-700);
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: var(--radius-lg);
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-xl);
+    }
+
+    .modal-header {
+      padding: 25px;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h2 {
+      font-size: 22px;
+      color: var(--gray-900);
+      margin: 0;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 28px;
+      color: var(--gray-400);
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+      background: var(--gray-100);
+      color: var(--gray-700);
+    }
+
+    .modal-body {
+      padding: 25px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-700);
+      margin-bottom: 8px;
+    }
+
+    .form-group label .required {
+      color: var(--red-500);
+      margin-left: 3px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-help {
+      font-size: 12px;
+      color: var(--gray-500);
+      margin-top: 5px;
+    }
+
+    .modal-footer {
+      padding: 20px 25px;
+      border-top: 1px solid var(--gray-200);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .btn-cancel {
+      background: white;
+      color: var(--gray-700);
+      border: 1px solid var(--gray-300);
+    }
+
+    .btn-cancel:hover {
+      background: var(--gray-50);
+    }
+
+    /* États */
+    .loading-state,
+    .empty-state,
+    .error-state {
+      text-align: center;
+      padding: 60px 20px;
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .loading-state {
+      font-size: 32px;
+    }
+
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .empty-state h3 {
+      font-size: 20px;
+      color: var(--gray-900);
+      margin-bottom: 10px;
+    }
+
+    .empty-state p {
+      color: var(--gray-600);
+      margin-bottom: 20px;
+    }
+
+    .error-state {
+      background: var(--red-50);
+      border: 1px solid var(--red-200);
+    }
+
+    .error-state h3 {
+      color: var(--red-700);
+      margin-bottom: 10px;
+    }
+
+    .error-state p {
+      color: var(--red-600);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-dashboard">
+          <img src="/images/logo.svg" alt="JETC_IMMO Logo">
+          <h1>JETC_IMMO</h1>
+        </div>
+        <div class="sidebar-subtitle">Gestion de régie</div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <a href="/regie/dashboard.html" class="menu-item">
+          <span>🏠</span>
+          <span>Tableau de bord</span>
+        </a>
+        <a href="/regie/tickets.html" class="menu-item">
+          <span>🎫</span>
+          <span>Tickets</span>
+        </a>
+        <a href="/regie/immeubles.html" class="menu-item">
+          <span>🏢</span>
+          <span>Immeubles</span>
+        </a>
+        <a href="/regie/logements.html" class="menu-item">
+          <span>🏘️</span>
+          <span>Logements</span>
+        </a>
+        <a href="/regie/locataires.html" class="menu-item">
+          <span>👤</span>
+          <span>Locataires</span>
+        </a>
+        <a href="/regie/entreprises.html" class="menu-item active">
+          <span>🏭</span>
+          <span>Entreprises</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-info-sidebar">
+          <div class="user-avatar" id="userAvatar">R</div>
+          <div class="user-details">
+            <div class="user-email" id="userEmail">Chargement...</div>
+            <div class="user-role">Régie</div>
+          </div>
+        </div>
+        <button class="btn-logout" onclick="logout()">Déconnexion</button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="page-header">
+        <h1>Entreprises partenaires</h1>
+        <p>Gérez vos entreprises de maintenance et d'intervention</p>
+      </div>
+
+      <div class="toolbar">
+        <div></div>
+        <button class="btn btn-primary" onclick="openCreateModal()">
+          <span>➕</span>
+          <span>Nouvelle entreprise</span>
+        </button>
+      </div>
+
+      <div id="entreprisesContainer"></div>
+    </main>
+  </div>
+
+  <!-- Modal Création Entreprise -->
+  <div id="createModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Nouvelle entreprise</h2>
+        <button class="modal-close" onclick="closeCreateModal()">&times;</button>
+      </div>
+
+      <form id="createForm" onsubmit="handleCreateEntreprise(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Nom de l'entreprise <span class="required">*</span></label>
+            <input type="text" id="inputNom" required maxlength="200" placeholder="Ex: Plomberie Dupont SA">
+          </div>
+
+          <div class="form-group">
+            <label>Email de contact <span class="required">*</span></label>
+            <input type="email" id="inputEmail" required placeholder="contact@entreprise.ch">
+            <div class="form-help">Email principal de l'entreprise</div>
+          </div>
+
+          <div class="form-group">
+            <label>Téléphone</label>
+            <input type="tel" id="inputTelephone" placeholder="+41 22 123 45 67">
+          </div>
+
+          <div class="form-group">
+            <label>Adresse</label>
+            <input type="text" id="inputAdresse" placeholder="Rue de la Paix 10">
+          </div>
+
+          <div class="form-group" style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px;">
+            <div>
+              <label>Code postal</label>
+              <input type="text" id="inputCodePostal" placeholder="1200" maxlength="10">
+            </div>
+            <div>
+              <label>Ville</label>
+              <input type="text" id="inputVille" placeholder="Genève">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>SIRET / N° entreprise</label>
+            <input type="text" id="inputSiret" placeholder="CHE-123.456.789">
+            <div class="form-help">Numéro d'identification fiscale (optionnel)</div>
+          </div>
+
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="inputDescription" placeholder="Spécialités, informations de contact supplémentaires..."></textarea>
+            <div class="form-help">Vous pouvez inclure ici les informations de contact (nom, prénom, fonction...)</div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-cancel" onclick="closeCreateModal()">Annuler</button>
+          <button type="submit" class="btn btn-primary">Créer l'entreprise</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // =======================================================
+    // VARIABLES GLOBALES
+    // =======================================================
+    let currentUser = null;
+    let currentRegie = null;
+    let entreprises = [];
+
+    // =======================================================
+    // INITIALISATION
+    // =======================================================
+    document.addEventListener('DOMContentLoaded', async () => {
+      console.log('[INIT] Démarrage application entreprises');
+
+      // Vérifier authentification
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.log('[AUTH] Pas de session, redirection login');
+        window.location.href = '/login.html';
+        return;
+      }
+
+      currentUser = session.user;
+      console.log('[AUTH] Utilisateur connecté:', currentUser.email);
+
+      // Charger profil régie
+      await loadRegieProfile();
+
+      // Charger entreprises
+      await loadEntreprises();
+    });
+
+    // =======================================================
+    // AUTHENTIFICATION
+    // =======================================================
+    async function loadRegieProfile() {
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('id, email, role, regie_id')
+          .eq('id', currentUser.id)
+          .single();
+
+        if (error) throw error;
+
+        if (profile.role !== 'regie') {
+          alert('Accès refusé : cette page est réservée aux régies.');
+          window.location.href = '/login.html';
+          return;
+        }
+
+        // Charger infos régie complètes
+        const { data: regie, error: regieError } = await supabase
+          .from('regies')
+          .select('id, nom')
+          .eq('id', profile.regie_id)
+          .single();
+
+        if (regieError) throw regieError;
+
+        currentRegie = regie;
+        console.log('[REGIE] Régie chargée:', currentRegie.nom);
+
+        // Afficher dans sidebar
+        document.getElementById('userEmail').textContent = profile.email;
+        document.getElementById('userAvatar').textContent = profile.email.charAt(0).toUpperCase();
+
+      } catch (error) {
+        console.error('[REGIE] Erreur chargement profil:', error);
+        alert('Erreur lors du chargement du profil régie');
+      }
+    }
+
+    async function logout() {
+      await supabase.auth.signOut();
+      window.location.href = '/login.html';
+    }
+
+    // =======================================================
+    // CHARGEMENT ENTREPRISES
+    // =======================================================
+    async function loadEntreprises() {
+      const container = document.getElementById('entreprisesContainer');
+      container.innerHTML = '<div class="loading-state"><div style="font-size: 32px; margin-bottom: 10px;">⏳</div><p>Chargement des entreprises...</p></div>';
+
+      try {
+        console.log('[ENTREPRISES] Chargement depuis Supabase...');
+
+        // Charger entreprises via RLS (policy SELECT existante via regies_entreprises)
+        const { data: entreprisesData, error } = await supabase
+          .from('entreprises')
+          .select('id, nom, email, telephone, ville, code_postal, siret, created_at')
+          .order('nom', { ascending: true });
+
+        if (error) {
+          console.error('[ENTREPRISES] Erreur:', error);
+          throw error;
+        }
+
+        console.log('[ENTREPRISES] Chargées:', entreprisesData?.length || 0);
+
+        // Charger autorisations regies_entreprises pour mode_diffusion
+        const { data: autorisations, error: autoError } = await supabase
+          .from('regies_entreprises')
+          .select('entreprise_id, mode_diffusion')
+          .eq('regie_id', currentRegie.id);
+
+        if (autoError) throw autoError;
+
+        // Mapper mode_diffusion aux entreprises
+        const autorisationsMap = {};
+        autorisations?.forEach(auth => {
+          autorisationsMap[auth.entreprise_id] = auth.mode_diffusion;
+        });
+
+        entreprises = entreprisesData.map(e => ({
+          ...e,
+          mode_diffusion: autorisationsMap[e.id] || 'restreint'
+        }));
+
+        renderEntreprises();
+
+      } catch (error) {
+        console.error('[ENTREPRISES] Erreur chargement:', error);
+        container.innerHTML = `
+          <div class="error-state">
+            <h3>Erreur</h3>
+            <p>${error.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    function renderEntreprises() {
+      const container = document.getElementById('entreprisesContainer');
+
+      if (!entreprises || entreprises.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🏭</div>
+            <h3>Aucune entreprise partenaire</h3>
+            <p>Créez votre première entreprise partenaire pour commencer à diffuser des tickets.</p>
+            <button class="btn btn-primary" onclick="openCreateModal()">
+              <span>➕</span>
+              <span>Créer une entreprise</span>
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      const html = `
+        <div class="entreprises-grid">
+          ${entreprises.map(entreprise => `
+            <div class="entreprise-card">
+              <div class="entreprise-card-header">
+                <div class="entreprise-icon">🏭</div>
+                <div class="entreprise-info">
+                  <div class="entreprise-nom">${entreprise.nom}</div>
+                  ${entreprise.ville ? `<div class="entreprise-ville">📍 ${entreprise.ville}${entreprise.code_postal ? ` (${entreprise.code_postal})` : ''}</div>` : ''}
+                </div>
+              </div>
+
+              <div class="entreprise-details">
+                ${entreprise.email ? `
+                  <div class="detail-row">
+                    <span class="detail-icon">📧</span>
+                    <span>${entreprise.email}</span>
+                  </div>
+                ` : ''}
+                
+                ${entreprise.telephone ? `
+                  <div class="detail-row">
+                    <span class="detail-icon">📞</span>
+                    <span>${entreprise.telephone}</span>
+                  </div>
+                ` : ''}
+                
+                ${entreprise.siret ? `
+                  <div class="detail-row">
+                    <span class="detail-icon">🏢</span>
+                    <span>${entreprise.siret}</span>
+                  </div>
+                ` : ''}
+
+                <div class="detail-row">
+                  <span class="detail-icon">🔐</span>
+                  <span class="badge-mode badge-${entreprise.mode_diffusion}">
+                    ${entreprise.mode_diffusion === 'general' ? 'Diffusion générale' : 'Diffusion restreinte'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    // =======================================================
+    // MODAL CRÉATION
+    // =======================================================
+    function openCreateModal() {
+      document.getElementById('createModal').classList.add('active');
+      document.getElementById('createForm').reset();
+    }
+
+    function closeCreateModal() {
+      document.getElementById('createModal').classList.remove('active');
+    }
+
+    // =======================================================
+    // CRÉATION ENTREPRISE
+    // =======================================================
+    async function handleCreateEntreprise(event) {
+      event.preventDefault();
+      console.log('[CREATE] Démarrage création entreprise');
+
+      const nom = document.getElementById('inputNom').value.trim();
+      const email = document.getElementById('inputEmail').value.trim();
+      const telephone = document.getElementById('inputTelephone').value.trim() || null;
+      const adresse = document.getElementById('inputAdresse').value.trim() || null;
+      const code_postal = document.getElementById('inputCodePostal').value.trim() || null;
+      const ville = document.getElementById('inputVille').value.trim() || null;
+      const siret = document.getElementById('inputSiret').value.trim() || null;
+      const description = document.getElementById('inputDescription').value.trim() || null;
+
+      // Validation basique
+      if (!nom || !email) {
+        alert('Le nom et l\'email sont obligatoires.');
+        return;
+      }
+
+      try {
+        // ÉTAPE 1: Créer entreprise (RLS M26 autorise régie)
+        console.log('[CREATE] Insertion entreprise...');
+        const { data: newEntreprise, error: entrepriseError } = await supabase
+          .from('entreprises')
+          .insert({
+            nom,
+            email,
+            telephone,
+            adresse,
+            code_postal,
+            ville,
+            siret,
+            description,
+            profile_id: null // Pas de compte auth (workflow régie)
+          })
+          .select()
+          .single();
+
+        if (entrepriseError) {
+          console.error('[CREATE] Erreur INSERT entreprise:', entrepriseError);
+          throw entrepriseError;
+        }
+
+        console.log('[CREATE] Entreprise créée:', newEntreprise.id);
+
+        // ÉTAPE 2: Créer lien regies_entreprises
+        console.log('[CREATE] Création autorisation régie...');
+        const { error: authError } = await supabase
+          .from('regies_entreprises')
+          .insert({
+            regie_id: currentRegie.id,
+            entreprise_id: newEntreprise.id,
+            mode_diffusion: 'restreint' // Par défaut
+          });
+
+        if (authError) {
+          console.error('[CREATE] Erreur INSERT regies_entreprises:', authError);
+          throw authError;
+        }
+
+        console.log('[CREATE] Autorisation créée avec succès');
+
+        // Fermer modal et recharger liste
+        closeCreateModal();
+        alert(`Entreprise "${nom}" créée avec succès !`);
+        await loadEntreprises();
+
+      } catch (error) {
+        console.error('[CREATE] Erreur création entreprise:', error);
+        alert(`Erreur lors de la création: ${error.message}`);
+      }
+    }
+
+    // Fermer modal si clic sur fond noir
+    document.getElementById('createModal').addEventListener('click', (e) => {
+      if (e.target.id === 'createModal') {
+        closeCreateModal();
+      }
+    });
+  </script>
+</body>
+</html>
