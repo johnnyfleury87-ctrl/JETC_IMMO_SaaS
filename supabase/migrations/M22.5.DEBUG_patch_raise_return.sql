@@ -7,6 +7,15 @@
 -- ⚠️ TEMPORAIRE - NE PAS DÉPLOYER EN PRODUCTION
 -- ============================================================
 
+-- ⚠️ IMPORTANT: DROP les fonctions existantes car RETURN TYPE change
+-- PostgreSQL refuse CREATE OR REPLACE si signature incompatible
+
+DROP FUNCTION IF EXISTS public.get_tickets_list_regie(ticket_status);
+DROP FUNCTION IF EXISTS public.get_ticket_detail_regie(uuid);
+DROP FUNCTION IF EXISTS public.update_ticket_regie(uuid, text, numeric);
+
+-- ============================================================
+
 -- 1️⃣ Patch get_tickets_list_regie: RETURN au lieu de RAISE
 CREATE OR REPLACE FUNCTION public.get_tickets_list_regie(p_statut ticket_status)
 RETURNS TABLE(
@@ -196,6 +205,19 @@ BEGIN
   );
 END;
 $$;
+
+-- ============================================================
+-- PERMISSIONS (re-granter après DROP)
+-- ============================================================
+
+REVOKE ALL ON FUNCTION public.get_tickets_list_regie(ticket_status) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.get_tickets_list_regie(ticket_status) TO authenticated;
+
+REVOKE ALL ON FUNCTION public.get_ticket_detail_regie(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.get_ticket_detail_regie(uuid) TO authenticated;
+
+REVOKE ALL ON FUNCTION public.update_ticket_regie(uuid, text, numeric) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.update_ticket_regie(uuid, text, numeric) TO authenticated;
 
 -- ============================================================
 -- NOTES DE DEBUG
