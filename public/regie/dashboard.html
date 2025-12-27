@@ -836,41 +836,58 @@
     
     // Charger dashboard simple (alerte ou message)
     async function loadDashboard() {
-      console.log('[DASHBOARD] Chargement...');
+      console.log('[REGIE][TICKETS] 🚀 Chargement dashboard via RPC M22...');
       
       document.getElementById('dashboardLoading').style.display = 'block';
       document.getElementById('alerteNouveauxTickets').style.display = 'none';
       document.getElementById('messageAucunTicket').style.display = 'none';
       
       try {
-        // Compter tickets nouveaux
-        const { count, error } = await supabase
-          .from('tickets')
-          .select('id', { count: 'exact', head: true })
-          .eq('statut', 'nouveau')
-          .eq('regie_id', window.currentRegieId);
+        // ✅ M22: Utiliser RPC au lieu de SELECT direct (évite récursion RLS)
+        // AVANT: .from('tickets').select(...count...) → Récursion RLS → Déconnexion
+        // APRÈS: .rpc('get_tickets_dashboard_regie') → SECURITY DEFINER → Bypass RLS
+        const { data, error } = await supabase.rpc('get_tickets_dashboard_regie');
         
         if (error) {
-          console.error('[DASHBOARD] Erreur:', error);
+          console.error('[REGIE][TICKETS] ❌ Erreur RPC:', error);
           document.getElementById('dashboardLoading').style.display = 'none';
+          alert('Erreur chargement tickets: ' + error.message);
           return;
         }
         
-        console.log('[DASHBOARD] Tickets nouveaux:', count);
-        
-        document.getElementById('dashboardLoading').style.display = 'none';
-        
-        if (count > 0) {
-          // Afficher alerte
-          document.getElementById('alerteNouveauxTickets').style.display = 'block';
-          document.getElementById('alerteTexte').textContent = `${count} ticket${count > 1 ? 's' : ''} en attente de validation`;
-        } else {
-          // Afficher message
+        if (!data || data.length === 0) {
+          console.warn('[REGIE][TICKETS] ⚠️ Aucune donnée retournée par RPC');
+          document.getElementById('dashboardLoading').style.display = 'none';
           document.getElementById('messageAucunTicket').style.display = 'block';
+          return;
         }
-      } catch (error) {
-        console.error('[DASHBOARD] Exception:', error);
+        
+        const counts = data[0];
+        console.log('[REGIE][TICKETS] ✅ Compteurs reçus:', {
+          nouveau: counts.count_nouveau,
+          en_attente: counts.count_en_attente,
+          en_cours: counts.count_en_cours,
+          termine: counts.count_termine
+        });
+        
         document.getElementById('dashboardLoading').style.display = 'none';
+        
+        if (counts.count_nouveau > 0) {
+          // Afficher alerte tickets nouveaux
+          document.getElementById('alerteTexte').textContent = 
+            `${counts.count_nouveau} ticket${counts.count_nouveau > 1 ? 's' : ''} en attente de validation`;
+          document.getElementById('alerteNouveauxTickets').style.display = 'block';
+          console.log('[REGIE][TICKETS] 🔔 Alerte affichée:', counts.count_nouveau, 'tickets nouveaux');
+        } else {
+          // Afficher message aucun ticket
+          document.getElementById('messageAucunTicket').style.display = 'block';
+          console.log('[REGIE][TICKETS] ℹ️ Aucun ticket nouveau');
+        }
+        
+      } catch (error) {
+        console.error('[REGIE][TICKETS] ❌ Exception:', error);
+        document.getElementById('dashboardLoading').style.display = 'none';
+        alert('Erreur technique: ' + error.message);
       }
     }
 

@@ -1,0 +1,305 @@
+schemaname,tablename,policyname,roles,cmd,permissive,qual,with_check
+"public,abonnements,abonnements_admin_all,{public},ALL,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM profiles
+"  WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin_jtec'::user_role))))"",null"
+"public,abonnements,abonnements_select_admin,{public},SELECT,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM profiles
+"  WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin_jtec'::user_role))))"",null"
+"public,abonnements,abonnements_select_entreprise,{public},SELECT,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM profiles
+"  WHERE ((profiles.id = auth.uid()) AND (profiles.entreprise_id = abonnements.entreprise_id))))"",null"
+"public,abonnements,abonnements_select_regie,{public},SELECT,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM profiles
+"  WHERE ((profiles.id = auth.uid()) AND (profiles.regie_id = abonnements.regie_id))))"",null"
+public,entreprises,Admin JTEC can view all entreprises,{public},SELECT,PERMISSIVE,is_admin_jtec(),null
+public,entreprises,Entreprise can insert own profile,{public},INSERT,PERMISSIVE,null,(profile_id = auth.uid())
+public,entreprises,Entreprise can manage own profile,{public},ALL,PERMISSIVE,(profile_id = auth.uid()),null
+public,entreprises,Entreprise can update own profile,{public},UPDATE,PERMISSIVE,(profile_id = auth.uid()),null
+public,entreprises,Entreprise can view own profile,{public},SELECT,PERMISSIVE,(profile_id = auth.uid()),null
+"public,entreprises,Regie can view authorized entreprises,{public},SELECT,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM regies_entreprises
+"  WHERE ((regies_entreprises.entreprise_id = entreprises.id) AND (regies_entreprises.regie_id = get_user_regie_id()))))"",null"
+"public,factures,factures_admin_jtec_all,{authenticated},ALL,PERMISSIVE,""(( SELECT profiles.role"
+   FROM profiles
+"  WHERE (profiles.id = auth.uid())) = 'admin_jtec'::user_role)"",null"
+"public,factures,factures_entreprise_insert,{authenticated},INSERT,PERMISSIVE,null,""((entreprise_id = ( SELECT profiles.entreprise_id"
+   FROM profiles
+  WHERE (profiles.id = auth.uid()))) AND (( SELECT profiles.role
+   FROM profiles
+"  WHERE (profiles.id = auth.uid())) = 'entreprise'::user_role))"""
+"public,factures,factures_entreprise_select,{authenticated},SELECT,PERMISSIVE,""((entreprise_id = ( SELECT profiles.entreprise_id"
+   FROM profiles
+  WHERE (profiles.id = auth.uid()))) AND (( SELECT profiles.role
+   FROM profiles
+"  WHERE (profiles.id = auth.uid())) = 'entreprise'::user_role))"",null"
+"public,factures,factures_regie_select,{authenticated},SELECT,PERMISSIVE,""((regie_id = ( SELECT profiles.regie_id"
+   FROM profiles
+  WHERE (profiles.id = auth.uid()))) AND (( SELECT profiles.role
+   FROM profiles
+"  WHERE (profiles.id = auth.uid())) = 'regie'::user_role))"",null"
+"public,factures,factures_update,{authenticated},UPDATE,PERMISSIVE,""(((entreprise_id = ( SELECT profiles.entreprise_id"
+   FROM profiles
+  WHERE (profiles.id = auth.uid()))) AND (( SELECT profiles.role
+   FROM profiles
+  WHERE (profiles.id = auth.uid())) = 'entreprise'::user_role)) OR ((regie_id = ( SELECT profiles.regie_id
+   FROM profiles
+  WHERE (profiles.id = auth.uid()))) AND (( SELECT profiles.role
+   FROM profiles
+  WHERE (profiles.id = auth.uid())) = 'regie'::user_role)) OR (( SELECT profiles.role
+   FROM profiles
+"  WHERE (profiles.id = auth.uid())) = 'admin_jtec'::user_role))"",null"
+"public,immeubles,Admin JTEC can view all immeubles,{public},SELECT,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM profiles p
+"  WHERE ((p.id = auth.uid()) AND (p.role = 'admin_jtec'::user_role))))"",null"
+"public,immeubles,Regie can manage own immeubles,{public},ALL,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM regies r
+"  WHERE ((r.id = immeubles.regie_id) AND (r.profile_id = auth.uid()))))"",null"
+"public,immeubles,Regie can view own immeubles,{public},SELECT,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM regies r
+"  WHERE ((r.id = immeubles.regie_id) AND (r.profile_id = auth.uid()))))"",null"
+"public,locataires,Admin JTEC can view all locataires,{public},SELECT,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM profiles p
+"  WHERE ((p.id = auth.uid()) AND (p.role = 'admin_jtec'::user_role))))"",null"
+public,locataires,Locataire can manage own data,{public},ALL,PERMISSIVE,(profile_id = auth.uid()),null
+"public,locataires,Regie can delete own locataires,{public},DELETE,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM regies r
+"  WHERE ((r.id = locataires.regie_id) AND (r.profile_id = auth.uid()))))"",null"
+"public,locataires,Regie can insert locataire in own logements,{public},INSERT,PERMISSIVE,null,""(EXISTS ( SELECT 1"
+   FROM (logements l
+     JOIN immeubles i ON ((i.id = l.immeuble_id)))
+"  WHERE ((l.id = locataires.logement_id) AND (i.regie_id = get_user_regie_id()))))"""
+"public,locataires,Regie can insert own locataires,{public},INSERT,PERMISSIVE,null,""(EXISTS ( SELECT 1"
+   FROM regies r
+"  WHERE ((r.id = locataires.regie_id) AND (r.profile_id = auth.uid()))))"""
+"public,locataires,Regie can update own locataires,{public},UPDATE,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM regies r
+"  WHERE ((r.id = locataires.regie_id) AND (r.profile_id = auth.uid()))))"",""(EXISTS ( SELECT 1"
+   FROM regies r
+"  WHERE ((r.id = locataires.regie_id) AND (r.profile_id = auth.uid()))))"""
+"public,locataires,Regie can view own locataires,{public},SELECT,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM regies r
+"  WHERE ((r.id = locataires.regie_id) AND (r.profile_id = auth.uid()))))"",null"
+"public,logements,Admin JTEC can view all logements,{public},SELECT,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM profiles p
+"  WHERE ((p.id = auth.uid()) AND (p.role = 'admin_jtec'::user_role))))"",null"
+"public,logements,Locataire can view only own logement,{public},SELECT,PERMISSIVE,""((( SELECT profiles.role"
+   FROM profiles
+  WHERE (profiles.id = auth.uid())) = 'locataire'::user_role) AND (id = ( SELECT locataires.logement_id
+   FROM locataires
+"  WHERE (locataires.profile_id = auth.uid()))))"",null"
+"public,logements,Regie can manage own logements,{public},ALL,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM regies r
+"  WHERE ((r.id = logements.regie_id) AND (r.profile_id = auth.uid()))))"",null"
+"public,logements,Regie can view own logements,{public},SELECT,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM regies r
+"  WHERE ((r.id = logements.regie_id) AND (r.profile_id = auth.uid()))))"",null"
+"public,messages,messages_access,{authenticated},ALL,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM get_mission_actors(messages.mission_id) get_mission_actors(user_id, role)
+"  WHERE (messages.id = auth.uid())))"",null"
+"public,missions,Admin JTEC can view all missions,{public},SELECT,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM profiles
+"  WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin_jtec'::user_role))))"",null"
+"public,missions,Entreprise can update own missions,{public},UPDATE,PERMISSIVE,""(entreprise_id = ( SELECT entreprises.id"
+   FROM entreprises
+"  WHERE (entreprises.profile_id = auth.uid())))"",null"
+"public,missions,Entreprise can view own missions,{public},SELECT,PERMISSIVE,""(entreprise_id = ( SELECT entreprises.id"
+   FROM entreprises
+"  WHERE (entreprises.profile_id = auth.uid())))"",null"
+"public,missions,Locataire can view missions for own tickets,{public},SELECT,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM (tickets t
+     JOIN locataires loc ON ((t.locataire_id = loc.id)))
+"  WHERE ((missions.ticket_id = t.id) AND (loc.profile_id = auth.uid()))))"",null"
+"public,missions,Regie can update missions for own tickets,{public},UPDATE,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM ((tickets t
+     JOIN logements l ON ((t.logement_id = l.id)))
+     JOIN immeubles i ON ((l.immeuble_id = i.id)))
+"  WHERE ((missions.ticket_id = t.id) AND (i.regie_id = get_user_regie_id()))))"",null"
+"public,missions,Regie can view missions for own tickets,{public},SELECT,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM ((tickets t
+     JOIN logements l ON ((t.logement_id = l.id)))
+     JOIN immeubles i ON ((l.immeuble_id = i.id)))
+"  WHERE ((missions.ticket_id = t.id) AND (i.regie_id = get_user_regie_id()))))"",null"
+"public,missions,Technicien can update assigned missions,{public},UPDATE,PERMISSIVE,""(technicien_id = ( SELECT techniciens.id"
+   FROM techniciens
+"  WHERE (techniciens.profile_id = auth.uid())))"",null"
+"public,missions,Technicien can view assigned missions,{public},SELECT,PERMISSIVE,""(technicien_id = ( SELECT techniciens.id"
+   FROM techniciens
+"  WHERE (techniciens.profile_id = auth.uid())))"",null"
+public,notifications,notifications_own,{authenticated},ALL,PERMISSIVE,(user_id = auth.uid()),null
+"public,plans,plans_admin_all,{public},ALL,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM profiles
+"  WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin_jtec'::user_role))))"",null"
+public,plans,plans_select_all,{public},SELECT,PERMISSIVE,true,null
+public,profiles,Admin JTEC can manage all profiles,{public},ALL,PERMISSIVE,is_admin_jtec(),null
+public,profiles,Users can update own profile,{public},UPDATE,PERMISSIVE,(auth.uid() = id),null
+public,profiles,Users can view own profile,{public},SELECT,PERMISSIVE,(auth.uid() = id),null
+public,regies,Admin JTEC can manage all regies,{public},ALL,PERMISSIVE,is_admin_jtec(),null
+public,regies,Regie can insert own regie,{public},INSERT,PERMISSIVE,null,(profile_id = auth.uid())
+public,regies,Regie can manage own regie,{public},ALL,PERMISSIVE,(profile_id = auth.uid()),null
+public,regies,Regie can update own regie,{public},UPDATE,PERMISSIVE,(profile_id = auth.uid()),null
+public,regies,Regie can view own regie,{public},SELECT,PERMISSIVE,(profile_id = auth.uid()),null
+public,regies_entreprises,Admin JTEC can view all authorizations,{public},SELECT,PERMISSIVE,is_admin_jtec(),null
+"public,regies_entreprises,Entreprise can view own authorizations,{public},SELECT,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM entreprises
+"  WHERE ((entreprises.id = regies_entreprises.entreprise_id) AND (entreprises.profile_id = auth.uid()))))"",null"
+public,regies_entreprises,Regie can create authorizations,{public},INSERT,PERMISSIVE,null,(regie_id = get_user_regie_id())
+public,regies_entreprises,Regie can delete authorizations,{public},DELETE,PERMISSIVE,(regie_id = get_user_regie_id()),null
+public,regies_entreprises,Regie can manage authorizations,{public},ALL,PERMISSIVE,(regie_id = get_user_regie_id()),null
+public,regies_entreprises,Regie can update authorizations,{public},UPDATE,PERMISSIVE,(regie_id = get_user_regie_id()),null
+public,regies_entreprises,Regie can view own authorizations,{public},SELECT,PERMISSIVE,(regie_id = get_user_regie_id()),null
+"public,techniciens,Admin JTEC can view all techniciens,{public},SELECT,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM profiles
+"  WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin_jtec'::user_role))))"",null"
+"public,techniciens,Entreprise can insert own techniciens,{public},INSERT,PERMISSIVE,null,""(entreprise_id = ( SELECT entreprises.id"
+   FROM entreprises
+"  WHERE (entreprises.profile_id = auth.uid())))"""
+"public,techniciens,Entreprise can update own techniciens,{public},UPDATE,PERMISSIVE,""(entreprise_id = ( SELECT entreprises.id"
+   FROM entreprises
+"  WHERE (entreprises.profile_id = auth.uid())))"",null"
+"public,techniciens,Entreprise can view own techniciens,{public},SELECT,PERMISSIVE,""(entreprise_id = ( SELECT entreprises.id"
+   FROM entreprises
+"  WHERE (entreprises.profile_id = auth.uid())))"",null"
+"public,techniciens,Regie can view techniciens of authorized entreprises,{public},SELECT,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM regies_entreprises
+"  WHERE ((regies_entreprises.entreprise_id = techniciens.entreprise_id) AND (regies_entreprises.regie_id = get_user_regie_id()))))"",null"
+public,techniciens,Technicien can update own profile,{public},UPDATE,PERMISSIVE,(profile_id = auth.uid()),null
+public,techniciens,Technicien can view own profile,{public},SELECT,PERMISSIVE,(profile_id = auth.uid()),null
+public,tickets,Admin JTEC can view all tickets,{public},SELECT,PERMISSIVE,is_admin_jtec(),null
+"public,tickets,Entreprise can view authorized tickets,{authenticated},SELECT,PERMISSIVE,""((( SELECT profiles.role"
+   FROM profiles
+  WHERE (profiles.id = auth.uid())) = 'entreprise'::user_role) AND (((mode_diffusion = 'public'::text) AND (statut = 'en_attente'::ticket_status) AND (locked_at IS NULL) AND (EXISTS ( SELECT 1
+   FROM (regies_entreprises re
+     JOIN entreprises e ON ((e.id = re.entreprise_id)))
+  WHERE ((re.regie_id = tickets.regie_id) AND (e.profile_id = auth.uid()) AND (re.mode_diffusion = 'general'::text))))) OR ((mode_diffusion = 'assigné'::text) AND (entreprise_id = ( SELECT entreprises.id
+   FROM entreprises
+  WHERE (entreprises.profile_id = auth.uid()))) AND (statut = ANY (ARRAY['en_attente'::ticket_status, 'en_cours'::ticket_status, 'termine'::ticket_status]))) OR ((entreprise_id = ( SELECT entreprises.id
+   FROM entreprises
+"  WHERE (entreprises.profile_id = auth.uid()))) AND (statut = ANY (ARRAY['en_cours'::ticket_status, 'termine'::ticket_status, 'clos'::ticket_status])))))"",null"
+"public,tickets,Locataire can create own tickets,{authenticated},INSERT,PERMISSIVE,null,""(EXISTS ( SELECT 1"
+   FROM profiles p
+"  WHERE ((p.id = auth.uid()) AND (p.role = 'locataire'::user_role))))"""
+"public,tickets,Locataire can manage own tickets,{public},ALL,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM locataires
+"  WHERE ((locataires.id = tickets.locataire_id) AND (locataires.profile_id = auth.uid()))))"",null"
+"public,tickets,Locataire can view own tickets,{public},SELECT,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM locataires
+"  WHERE ((locataires.id = tickets.locataire_id) AND (locataires.profile_id = auth.uid()))))"",null"
+"public,tickets,Regie can delete tickets without mission,{authenticated},DELETE,PERMISSIVE,""((( SELECT profiles.role"
+   FROM profiles
+  WHERE (profiles.id = auth.uid())) = ANY (ARRAY['regie'::user_role, 'admin_jtec'::user_role])) AND (((( SELECT profiles.role
+   FROM profiles
+  WHERE (profiles.id = auth.uid())) = 'regie'::user_role) AND (regie_id = ( SELECT profiles.regie_id
+   FROM profiles
+  WHERE (profiles.id = auth.uid())))) OR (( SELECT profiles.role
+   FROM profiles
+"  WHERE (profiles.id = auth.uid())) = 'admin_jtec'::user_role)) AND (NOT ticket_has_mission(id)))"",null"
+"public,tickets,Regie can update own tickets,{authenticated},UPDATE,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM regies r
+"  WHERE ((r.id = tickets.regie_id) AND (r.profile_id = auth.uid()))))"",null"
+"public,tickets,Regie can view own tickets,{authenticated},SELECT,PERMISSIVE,""(EXISTS ( SELECT 1"
+   FROM regies r
+"  WHERE ((r.id = tickets.regie_id) AND (r.profile_id = auth.uid()))))"",null"
+"public,tickets_disponibilites,Entreprise can view disponibilites for visible tickets,{authenticated},SELECT,PERMISSIVE,""((( SELECT profiles.role"
+   FROM profiles
+  WHERE (profiles.id = auth.uid())) = 'entreprise'::user_role) AND (ticket_id IN ( SELECT tickets_visibles_entreprise.id
+   FROM tickets_visibles_entreprise
+  WHERE (tickets_visibles_entreprise.visible_par_entreprise_id = ( SELECT entreprises.id
+           FROM entreprises
+"          WHERE (entreprises.profile_id = auth.uid()))))))"",null"
+"public,tickets_disponibilites,Locataire can delete disponibilites,{authenticated},DELETE,PERMISSIVE,""((( SELECT profiles.role"
+   FROM profiles
+  WHERE (profiles.id = auth.uid())) = 'locataire'::user_role) AND (ticket_id IN ( SELECT tickets.id
+   FROM tickets
+  WHERE (tickets.locataire_id = ( SELECT locataires.id
+           FROM locataires
+"          WHERE (locataires.profile_id = auth.uid()))))))"",null"
+"public,tickets_disponibilites,Locataire can insert disponibilites,{authenticated},INSERT,PERMISSIVE,null,""((( SELECT profiles.role"
+   FROM profiles
+  WHERE (profiles.id = auth.uid())) = 'locataire'::user_role) AND (ticket_id IN ( SELECT tickets.id
+   FROM tickets
+  WHERE (tickets.locataire_id = ( SELECT locataires.id
+           FROM locataires
+"          WHERE (locataires.profile_id = auth.uid()))))))"""
+"public,tickets_disponibilites,Locataire can update disponibilites,{authenticated},UPDATE,PERMISSIVE,""((( SELECT profiles.role"
+   FROM profiles
+  WHERE (profiles.id = auth.uid())) = 'locataire'::user_role) AND (ticket_id IN ( SELECT tickets.id
+   FROM tickets
+  WHERE (tickets.locataire_id = ( SELECT locataires.id
+           FROM locataires
+"          WHERE (locataires.profile_id = auth.uid()))))))"",null"
+"public,tickets_disponibilites,Locataire can view own disponibilites,{authenticated},SELECT,PERMISSIVE,""((( SELECT profiles.role"
+   FROM profiles
+  WHERE (profiles.id = auth.uid())) = 'locataire'::user_role) AND (ticket_id IN ( SELECT tickets.id
+   FROM tickets
+  WHERE (tickets.locataire_id = ( SELECT locataires.id
+           FROM locataires
+"          WHERE (locataires.profile_id = auth.uid()))))))"",null"
+"public,tickets_disponibilites,Regie can view disponibilites,{authenticated},SELECT,PERMISSIVE,""((( SELECT profiles.role"
+   FROM profiles
+  WHERE (profiles.id = auth.uid())) = ANY (ARRAY['regie'::user_role, 'admin_jtec'::user_role])) AND (ticket_id IN ( SELECT tickets.id
+   FROM tickets
+  WHERE (tickets.regie_id = ( SELECT profiles.regie_id
+           FROM profiles
+"          WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'regie'::user_role)))))))"",null"
+"storage,objects,Admin JTEC can view all photos immeubles,{public},SELECT,PERMISSIVE,""((bucket_id = 'photos-immeubles'::text) AND (EXISTS ( SELECT 1"
+   FROM profiles
+"  WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin_jtec'::user_role)))))"",null"
+"storage,objects,Admin JTEC can view all photos logements,{public},SELECT,PERMISSIVE,""((bucket_id = 'photos-logements'::text) AND (EXISTS ( SELECT 1"
+   FROM profiles
+"  WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin_jtec'::user_role)))))"",null"
+"storage,objects,Admin JTEC can view all signatures,{public},SELECT,PERMISSIVE,""((bucket_id = 'signatures'::text) AND (EXISTS ( SELECT 1"
+   FROM profiles
+"  WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin_jtec'::user_role)))))"",null"
+"storage,objects,Entreprise can upload own signature,{public},INSERT,PERMISSIVE,null,""((bucket_id = 'signatures'::text) AND (auth.uid() IN ( SELECT entreprises.profile_id"
+   FROM entreprises
+"  WHERE ((entreprises.id)::text = (storage.foldername(objects.name))[1]))))"""
+"storage,objects,Entreprise can view own signature,{public},SELECT,PERMISSIVE,""((bucket_id = 'signatures'::text) AND (auth.uid() IN ( SELECT entreprises.profile_id"
+   FROM entreprises
+"  WHERE ((entreprises.id)::text = (storage.foldername(objects.name))[1]))))"",null"
+"storage,objects,Locataire can upload own signature,{public},INSERT,PERMISSIVE,null,""((bucket_id = 'signatures'::text) AND (auth.uid() IN ( SELECT locataires.profile_id"
+   FROM locataires
+"  WHERE ((locataires.id)::text = (storage.foldername(objects.name))[1]))))"""
+"storage,objects,Locataire can view own signature,{public},SELECT,PERMISSIVE,""((bucket_id = 'signatures'::text) AND (auth.uid() IN ( SELECT locataires.profile_id"
+   FROM locataires
+"  WHERE ((locataires.id)::text = (storage.foldername(objects.name))[1]))))"",null"
+"storage,objects,Locataire can view photo of own logement,{public},SELECT,PERMISSIVE,""((bucket_id = 'photos-logements'::text) AND (auth.uid() IN ( SELECT locataires.profile_id"
+   FROM locataires
+"  WHERE ((locataires.logement_id)::text = (storage.foldername(objects.name))[1]))))"",null"
+"storage,objects,Regie can delete photos of own immeubles,{public},DELETE,PERMISSIVE,""((bucket_id = 'photos-immeubles'::text) AND (auth.uid() IN ( SELECT regies.profile_id"
+   FROM (regies
+     JOIN immeubles ON ((immeubles.regie_id = regies.id)))
+"  WHERE ((immeubles.id)::text = (storage.foldername(objects.name))[1]))))"",null"
+"storage,objects,Regie can delete photos of own logements,{public},DELETE,PERMISSIVE,""((bucket_id = 'photos-logements'::text) AND (auth.uid() IN ( SELECT regies.profile_id"
+   FROM ((regies
+     JOIN immeubles ON ((immeubles.regie_id = regies.id)))
+     JOIN logements ON ((logements.immeuble_id = immeubles.id)))
+"  WHERE ((logements.id)::text = (storage.foldername(objects.name))[1]))))"",null"
+"storage,objects,Regie can upload photos for own immeubles,{public},INSERT,PERMISSIVE,null,""((bucket_id = 'photos-immeubles'::text) AND (auth.uid() IN ( SELECT regies.profile_id"
+   FROM (regies
+     JOIN immeubles ON ((immeubles.regie_id = regies.id)))
+"  WHERE ((immeubles.id)::text = (storage.foldername(objects.name))[1]))))"""
+"storage,objects,Regie can upload photos for own logements,{public},INSERT,PERMISSIVE,null,""((bucket_id = 'photos-logements'::text) AND (auth.uid() IN ( SELECT regies.profile_id"
+   FROM ((regies
+     JOIN immeubles ON ((immeubles.regie_id = regies.id)))
+     JOIN logements ON ((logements.immeuble_id = immeubles.id)))
+"  WHERE ((logements.id)::text = (storage.foldername(objects.name))[1]))))"""
+"storage,objects,Regie can view photos of own immeubles,{public},SELECT,PERMISSIVE,""((bucket_id = 'photos-immeubles'::text) AND (auth.uid() IN ( SELECT regies.profile_id"
+   FROM (regies
+     JOIN immeubles ON ((immeubles.regie_id = regies.id)))
+"  WHERE ((immeubles.id)::text = (storage.foldername(objects.name))[1]))))"",null"
+"storage,objects,Regie can view photos of own logements,{public},SELECT,PERMISSIVE,""((bucket_id = 'photos-logements'::text) AND (auth.uid() IN ( SELECT regies.profile_id"
+   FROM ((regies
+     JOIN immeubles ON ((immeubles.regie_id = regies.id)))
+     JOIN logements ON ((logements.immeuble_id = immeubles.id)))
+"  WHERE ((logements.id)::text = (storage.foldername(objects.name))[1]))))"",null"
+"storage,objects,Regie can view signatures of authorized entreprises,{public},SELECT,PERMISSIVE,""((bucket_id = 'signatures'::text) AND (auth.uid() IN ( SELECT regies.profile_id"
+   FROM ((regies
+     JOIN regies_entreprises ON ((regies_entreprises.regie_id = regies.id)))
+     JOIN entreprises ON ((entreprises.id = regies_entreprises.entreprise_id)))
+"  WHERE ((entreprises.id)::text = (storage.foldername(objects.name))[1]))))"",null"
+"storage,objects,Regie can view signatures of own locataires,{public},SELECT,PERMISSIVE,""((bucket_id = 'signatures'::text) AND (auth.uid() IN ( SELECT regies.profile_id"
+   FROM (((regies
+     JOIN immeubles ON ((immeubles.regie_id = regies.id)))
+     JOIN logements ON ((logements.immeuble_id = immeubles.id)))
+     JOIN locataires ON ((locataires.logement_id = logements.id)))
+"  WHERE ((locataires.id)::text = (storage.foldername(objects.name))[1]))))"",null"
