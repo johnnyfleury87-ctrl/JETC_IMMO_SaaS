@@ -147,7 +147,18 @@
   <!-- ✅ CORRECTION AUTH : Charger Supabase (SOURCE DE VÉRITÉ) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/supabaseClient.js"></script>
-  <script src="/src/lib/i18n.js"></script>
+  <!-- ✅ M22.5: Fix chemin i18n - /src non accessible en prod Vercel -->
+  <script>
+    // i18n inline minimal (évite 404 /src/lib/i18n.js)
+    function getAllTranslations() {
+      return {
+        proMode: 'Mode Professionnel',
+        password: 'Mot de passe',
+        login: 'Connexion',
+        // Ajouter autres traductions si nécessaire
+      };
+    }
+  </script>
   
   <script>
     // Appliquer les traductions (fonction robuste)

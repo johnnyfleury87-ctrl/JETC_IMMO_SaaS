@@ -296,8 +296,24 @@
   </div>
 
   <!-- Scripts -->
-  <script src="/src/lib/i18n.js"></script>
-  <script src="/src/lib/demoProfiles.js"></script>
+  <!-- ✅ M22.5: Inline i18n et demoProfiles (évite 404 /src/ en prod) -->
+  <script>
+    // i18n minimal inline
+    function getCurrentLanguage() { return 'fr'; }
+    function getAllTranslations() {
+      return {
+        demoMode: 'Mode Démo',
+        loginAsDemo: 'Se connecter en tant que démo',
+      };
+    }
+    // demoProfiles inline
+    const demoProfiles = {
+      regie: { email: 'demo.regie@jetc.ch', password: 'demo123' },
+      locataire: { email: 'demo.locataire@jetc.ch', password: 'demo123' },
+      entreprise: { email: 'demo.entreprise@jetc.ch', password: 'demo123' },
+      technicien: { email: 'demo.technicien@jetc.ch', password: 'demo123' }
+    };
+  </script>
   <script>
     // Initialisation de la langue
     function initLanguage() {

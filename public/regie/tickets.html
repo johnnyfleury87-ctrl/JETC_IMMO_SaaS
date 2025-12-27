@@ -710,37 +710,24 @@
     
     // Charger tickets par statut
     async function loadTicketsByStatut(statut, containerId, countId) {
-      console.log(`[TICKETS] Chargement statut=${statut}`);
+      console.log(`[REGIE][TICKETS] 🚀 Chargement statut=${statut} via RPC M22.5...`);
       
       try {
-        const { data: tickets, error } = await supabase
-          .from('tickets')
-          .select(`
-            id, 
-            titre, 
-            description, 
-            statut, 
-            priorite, 
-            categorie,
-            sous_categorie,
-            piece,
-            created_at,
-            plafond_intervention_chf,
-            locataire:locataires!inner(nom, prenom),
-            logement:logements!inner(numero)
-          `)
-          .eq('statut', statut)
-          .eq('regie_id', window.currentRegieId)
-          .order('created_at', { ascending: false });
+        // ✅ M22.5: Utiliser RPC au lieu de .from('tickets').select()
+        // AVANT: .from('tickets').select(...).eq('statut', ...) → Récursion RLS
+        // APRÈS: .rpc('get_tickets_list_regie', {p_statut: ...}) → Bypass RLS
+        const { data: tickets, error } = await supabase.rpc('get_tickets_list_regie', {
+          p_statut: statut
+        });
         
         if (error) {
-          console.error(`[TICKETS] Erreur chargement ${statut}:`, error);
+          console.error(`[REGIE][TICKETS] ❌ Erreur RPC ${statut}:`, error);
           document.getElementById(containerId).innerHTML = 
             `<div class="error-state">Erreur chargement: ${error.message}</div>`;
           return;
         }
         
-        console.log(`[TICKETS] ${tickets.length} tickets ${statut} chargés`);
+        console.log(`[REGIE][TICKETS] ✅ ${tickets?.length || 0} tickets ${statut} chargés`);
         
         // Mettre à jour compteur
         document.getElementById(countId).textContent = `(${tickets.length})`;
@@ -865,41 +852,43 @@
       const plafondStr = document.getElementById('validation-plafond').value.trim();
       const plafond = plafondStr ? parseFloat(plafondStr) : null;
       
-      console.log('[ACTION] Validation ticket:', {
+      console.log('[REGIE][ACTION] Validation ticket:', {
         ticketId: currentTicketIdForValidation,
         priorite,
         plafond
       });
       
       try {
-        // 1. Mettre à jour priorité et plafond
-        const { error: updateError } = await supabase
-          .from('tickets')
-          .update({
-            priorite: priorite,
-            plafond_intervention_chf: plafond
-          })
-          .eq('id', currentTicketIdForValidation);
+        // ✅ M22.5: 1. Mettre à jour priorité et plafond via RPC
+        // AVANT: .from('tickets').update(...) → Récursion RLS
+        // APRÈS: .rpc('update_ticket_regie', {...}) → Bypass RLS
+        const { data: updateData, error: updateError } = await supabase.rpc('update_ticket_regie', {
+          p_ticket_id: currentTicketIdForValidation,
+          p_priorite: priorite,
+          p_plafond_intervention_chf: plafond
+        });
         
         if (updateError) {
-          console.error('[ACTION] Erreur mise à jour:', updateError);
+          console.error('[REGIE][ACTION] ❌ Erreur RPC update:', updateError);
           alert(`❌ Erreur mise à jour:\n${updateError.message}`);
           return;
         }
         
-        // 2. Changer statut via RPC
+        console.log('[REGIE][ACTION] ✅ Ticket mis à jour:', updateData);
+        
+        // 2. Changer statut via RPC existante
         const { error: rpcError } = await supabase.rpc('update_ticket_statut', {
           p_ticket_id: currentTicketIdForValidation,
           p_nouveau_statut: 'ouvert'
         });
         
         if (rpcError) {
-          console.error('[ACTION] Erreur RPC:', rpcError);
+          console.error('[REGIE][ACTION] ❌ Erreur RPC statut:', rpcError);
           alert(`❌ Erreur validation:\n${rpcError.message}`);
           return;
         }
         
-        console.log('[ACTION] Ticket validé avec succès');
+        console.log('[REGIE][ACTION] ✅ Ticket validé avec succès');
         alert('✅ Ticket validé avec succès !');
         
         closeValidationModal();
