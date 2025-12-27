@@ -685,7 +685,7 @@
         // Récupérer régie
         const { data: regie, error: regieError } = await supabase
           .from('regies')
-          .select('id, nom_agence')
+          .select('id, nom')  // ✅ Colonne réelle: 'nom' (pas 'nom_agence')
           .eq('profile_id', profile.id)
           .single();
         
@@ -704,7 +704,7 @@
         
         // Afficher infos utilisateur
         document.getElementById('userEmail').textContent = profile.email;
-        document.getElementById('agenceName').textContent = regie.nom_agence;
+        document.getElementById('agenceName').textContent = regie.nom;  // ✅ Colonne réelle: 'nom'
         document.getElementById('userAvatar').textContent = profile.email.charAt(0).toUpperCase();
         
         console.log('[TICKETS][AUTH] OK, regie_id:', window.currentRegieId);

@@ -143,7 +143,7 @@ BEGIN
     lg.immeuble_id,
     i.adresse AS immeuble_adresse,
     t.regie_id,
-    r.nom_agence AS regie_nom
+    r.nom AS regie_nom  -- ✅ Colonne réelle: 'nom' (pas 'nom_agence')
   FROM public.tickets t
   INNER JOIN public.locataires l ON l.id = t.locataire_id
   INNER JOIN public.logements lg ON lg.id = t.logement_id
