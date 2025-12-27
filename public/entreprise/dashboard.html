@@ -977,12 +977,9 @@
           .eq('ticket_id', ticketId)
           .order('preference', { ascending: true });
         
-        // Charger infos logement (pour ville si dispo)
-        const { data: logement } = await supabase
-          .from('logements')
-          .select('ville, adresse')
-          .eq('id', ticket.logement_id)
-          .single();
+        // ⚠️ SÉCURITÉ M24: Ne PLUS accéder directement table logements
+        // Utiliser colonne 'ville' de tickets_visibles_entreprise (JOIN immeubles M24)
+        // ticket.logement_id peut être NULL en mode public avant acceptation (masquage M24)
         
         // Remplir modal
         document.getElementById('modalTicketTitre').textContent = ticket.titre;
@@ -1014,7 +1011,8 @@
         });
         document.getElementById('modalTicketDate').textContent = dateCreation;
         
-        document.getElementById('modalTicketVille').textContent = logement?.ville || 'N/A';
+        // Ville provient DIRECTEMENT de la vue M24 (immeubles.ville JOIN)
+        document.getElementById('modalTicketVille').textContent = ticket.ville || 'N/A';
         
         // Disponibilités
         if (disponibilites && disponibilites.length > 0) {
