@@ -1712,20 +1712,23 @@
           return;
         }
         
-        // Charger tickets via RLS (auto-filtré par locataire_id)
-        const { data: tickets, error } = await supabase
-          .from('tickets')
-          .select('*')
-          .eq('locataire_id', window.currentLocataire.id)
-          .order('created_at', { ascending: false });
+        // ✅ M23: Charger tickets via RPC SECURITY DEFINER (bypass RLS récursion)
+        // AVANT: .from('tickets').select('*') → Récursion regies_entreprises ∞
+        // APRÈS: .rpc('get_tickets_locataire') → Bypass RLS
+        console.log('[TICKETS][M23] Appel RPC get_tickets_locataire...');
+        
+        const { data: tickets, error } = await supabase.rpc('get_tickets_locataire');
         
         if (error) {
-          console.error('[TICKETS] Erreur:', error);
+          console.error('[TICKETS] Erreur RPC:', error);
+          console.error('[TICKETS]   - error.message:', error.message);
+          console.error('[TICKETS]   - error.code:', error.code);
+          console.error('[TICKETS]   - error.details:', error.details);
           container.innerHTML = `<div class="empty-state">Erreur: ${error.message}</div>`;
           return;
         }
         
-        console.log('[TICKETS] Tickets chargés:', tickets.length);
+        console.log('[TICKETS][M23] ✅ Tickets chargés:', tickets?.length || 0);
         
         allTickets = tickets || [];
         renderTicketsList(allTickets);
@@ -1823,17 +1826,32 @@
       console.log('[MODAL] Ouverture pour ticket:', ticketId);
       
       try {
-        // Charger ticket avec disponibilités
-        const { data: ticket, error } = await supabase
-          .from('tickets')
-          .select('*')
-          .eq('id', ticketId)
-          .single();
+        // ✅ M23: Charger ticket via RPC SECURITY DEFINER (bypass RLS récursion)
+        // AVANT: .from('tickets').select('*') → Récursion regies_entreprises ∞
+        // APRÈS: .rpc('get_ticket_detail_locataire', {p_ticket_id}) → Bypass RLS
+        console.log('[MODAL][M23] Appel RPC get_ticket_detail_locataire...');
+        
+        const { data: ticketData, error } = await supabase.rpc('get_ticket_detail_locataire', {
+          p_ticket_id: ticketId
+        });
         
         if (error) {
+          console.error('[MODAL] Erreur RPC:', error);
+          console.error('[MODAL]   - error.message:', error.message);
+          console.error('[MODAL]   - error.code:', error.code);
           alert('Erreur: ' + error.message);
           return;
         }
+        
+        // RPC retourne ARRAY, prendre premier élément
+        const ticket = ticketData && ticketData.length > 0 ? ticketData[0] : null;
+        
+        if (!ticket) {
+          alert('Ticket introuvable ou accès refusé');
+          return;
+        }
+        
+        console.log('[MODAL][M23] ✅ Ticket détail chargé:', ticket.id);
         
         // Charger disponibilités
         const { data: disponibilites } = await supabase
