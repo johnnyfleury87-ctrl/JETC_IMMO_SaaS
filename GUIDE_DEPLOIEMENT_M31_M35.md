@@ -69,6 +69,20 @@ psql -h <host> -U postgres -d postgres -f supabase/migrations/20251227001000_m34
 psql -h <host> -U postgres -d postgres -f supabase/migrations/20251227001100_m35_harmonize_mode_diffusion.sql
 ```
 
+**Option C: Ajouter M36 - Correction règle disponibilités (OPTIONNEL)**
+
+Si vous rencontrez l'erreur "exactement 3 disponibilités":
+
+```bash
+# Après avoir appliqué M31-M35, appliquer M36
+psql -h <host> -U postgres -d postgres -f supabase/migrations/20260104001200_m36_fix_disponibilites_rule.sql
+
+# Tester M36
+psql -h <host> -U postgres -d postgres -f tests/validation_m36_disponibilites.sql
+```
+
+**Contexte M36**: Change règle métier trigger M10 de "exactement 3 disponibilités" à "au moins 1 disponibilité" (les 2 autres sont optionnelles). Voir [CORRECTION_M36_DISPONIBILITES.md](CORRECTION_M36_DISPONIBILITES.md)
+
 ### ÉTAPE 3: Déployer le frontend
 
 ```bash
@@ -208,6 +222,14 @@ ORDER BY policyname;
 #### 4. Ticket reste en statut `nouveau` après validation
 - **Cause**: Frontend utilise encore anciennes RPC
 - **Solution**: Vérifier que le nouveau `tickets.html` est déployé
+
+#### 5. "Un ticket doit avoir exactement 3 disponibilités"
+- **Cause**: Règle métier M10 trop stricte (exige exactement 3 créneaux)
+- **Solution**: Appliquer migration M36
+  ```bash
+  psql ... -f supabase/migrations/20260104001200_m36_fix_disponibilites_rule.sql
+  ```
+- **Documentation**: Voir [CORRECTION_M36_DISPONIBILITES.md](CORRECTION_M36_DISPONIBILITES.md)
 
 ## 📚 Références
 

@@ -128,6 +128,27 @@ Tests:
 - **Rapport corrections**: `../RAPPORT_CORRECTION_WORKFLOW_TICKETS.md`
 - **Récap rapide**: `../RECAP_RAPIDE_M31_M35.md`
 
+## ➕ Migration complémentaire
+
+### M36: Correction règle métier disponibilités (OPTIONNEL)
+**Fichier**: `20260104001200_m36_fix_disponibilites_rule.sql`
+
+**Problème détecté**: Trigger M10 exige exactement 3 disponibilités  
+**Règle métier correcte**: Au moins 1 disponibilité (les 2 autres optionnelles)
+
+**Correction**:
+- Change condition trigger: `!= 3` → `< 1`
+- Message: "exactement 3" → "au moins 1"
+- Tests: 0 dispo ❌ | 1-3 dispos ✅
+
+**Déploiement**:
+```bash
+psql ... -f supabase/migrations/20260104001200_m36_fix_disponibilites_rule.sql
+psql ... -f tests/validation_m36_disponibilites.sql  # 5 tests
+```
+
+**Documentation**: `../CORRECTION_M36_DISPONIBILITES.md`
+
 ## 🔄 Rollback
 
 Chaque migration a son fichier `_rollback.sql`:
