@@ -866,10 +866,10 @@
           <div class="ticket-card-footer">
             <span style="font-size: 13px; color: var(--gray-500);">Créé le ${date}</span>
             <div class="ticket-card-actions">
-              <button class="btn btn-secondary" onclick="openTicketDetailsModal('${ticket.id}')">
+              <button class="btn btn-secondary" data-ticket-id="${ticket.id}" onclick="openTicketDetailsModal(this.dataset.ticketId)">
                 📄 Détails
               </button>
-              <button class="btn btn-primary" onclick="accepterTicket('${ticket.id}', '${escapeHtml(ticket.titre)}')">
+              <button class="btn btn-primary" data-ticket-id="${ticket.id}" data-ticket-titre="${escapeHtml(ticket.titre)}" onclick="accepterTicket(this.dataset.ticketId, this.dataset.ticketTitre)">
                 ✅ Accepter
               </button>
             </div>
