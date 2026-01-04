@@ -30,14 +30,18 @@
 
 const { createClient } = require('@supabase/supabase-js');
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
+// Support des deux conventions : SUPABASE_URL ou NEXT_PUBLIC_SUPABASE_URL
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // Validation au chargement du module
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  const availableEnvKeys = Object.keys(process.env).filter(k => k.includes('SUPABASE'));
   console.error('[SUPABASE SERVER] Variables d\'environnement manquantes', {
     hasUrl: !!SUPABASE_URL,
-    hasServiceRole: !!SUPABASE_SERVICE_ROLE_KEY
+    hasServiceRole: !!SUPABASE_SERVICE_ROLE_KEY,
+    availableSupabaseKeys: availableEnvKeys,
+    note: 'Vercel Functions need: SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) + SUPABASE_SERVICE_ROLE_KEY'
   });
   throw new Error('SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY requis');
 }

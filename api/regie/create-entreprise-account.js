@@ -30,9 +30,16 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  console.log('[CREATE-ENTREPRISE] Step 0: Request received');
+
   try {
+    // Obtenir les clients Supabase (valide env vars)
+    console.log('[CREATE-ENTREPRISE] Step 1: Initializing Supabase clients');
+    const supabaseAdmin = getAdminClient();
+    console.log('[CREATE-ENTREPRISE] Step 1.1: Admin client OK');
+
     // =======================================================
-    // 1. AUTHENTIFICATION & VALIDATION
+    // 2. AUTHENTIFICATION & VALIDATION
     // =======================================================
     
     const authHeader = req.headers.authorization;
@@ -43,31 +50,32 @@ export default async function handler(req, res) {
     const token = authHeader.replace('Bearer ', '');
 
     // Vérifier le token
+    console.log('[CREATE-ENTREPRISE] Step 2: Verifying token');
     const { user, error: userError } = await verifyToken(token);
     if (userError || !user) {
-      console.error('[CREATE-ENTREPRISE] Auth error:', userError);
+      console.error('[CREATE-ENTREPRISE] Step 2 FAILED: Auth error:', userError);
       return res.status(401).json({ error: 'Token invalide' });
     }
 
-    console.log('[CREATE-ENTREPRISE] User authenticated:', user.id);
+    console.log('[CREATE-ENTREPRISE] Step 2 OK: User authenticated:', user.id);
 
     // Récupérer et vérifier le profil
+    console.log('[CREATE-ENTREPRISE] Step 3: Fetching user profile');
     const { profile, error: profileError } = await getUserProfile(user.id);
     if (profileError || !profile) {
-      console.error('[CREATE-ENTREPRISE] Profile error:', profileError);
+      console.error('[CREATE-ENTREPRISE] Step 3 FAILED: Profile error:', profileError);
       return res.status(403).json({ error: 'Profil non trouvé' });
     }
 
     if (profile.role !== 'regie') {
-      console.error('[CREATE-ENTREPRISE] Wrong role:', profile.role);
+      console.error('[CREATE-ENTREPRISE] Step 3 FAILED: Wrong role:', profile.role);
       return res.status(403).json({ error: 'Accès réservé aux régies' });
     }
 
-    console.log('[CREATE-ENTREPRISE] Regie validated:', profile.regie_id);
+    console.log('[CREATE-ENTREPRISE] Step 3 OK: Regie validated:', profile.regie_id);
 
-    // Obtenir les clients Supabase
-    const supabaseAdmin = getAdminClient();
     const supabaseUserContext = getUserClient(token);
+    console.log('[CREATE-ENTREPRISE] Step 3.1: User context client OK');
 
     // =======================================================
     // 2. EXTRACTION DONNÉES ENTREPRISE
@@ -85,20 +93,29 @@ export default async function handler(req, res) {
       mode_diffusion = 'restreint'
     } = req.body;
 
+    console.log('[CREATE-ENTREPRISE] Step 4: Extracting body params', { nom, email, mode_diffusion });
+
     // Validation
     if (!nom || !email) {
       return res.status(400).json({ error: 'Nom et email obligatoires' });
     }
 
     if (mode_diffusion && !['general', 'restreint'].includes(mode_diffusion)) {
-      return res.status(400).json({ error: 'mode_diffusion doit être general ou restreint' });
+      console.error('[CREATE-ENTREPRISE] Step 4 FAILED: Invalid mode_diffusion:', mode_diffusion);
+      return res.status(400).json({ 
+        error: 'mode_diffusion doit être general ou restreint',
+        received: mode_diffusion,
+        allowed: ['general', 'restreint']
+      });
     }
 
+    console.log('[CREATE-ENTREPRISE] Step 4 OK: Validation passed');
+
     // =======================================================
-    // 3. CRÉER USER AUTH SUPABASE (ADMIN API)
+    // 5. CRÉER USER AUTH SUPABASE (ADMIN API)
     // =======================================================
     
-    console.log('[CREATE-ENTREPRISE] Creating Auth user...');
+    console.log('[CREATE-ENTREPRISE] Step 5: Creating Auth user for:', email);
 
     // Générer mot de passe temporaire sécurisé
     const tempPassword = generateTempPassword();
@@ -115,7 +132,7 @@ export default async function handler(req, res) {
     });
 
     if (createUserError) {
-      console.error('[CREATE-USER] Erreur:', createUserError);
+      console.error('[CREATE-ENTREPRISE] Step 5 FAILED:', createUserError);
       return res.status(500).json({ 
         error: 'Erreur création compte Auth', 
         details: createUserError.message 
@@ -123,10 +140,13 @@ export default async function handler(req, res) {
     }
 
     const newUserId = newUser.user.id;
+    console.log('[CREATE-ENTREPRISE] Step 5 OK: Auth user created:', newUserId);
 
     // =======================================================
-    // 4. CRÉER PROFILE (via RLS - policy M29 autorise)
+    // 6. CRÉER PROFILE (via RLS - policy M29 autorise)
     // =======================================================
+    
+    console.log('[CREATE-ENTREPRISE] Step 6: Inserting profile for user:', newUserId);
     
     const { data: newProfile, error: profileInsertError } = await supabaseAdmin
       .from('profiles')
@@ -140,7 +160,7 @@ export default async function handler(req, res) {
       .single();
 
     if (profileInsertError) {
-      console.error('[CREATE-PROFILE] Erreur:', profileInsertError);
+      console.error('[CREATE-ENTREPRISE] Step 6 FAILED:', profileInsertError);
       
       // ROLLBACK: Supprimer user Auth créé
       await supabaseAdmin.auth.admin.deleteUser(newUserId);
@@ -151,13 +171,16 @@ export default async function handler(req, res) {
       });
     }
 
-    console.log('[CREATE-ENTREPRISE] Profile created:', newUserId);
+    console.log('[CREATE-ENTREPRISE] Step 6 OK: Profile created');
 
     // =======================================================
-    // 5. CRÉER ENTREPRISE + LIEN (via RPC M29)
+    // 7. CRÉER ENTREPRISE + LIEN (via RPC M30)
     // =======================================================
     
-    console.log('[CREATE-ENTREPRISE] Calling RPC create_entreprise_with_profile...');
+    console.log('[CREATE-ENTREPRISE] Step 7: Calling RPC create_entreprise_with_profile', {
+      profile_id: newUserId,
+      mode_diffusion
+    });
     
     const { data: entrepriseId, error: rpcError } = await supabaseUserContext.rpc('create_entreprise_with_profile', {
       p_profile_id: newUserId,
@@ -173,23 +196,28 @@ export default async function handler(req, res) {
     });
 
     if (rpcError) {
-      console.error('[CREATE-ENTREPRISE] Erreur RPC:', rpcError);
+      console.error('[CREATE-ENTREPRISE] Step 7 FAILED: RPC error:', rpcError);
       
       // ROLLBACK: Supprimer profile + user Auth
+      console.log('[CREATE-ENTREPRISE] Rolling back: deleting profile and auth user');
       await supabaseAdmin.from('profiles').delete().eq('id', newUserId);
       await supabaseAdmin.auth.admin.deleteUser(newUserId);
       
       return res.status(500).json({ 
         error: 'Erreur création entreprise', 
-        details: rpcError.message 
+        details: rpcError.message,
+        hint: rpcError.hint,
+        code: rpcError.code
       });
     }
 
-    console.log('[CREATE-ENTREPRISE] SUCCESS! Entreprise ID:', entrepriseId);
+    console.log('[CREATE-ENTREPRISE] Step 7 OK: Entreprise created:', entrepriseId);
 
     // =======================================================
-    // 6. RETOUR SUCCÈS
+    // 8. RETOUR SUCCÈS
     // =======================================================
+    
+    console.log('[CREATE-ENTREPRISE] Step 8: Success response');
     
     return res.status(201).json({
       success: true,
