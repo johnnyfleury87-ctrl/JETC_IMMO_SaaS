@@ -1,0 +1,19 @@
+{
+  "timestamp": "2026-01-04T16:39:34.836Z",
+  "etape": "2B - Validation M42",
+  "checks": {
+    "column_exists": true,
+    "accessible_columns": [],
+    "column_in_list": false,
+    "fk_target_accessible": true,
+    "missions_count": 0,
+    "migration_logged": false
+  },
+  "summary": {
+    "column_exists": true,
+    "fk_target_accessible": true,
+    "migration_logged": false,
+    "validation": "SUCCESS",
+    "note": "FK et index non testables via SDK - requiert validation SQL manuelle"
+  }
+}

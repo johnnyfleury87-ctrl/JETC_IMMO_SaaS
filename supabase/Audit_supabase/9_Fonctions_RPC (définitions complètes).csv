@@ -1,5 +1,5 @@
-schema_name,function_name,arguments,definition;
-"auth,email,,""CREATE OR REPLACE FUNCTION auth.email()";
+schema,function_name,args,returns,language,security_definer,volatility,function_def;
+"auth,email,,text,sql,false,s,""CREATE OR REPLACE FUNCTION auth.email()";
  RETURNS text;
  LANGUAGE sql;
  STABLE;
@@ -11,7 +11,7 @@ AS $function$;
   )::text;
 $function$;
 "
-auth,jwt,,CREATE OR REPLACE FUNCTION auth.jwt()";
+auth,jwt,,jsonb,sql,false,s,CREATE OR REPLACE FUNCTION auth.jwt()";
  RETURNS jsonb;
  LANGUAGE sql;
  STABLE;
@@ -23,7 +23,7 @@ AS $function$;
     )::jsonb;
 $function$;
 "
-auth,role,,CREATE OR REPLACE FUNCTION auth.role()";
+auth,role,,text,sql,false,s,CREATE OR REPLACE FUNCTION auth.role()";
  RETURNS text;
  LANGUAGE sql;
  STABLE;
@@ -35,7 +35,7 @@ AS $function$;
   )::text;
 $function$;
 "
-auth,uid,,CREATE OR REPLACE FUNCTION auth.uid()";
+auth,uid,,uuid,sql,false,s,CREATE OR REPLACE FUNCTION auth.uid()";
  RETURNS uuid;
  LANGUAGE sql;
  STABLE;
@@ -47,91 +47,91 @@ AS $function$;
   )::uuid;
 $function$;
 "
-extensions,armor,bytea,CREATE OR REPLACE FUNCTION extensions.armor(bytea)";
+extensions,armor,bytea,text,c,false,i,CREATE OR REPLACE FUNCTION extensions.armor(bytea)";
  RETURNS text;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pg_armor$function$;
 "
-extensions,armor,bytea, text[], text[]"",""CREATE OR REPLACE FUNCTION extensions.armor(bytea, text[], text[])";
+extensions,armor,bytea, text[], text[]"",text,c,false,i,""CREATE OR REPLACE FUNCTION extensions.armor(bytea, text[], text[])";
  RETURNS text;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pg_armor$function$;
 "
-extensions,crypt,text, text"",""CREATE OR REPLACE FUNCTION extensions.crypt(text, text)";
+extensions,crypt,text, text"",text,c,false,i,""CREATE OR REPLACE FUNCTION extensions.crypt(text, text)";
  RETURNS text;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pg_crypt$function$;
 "
-extensions,dearmor,text,CREATE OR REPLACE FUNCTION extensions.dearmor(text)";
+extensions,dearmor,text,bytea,c,false,i,CREATE OR REPLACE FUNCTION extensions.dearmor(text)";
  RETURNS bytea;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pg_dearmor$function$;
 "
-extensions,decrypt,bytea, bytea, text"",""CREATE OR REPLACE FUNCTION extensions.decrypt(bytea, bytea, text)";
+extensions,decrypt,bytea, bytea, text"",bytea,c,false,i,""CREATE OR REPLACE FUNCTION extensions.decrypt(bytea, bytea, text)";
  RETURNS bytea;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pg_decrypt$function$;
 "
-extensions,decrypt_iv,bytea, bytea, bytea, text"",""CREATE OR REPLACE FUNCTION extensions.decrypt_iv(bytea, bytea, bytea, text)";
+extensions,decrypt_iv,bytea, bytea, bytea, text"",bytea,c,false,i,""CREATE OR REPLACE FUNCTION extensions.decrypt_iv(bytea, bytea, bytea, text)";
  RETURNS bytea;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pg_decrypt_iv$function$;
 "
-extensions,digest,text, text"",""CREATE OR REPLACE FUNCTION extensions.digest(text, text)";
+extensions,digest,bytea, text"",bytea,c,false,i,""CREATE OR REPLACE FUNCTION extensions.digest(bytea, text)";
  RETURNS bytea;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pg_digest$function$;
 "
-extensions,digest,bytea, text"",""CREATE OR REPLACE FUNCTION extensions.digest(bytea, text)";
+extensions,digest,text, text"",bytea,c,false,i,""CREATE OR REPLACE FUNCTION extensions.digest(text, text)";
  RETURNS bytea;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pg_digest$function$;
 "
-extensions,encrypt,bytea, bytea, text"",""CREATE OR REPLACE FUNCTION extensions.encrypt(bytea, bytea, text)";
+extensions,encrypt,bytea, bytea, text"",bytea,c,false,i,""CREATE OR REPLACE FUNCTION extensions.encrypt(bytea, bytea, text)";
  RETURNS bytea;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pg_encrypt$function$;
 "
-extensions,encrypt_iv,bytea, bytea, bytea, text"",""CREATE OR REPLACE FUNCTION extensions.encrypt_iv(bytea, bytea, bytea, text)";
+extensions,encrypt_iv,bytea, bytea, bytea, text"",bytea,c,false,i,""CREATE OR REPLACE FUNCTION extensions.encrypt_iv(bytea, bytea, bytea, text)";
  RETURNS bytea;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pg_encrypt_iv$function$;
 "
-extensions,gen_random_bytes,integer,CREATE OR REPLACE FUNCTION extensions.gen_random_bytes(integer)";
+extensions,gen_random_bytes,integer,bytea,c,false,v,CREATE OR REPLACE FUNCTION extensions.gen_random_bytes(integer)";
  RETURNS bytea;
  LANGUAGE c;
  PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pg_random_bytes$function$;
 "
-extensions,gen_random_uuid,,CREATE OR REPLACE FUNCTION extensions.gen_random_uuid()";
+extensions,gen_random_uuid,,uuid,c,false,v,CREATE OR REPLACE FUNCTION extensions.gen_random_uuid()";
  RETURNS uuid;
  LANGUAGE c;
  PARALLEL SAFE;
 AS '$libdir/pgcrypto', $function$pg_random_uuid$function$;
 "
-extensions,gen_salt,text, integer"",""CREATE OR REPLACE FUNCTION extensions.gen_salt(text, integer)";
- RETURNS text;
- LANGUAGE c;
- PARALLEL SAFE STRICT;
-AS '$libdir/pgcrypto', $function$pg_gen_salt_rounds$function$;
-"
-extensions,gen_salt,text,CREATE OR REPLACE FUNCTION extensions.gen_salt(text)";
+extensions,gen_salt,text,text,c,false,v,CREATE OR REPLACE FUNCTION extensions.gen_salt(text)";
  RETURNS text;
  LANGUAGE c;
  PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pg_gen_salt$function$;
 "
-extensions,grant_pg_cron_access,,CREATE OR REPLACE FUNCTION extensions.grant_pg_cron_access()";
+extensions,gen_salt,text, integer"",text,c,false,v,""CREATE OR REPLACE FUNCTION extensions.gen_salt(text, integer)";
+ RETURNS text;
+ LANGUAGE c;
+ PARALLEL SAFE STRICT;
+AS '$libdir/pgcrypto', $function$pg_gen_salt_rounds$function$;
+"
+extensions,grant_pg_cron_access,,event_trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION extensions.grant_pg_cron_access()";
  RETURNS event_trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -164,7 +164,7 @@ BEGIN;
 END;
 $function$;
 "
-extensions,grant_pg_graphql_access,,CREATE OR REPLACE FUNCTION extensions.grant_pg_graphql_access()";
+extensions,grant_pg_graphql_access,,event_trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION extensions.grant_pg_graphql_access()";
  RETURNS event_trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -218,7 +218,7 @@ BEGIN;
 END;
 $function$;
 "
-extensions,grant_pg_net_access,,CREATE OR REPLACE FUNCTION extensions.grant_pg_net_access()";
+extensions,grant_pg_net_access,,event_trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION extensions.grant_pg_net_access()";
  RETURNS event_trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -265,157 +265,157 @@ BEGIN;
 END;
 $function$;
 "
-extensions,hmac,bytea, bytea, text"",""CREATE OR REPLACE FUNCTION extensions.hmac(bytea, bytea, text)";
+extensions,hmac,bytea, bytea, text"",bytea,c,false,i,""CREATE OR REPLACE FUNCTION extensions.hmac(bytea, bytea, text)";
  RETURNS bytea;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pg_hmac$function$;
 "
-extensions,hmac,text, text, text"",""CREATE OR REPLACE FUNCTION extensions.hmac(text, text, text)";
+extensions,hmac,text, text, text"",bytea,c,false,i,""CREATE OR REPLACE FUNCTION extensions.hmac(text, text, text)";
  RETURNS bytea;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pg_hmac$function$;
 "
-extensions,pg_stat_statements,showtext boolean, OUT userid oid, OUT dbid oid, OUT toplevel boolean, OUT queryid bigint, OUT query text, OUT plans bigint, OUT total_plan_time double precision, OUT min_plan_time double precision, OUT max_plan_time double precision, OUT mean_plan_time double precision, OUT stddev_plan_time double precision, OUT calls bigint, OUT total_exec_time double precision, OUT min_exec_time double precision, OUT max_exec_time double precision, OUT mean_exec_time double precision, OUT stddev_exec_time double precision, OUT rows bigint, OUT shared_blks_hit bigint, OUT shared_blks_read bigint, OUT shared_blks_dirtied bigint, OUT shared_blks_written bigint, OUT local_blks_hit bigint, OUT local_blks_read bigint, OUT local_blks_dirtied bigint, OUT local_blks_written bigint, OUT temp_blks_read bigint, OUT temp_blks_written bigint, OUT shared_blk_read_time double precision, OUT shared_blk_write_time double precision, OUT local_blk_read_time double precision, OUT local_blk_write_time double precision, OUT temp_blk_read_time double precision, OUT temp_blk_write_time double precision, OUT wal_records bigint, OUT wal_fpi bigint, OUT wal_bytes numeric, OUT jit_functions bigint, OUT jit_generation_time double precision, OUT jit_inlining_count bigint, OUT jit_inlining_time double precision, OUT jit_optimization_count bigint, OUT jit_optimization_time double precision, OUT jit_emission_count bigint, OUT jit_emission_time double precision, OUT jit_deform_count bigint, OUT jit_deform_time double precision, OUT stats_since timestamp with time zone, OUT minmax_stats_since timestamp with time zone"",""CREATE OR REPLACE FUNCTION extensions.pg_stat_statements(showtext boolean, OUT userid oid, OUT dbid oid, OUT toplevel boolean, OUT queryid bigint, OUT query text, OUT plans bigint, OUT total_plan_time double precision, OUT min_plan_time double precision, OUT max_plan_time double precision, OUT mean_plan_time double precision, OUT stddev_plan_time double precision, OUT calls bigint, OUT total_exec_time double precision, OUT min_exec_time double precision, OUT max_exec_time double precision, OUT mean_exec_time double precision, OUT stddev_exec_time double precision, OUT rows bigint, OUT shared_blks_hit bigint, OUT shared_blks_read bigint, OUT shared_blks_dirtied bigint, OUT shared_blks_written bigint, OUT local_blks_hit bigint, OUT local_blks_read bigint, OUT local_blks_dirtied bigint, OUT local_blks_written bigint, OUT temp_blks_read bigint, OUT temp_blks_written bigint, OUT shared_blk_read_time double precision, OUT shared_blk_write_time double precision, OUT local_blk_read_time double precision, OUT local_blk_write_time double precision, OUT temp_blk_read_time double precision, OUT temp_blk_write_time double precision, OUT wal_records bigint, OUT wal_fpi bigint, OUT wal_bytes numeric, OUT jit_functions bigint, OUT jit_generation_time double precision, OUT jit_inlining_count bigint, OUT jit_inlining_time double precision, OUT jit_optimization_count bigint, OUT jit_optimization_time double precision, OUT jit_emission_count bigint, OUT jit_emission_time double precision, OUT jit_deform_count bigint, OUT jit_deform_time double precision, OUT stats_since timestamp with time zone, OUT minmax_stats_since timestamp with time zone)";
+extensions,pg_stat_statements,showtext boolean, OUT userid oid, OUT dbid oid, OUT toplevel boolean, OUT queryid bigint, OUT query text, OUT plans bigint, OUT total_plan_time double precision, OUT min_plan_time double precision, OUT max_plan_time double precision, OUT mean_plan_time double precision, OUT stddev_plan_time double precision, OUT calls bigint, OUT total_exec_time double precision, OUT min_exec_time double precision, OUT max_exec_time double precision, OUT mean_exec_time double precision, OUT stddev_exec_time double precision, OUT rows bigint, OUT shared_blks_hit bigint, OUT shared_blks_read bigint, OUT shared_blks_dirtied bigint, OUT shared_blks_written bigint, OUT local_blks_hit bigint, OUT local_blks_read bigint, OUT local_blks_dirtied bigint, OUT local_blks_written bigint, OUT temp_blks_read bigint, OUT temp_blks_written bigint, OUT shared_blk_read_time double precision, OUT shared_blk_write_time double precision, OUT local_blk_read_time double precision, OUT local_blk_write_time double precision, OUT temp_blk_read_time double precision, OUT temp_blk_write_time double precision, OUT wal_records bigint, OUT wal_fpi bigint, OUT wal_bytes numeric, OUT jit_functions bigint, OUT jit_generation_time double precision, OUT jit_inlining_count bigint, OUT jit_inlining_time double precision, OUT jit_optimization_count bigint, OUT jit_optimization_time double precision, OUT jit_emission_count bigint, OUT jit_emission_time double precision, OUT jit_deform_count bigint, OUT jit_deform_time double precision, OUT stats_since timestamp with time zone, OUT minmax_stats_since timestamp with time zone"",SETOF record,c,false,v,""CREATE OR REPLACE FUNCTION extensions.pg_stat_statements(showtext boolean, OUT userid oid, OUT dbid oid, OUT toplevel boolean, OUT queryid bigint, OUT query text, OUT plans bigint, OUT total_plan_time double precision, OUT min_plan_time double precision, OUT max_plan_time double precision, OUT mean_plan_time double precision, OUT stddev_plan_time double precision, OUT calls bigint, OUT total_exec_time double precision, OUT min_exec_time double precision, OUT max_exec_time double precision, OUT mean_exec_time double precision, OUT stddev_exec_time double precision, OUT rows bigint, OUT shared_blks_hit bigint, OUT shared_blks_read bigint, OUT shared_blks_dirtied bigint, OUT shared_blks_written bigint, OUT local_blks_hit bigint, OUT local_blks_read bigint, OUT local_blks_dirtied bigint, OUT local_blks_written bigint, OUT temp_blks_read bigint, OUT temp_blks_written bigint, OUT shared_blk_read_time double precision, OUT shared_blk_write_time double precision, OUT local_blk_read_time double precision, OUT local_blk_write_time double precision, OUT temp_blk_read_time double precision, OUT temp_blk_write_time double precision, OUT wal_records bigint, OUT wal_fpi bigint, OUT wal_bytes numeric, OUT jit_functions bigint, OUT jit_generation_time double precision, OUT jit_inlining_count bigint, OUT jit_inlining_time double precision, OUT jit_optimization_count bigint, OUT jit_optimization_time double precision, OUT jit_emission_count bigint, OUT jit_emission_time double precision, OUT jit_deform_count bigint, OUT jit_deform_time double precision, OUT stats_since timestamp with time zone, OUT minmax_stats_since timestamp with time zone)";
  RETURNS SETOF record;
  LANGUAGE c;
  PARALLEL SAFE STRICT;
 AS '$libdir/pg_stat_statements', $function$pg_stat_statements_1_11$function$;
 "
-extensions,pg_stat_statements_info,OUT dealloc bigint, OUT stats_reset timestamp with time zone"",""CREATE OR REPLACE FUNCTION extensions.pg_stat_statements_info(OUT dealloc bigint, OUT stats_reset timestamp with time zone)";
+extensions,pg_stat_statements_info,OUT dealloc bigint, OUT stats_reset timestamp with time zone"",record,c,false,v,""CREATE OR REPLACE FUNCTION extensions.pg_stat_statements_info(OUT dealloc bigint, OUT stats_reset timestamp with time zone)";
  RETURNS record;
  LANGUAGE c;
  PARALLEL SAFE STRICT;
 AS '$libdir/pg_stat_statements', $function$pg_stat_statements_info$function$;
 "
-extensions,pg_stat_statements_reset,userid oid, dbid oid, queryid bigint, minmax_only boolean"",""CREATE OR REPLACE FUNCTION extensions.pg_stat_statements_reset(userid oid DEFAULT 0, dbid oid DEFAULT 0, queryid bigint DEFAULT 0, minmax_only boolean DEFAULT false)";
+extensions,pg_stat_statements_reset,userid oid, dbid oid, queryid bigint, minmax_only boolean"",timestamp with time zone,c,false,v,""CREATE OR REPLACE FUNCTION extensions.pg_stat_statements_reset(userid oid DEFAULT 0, dbid oid DEFAULT 0, queryid bigint DEFAULT 0, minmax_only boolean DEFAULT false)";
  RETURNS timestamp with time zone;
  LANGUAGE c;
  PARALLEL SAFE STRICT;
 AS '$libdir/pg_stat_statements', $function$pg_stat_statements_reset_1_11$function$;
 "
-extensions,pgp_armor_headers,text, OUT key text, OUT value text"",""CREATE OR REPLACE FUNCTION extensions.pgp_armor_headers(text, OUT key text, OUT value text)";
+extensions,pgp_armor_headers,text, OUT key text, OUT value text"",SETOF record,c,false,i,""CREATE OR REPLACE FUNCTION extensions.pgp_armor_headers(text, OUT key text, OUT value text)";
  RETURNS SETOF record;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pgp_armor_headers$function$;
 "
-extensions,pgp_key_id,bytea,CREATE OR REPLACE FUNCTION extensions.pgp_key_id(bytea)";
+extensions,pgp_key_id,bytea,text,c,false,i,CREATE OR REPLACE FUNCTION extensions.pgp_key_id(bytea)";
  RETURNS text;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pgp_key_id_w$function$;
 "
-extensions,pgp_pub_decrypt,bytea, bytea, text"",""CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)";
+extensions,pgp_pub_decrypt,bytea, bytea"",text,c,false,i,""CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea)";
  RETURNS text;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$;
 "
-extensions,pgp_pub_decrypt,bytea, bytea, text, text"",""CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text, text)";
+extensions,pgp_pub_decrypt,bytea, bytea, text"",text,c,false,i,""CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text)";
  RETURNS text;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$;
 "
-extensions,pgp_pub_decrypt,bytea, bytea"",""CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea)";
+extensions,pgp_pub_decrypt,bytea, bytea, text, text"",text,c,false,i,""CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt(bytea, bytea, text, text)";
  RETURNS text;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_text$function$;
 "
-extensions,pgp_pub_decrypt_bytea,bytea, bytea"",""CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea)";
+extensions,pgp_pub_decrypt_bytea,bytea, bytea"",bytea,c,false,i,""CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea)";
  RETURNS bytea;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$;
 "
-extensions,pgp_pub_decrypt_bytea,bytea, bytea, text"",""CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text)";
+extensions,pgp_pub_decrypt_bytea,bytea, bytea, text"",bytea,c,false,i,""CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text)";
  RETURNS bytea;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$;
 "
-extensions,pgp_pub_decrypt_bytea,bytea, bytea, text, text"",""CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text, text)";
+extensions,pgp_pub_decrypt_bytea,bytea, bytea, text, text"",bytea,c,false,i,""CREATE OR REPLACE FUNCTION extensions.pgp_pub_decrypt_bytea(bytea, bytea, text, text)";
  RETURNS bytea;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pgp_pub_decrypt_bytea$function$;
 "
-extensions,pgp_pub_encrypt,text, bytea, text"",""CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea, text)";
+extensions,pgp_pub_encrypt,text, bytea"",bytea,c,false,v,""CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea)";
  RETURNS bytea;
  LANGUAGE c;
  PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pgp_pub_encrypt_text$function$;
 "
-extensions,pgp_pub_encrypt,text, bytea"",""CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea)";
+extensions,pgp_pub_encrypt,text, bytea, text"",bytea,c,false,v,""CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt(text, bytea, text)";
  RETURNS bytea;
  LANGUAGE c;
  PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pgp_pub_encrypt_text$function$;
 "
-extensions,pgp_pub_encrypt_bytea,bytea, bytea, text"",""CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea, text)";
+extensions,pgp_pub_encrypt_bytea,bytea, bytea"",bytea,c,false,v,""CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea)";
  RETURNS bytea;
  LANGUAGE c;
  PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pgp_pub_encrypt_bytea$function$;
 "
-extensions,pgp_pub_encrypt_bytea,bytea, bytea"",""CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea)";
+extensions,pgp_pub_encrypt_bytea,bytea, bytea, text"",bytea,c,false,v,""CREATE OR REPLACE FUNCTION extensions.pgp_pub_encrypt_bytea(bytea, bytea, text)";
  RETURNS bytea;
  LANGUAGE c;
  PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pgp_pub_encrypt_bytea$function$;
 "
-extensions,pgp_sym_decrypt,bytea, text"",""CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt(bytea, text)";
+extensions,pgp_sym_decrypt,bytea, text"",text,c,false,i,""CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt(bytea, text)";
  RETURNS text;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pgp_sym_decrypt_text$function$;
 "
-extensions,pgp_sym_decrypt,bytea, text, text"",""CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt(bytea, text, text)";
+extensions,pgp_sym_decrypt,bytea, text, text"",text,c,false,i,""CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt(bytea, text, text)";
  RETURNS text;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pgp_sym_decrypt_text$function$;
 "
-extensions,pgp_sym_decrypt_bytea,bytea, text"",""CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt_bytea(bytea, text)";
+extensions,pgp_sym_decrypt_bytea,bytea, text"",bytea,c,false,i,""CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt_bytea(bytea, text)";
  RETURNS bytea;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pgp_sym_decrypt_bytea$function$;
 "
-extensions,pgp_sym_decrypt_bytea,bytea, text, text"",""CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt_bytea(bytea, text, text)";
+extensions,pgp_sym_decrypt_bytea,bytea, text, text"",bytea,c,false,i,""CREATE OR REPLACE FUNCTION extensions.pgp_sym_decrypt_bytea(bytea, text, text)";
  RETURNS bytea;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pgp_sym_decrypt_bytea$function$;
 "
-extensions,pgp_sym_encrypt,text, text"",""CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt(text, text)";
+extensions,pgp_sym_encrypt,text, text"",bytea,c,false,v,""CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt(text, text)";
  RETURNS bytea;
  LANGUAGE c;
  PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pgp_sym_encrypt_text$function$;
 "
-extensions,pgp_sym_encrypt,text, text, text"",""CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt(text, text, text)";
+extensions,pgp_sym_encrypt,text, text, text"",bytea,c,false,v,""CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt(text, text, text)";
  RETURNS bytea;
  LANGUAGE c;
  PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pgp_sym_encrypt_text$function$;
 "
-extensions,pgp_sym_encrypt_bytea,bytea, text, text"",""CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text, text)";
+extensions,pgp_sym_encrypt_bytea,bytea, text"",bytea,c,false,v,""CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text)";
  RETURNS bytea;
  LANGUAGE c;
  PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pgp_sym_encrypt_bytea$function$;
 "
-extensions,pgp_sym_encrypt_bytea,bytea, text"",""CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text)";
+extensions,pgp_sym_encrypt_bytea,bytea, text, text"",bytea,c,false,v,""CREATE OR REPLACE FUNCTION extensions.pgp_sym_encrypt_bytea(bytea, text, text)";
  RETURNS bytea;
  LANGUAGE c;
  PARALLEL SAFE STRICT;
 AS '$libdir/pgcrypto', $function$pgp_sym_encrypt_bytea$function$;
 "
-extensions,pgrst_ddl_watch,,CREATE OR REPLACE FUNCTION extensions.pgrst_ddl_watch()";
+extensions,pgrst_ddl_watch,,event_trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION extensions.pgrst_ddl_watch()";
  RETURNS event_trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -444,7 +444,7 @@ BEGIN;
   END LOOP;
 END; $function$
 "
-extensions,pgrst_drop_watch,,CREATE OR REPLACE FUNCTION extensions.pgrst_drop_watch()";
+extensions,pgrst_drop_watch,,event_trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION extensions.pgrst_drop_watch()";
  RETURNS event_trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -471,7 +471,7 @@ BEGIN;
   END LOOP;
 END; $function$
 "
-extensions,set_graphql_placeholder,,CREATE OR REPLACE FUNCTION extensions.set_graphql_placeholder()";
+extensions,set_graphql_placeholder,,event_trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION extensions.set_graphql_placeholder()";
  RETURNS event_trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -524,72 +524,72 @@ AS $function$;
     END;
 $function$;
 "
-extensions,uuid_generate_v1,,CREATE OR REPLACE FUNCTION extensions.uuid_generate_v1()";
+extensions,uuid_generate_v1,,uuid,c,false,v,CREATE OR REPLACE FUNCTION extensions.uuid_generate_v1()";
  RETURNS uuid;
  LANGUAGE c;
  PARALLEL SAFE STRICT;
 AS '$libdir/uuid-ossp', $function$uuid_generate_v1$function$;
 "
-extensions,uuid_generate_v1mc,,CREATE OR REPLACE FUNCTION extensions.uuid_generate_v1mc()";
+extensions,uuid_generate_v1mc,,uuid,c,false,v,CREATE OR REPLACE FUNCTION extensions.uuid_generate_v1mc()";
  RETURNS uuid;
  LANGUAGE c;
  PARALLEL SAFE STRICT;
 AS '$libdir/uuid-ossp', $function$uuid_generate_v1mc$function$;
 "
-extensions,uuid_generate_v3,namespace uuid, name text"",""CREATE OR REPLACE FUNCTION extensions.uuid_generate_v3(namespace uuid, name text)";
+extensions,uuid_generate_v3,namespace uuid, name text"",uuid,c,false,i,""CREATE OR REPLACE FUNCTION extensions.uuid_generate_v3(namespace uuid, name text)";
  RETURNS uuid;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/uuid-ossp', $function$uuid_generate_v3$function$;
 "
-extensions,uuid_generate_v4,,CREATE OR REPLACE FUNCTION extensions.uuid_generate_v4()";
+extensions,uuid_generate_v4,,uuid,c,false,v,CREATE OR REPLACE FUNCTION extensions.uuid_generate_v4()";
  RETURNS uuid;
  LANGUAGE c;
  PARALLEL SAFE STRICT;
 AS '$libdir/uuid-ossp', $function$uuid_generate_v4$function$;
 "
-extensions,uuid_generate_v5,namespace uuid, name text"",""CREATE OR REPLACE FUNCTION extensions.uuid_generate_v5(namespace uuid, name text)";
+extensions,uuid_generate_v5,namespace uuid, name text"",uuid,c,false,i,""CREATE OR REPLACE FUNCTION extensions.uuid_generate_v5(namespace uuid, name text)";
  RETURNS uuid;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/uuid-ossp', $function$uuid_generate_v5$function$;
 "
-extensions,uuid_nil,,CREATE OR REPLACE FUNCTION extensions.uuid_nil()";
+extensions,uuid_nil,,uuid,c,false,i,CREATE OR REPLACE FUNCTION extensions.uuid_nil()";
  RETURNS uuid;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/uuid-ossp', $function$uuid_nil$function$;
 "
-extensions,uuid_ns_dns,,CREATE OR REPLACE FUNCTION extensions.uuid_ns_dns()";
+extensions,uuid_ns_dns,,uuid,c,false,i,CREATE OR REPLACE FUNCTION extensions.uuid_ns_dns()";
  RETURNS uuid;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/uuid-ossp', $function$uuid_ns_dns$function$;
 "
-extensions,uuid_ns_oid,,CREATE OR REPLACE FUNCTION extensions.uuid_ns_oid()";
+extensions,uuid_ns_oid,,uuid,c,false,i,CREATE OR REPLACE FUNCTION extensions.uuid_ns_oid()";
  RETURNS uuid;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/uuid-ossp', $function$uuid_ns_oid$function$;
 "
-extensions,uuid_ns_url,,CREATE OR REPLACE FUNCTION extensions.uuid_ns_url()";
+extensions,uuid_ns_url,,uuid,c,false,i,CREATE OR REPLACE FUNCTION extensions.uuid_ns_url()";
  RETURNS uuid;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/uuid-ossp', $function$uuid_ns_url$function$;
 "
-extensions,uuid_ns_x500,,CREATE OR REPLACE FUNCTION extensions.uuid_ns_x500()";
+extensions,uuid_ns_x500,,uuid,c,false,i,CREATE OR REPLACE FUNCTION extensions.uuid_ns_x500()";
  RETURNS uuid;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/uuid-ossp', $function$uuid_ns_x500$function$;
 "
-graphql,_internal_resolve,query text, variables jsonb, """"operationName"""" text, extensions jsonb"",""CREATE OR REPLACE FUNCTION graphql._internal_resolve(query text, variables jsonb DEFAULT '{}'::jsonb, """"operationName"""" text DEFAULT NULL::text, extensions jsonb DEFAULT NULL::jsonb)";
+graphql,_internal_resolve,query text, variables jsonb, """"operationName"""" text, extensions jsonb"",jsonb,c,false,v,""CREATE OR REPLACE FUNCTION graphql._internal_resolve(query text, variables jsonb DEFAULT '{}'::jsonb, """"operationName"""" text DEFAULT NULL::text, extensions jsonb DEFAULT NULL::jsonb)";
  RETURNS jsonb;
  LANGUAGE c;
 AS '$libdir/pg_graphql', $function$resolve_wrapper$function$;
 "
-graphql,comment_directive,comment_ text,CREATE OR REPLACE FUNCTION graphql.comment_directive(comment_ text)";
+graphql,comment_directive,comment_ text,jsonb,sql,false,i,CREATE OR REPLACE FUNCTION graphql.comment_directive(comment_ text)";
  RETURNS jsonb;
  LANGUAGE sql;
  IMMUTABLE;
@@ -609,7 +609,7 @@ AS $function$;
         );
 $function$;
 "
-graphql,exception,message text,CREATE OR REPLACE FUNCTION graphql.exception(message text)";
+graphql,exception,message text,text,plpgsql,false,v,CREATE OR REPLACE FUNCTION graphql.exception(message text)";
  RETURNS text;
  LANGUAGE plpgsql;
 AS $function$;
@@ -618,7 +618,7 @@ begin;
 end;
 $function$;
 "
-graphql,get_schema_version,,CREATE OR REPLACE FUNCTION graphql.get_schema_version()";
+graphql,get_schema_version,,integer,sql,true,v,CREATE OR REPLACE FUNCTION graphql.get_schema_version()";
  RETURNS integer;
  LANGUAGE sql;
  SECURITY DEFINER;
@@ -626,7 +626,7 @@ AS $function$;
     select last_value from graphql.seq_schema_version;
 $function$;
 "
-graphql,increment_schema_version,,CREATE OR REPLACE FUNCTION graphql.increment_schema_version()";
+graphql,increment_schema_version,,event_trigger,plpgsql,true,v,CREATE OR REPLACE FUNCTION graphql.increment_schema_version()";
  RETURNS event_trigger;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -636,7 +636,7 @@ begin;
 end;
 $function$;
 "
-graphql,resolve,query text, variables jsonb, """"operationName"""" text, extensions jsonb"",""CREATE OR REPLACE FUNCTION graphql.resolve(query text, variables jsonb DEFAULT '{}'::jsonb, """"operationName"""" text DEFAULT NULL::text, extensions jsonb DEFAULT NULL::jsonb)";
+graphql,resolve,query text, variables jsonb, """"operationName"""" text, extensions jsonb"",jsonb,plpgsql,false,v,""CREATE OR REPLACE FUNCTION graphql.resolve(query text, variables jsonb DEFAULT '{}'::jsonb, """"operationName"""" text DEFAULT NULL::text, extensions jsonb DEFAULT NULL::jsonb)";
  RETURNS jsonb;
  LANGUAGE plpgsql;
 AS $function$;
@@ -660,7 +660,7 @@ begin;
 end;
 $function$;
 "
-graphql_public,graphql,""operationName"""" text, query text, variables jsonb, extensions jsonb"",""CREATE OR REPLACE FUNCTION graphql_public.graphql(""""operationName"""" text DEFAULT NULL::text, query text DEFAULT NULL::text, variables jsonb DEFAULT NULL::jsonb, extensions jsonb DEFAULT NULL::jsonb)";
+graphql_public,graphql,""operationName"""" text, query text, variables jsonb, extensions jsonb"",jsonb,sql,false,v,""CREATE OR REPLACE FUNCTION graphql_public.graphql(""""operationName"""" text DEFAULT NULL::text, query text DEFAULT NULL::text, variables jsonb DEFAULT NULL::jsonb, extensions jsonb DEFAULT NULL::jsonb)";
  RETURNS jsonb;
  LANGUAGE sql;
 AS $function$;
@@ -672,7 +672,7 @@ AS $function$;
             );
         $function$;
 "
-pgbouncer,get_auth,p_usename text,CREATE OR REPLACE FUNCTION pgbouncer.get_auth(p_usename text)";
+pgbouncer,get_auth,p_usename text,TABLE(username text, password text)"",plpgsql,true,v,""CREATE OR REPLACE FUNCTION pgbouncer.get_auth(p_usename text)";
  RETURNS TABLE(username text, password text);
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -693,7 +693,7 @@ AS $function$;
   END;
   $function$;
 "
-public,accept_ticket_and_create_mission,p_ticket_id uuid, p_entreprise_id uuid"",""CREATE OR REPLACE FUNCTION public.accept_ticket_and_create_mission(p_ticket_id uuid, p_entreprise_id uuid)";
+public,accept_ticket_and_create_mission,p_ticket_id uuid, p_entreprise_id uuid"",uuid,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.accept_ticket_and_create_mission(p_ticket_id uuid, p_entreprise_id uuid)";
  RETURNS uuid;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -783,7 +783,7 @@ BEGIN;
 END;
 $function$;
 "
-public,assign_technicien_to_mission,p_mission_id uuid, p_technicien_id uuid, p_date_intervention_prevue timestamp with time zone"",""CREATE OR REPLACE FUNCTION public.assign_technicien_to_mission(p_mission_id uuid, p_technicien_id uuid, p_date_intervention_prevue timestamp with time zone DEFAULT NULL::timestamp with time zone)";
+public,assign_technicien_to_mission,p_mission_id uuid, p_technicien_id uuid, p_date_intervention_prevue timestamp with time zone"",jsonb,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.assign_technicien_to_mission(p_mission_id uuid, p_technicien_id uuid, p_date_intervention_prevue timestamp with time zone DEFAULT NULL::timestamp with time zone)";
  RETURNS jsonb;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -838,7 +838,7 @@ begin;
 end;
 $function$;
 "
-public,cancel_facture,p_facture_id uuid, p_raison text"",""CREATE OR REPLACE FUNCTION public.cancel_facture(p_facture_id uuid, p_raison text DEFAULT NULL::text)";
+public,cancel_facture,p_facture_id uuid, p_raison text"",factures,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.cancel_facture(p_facture_id uuid, p_raison text DEFAULT NULL::text)";
  RETURNS factures;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -873,7 +873,7 @@ begin;
 end;
 $function$;
 "
-public,cancel_mission,p_mission_id uuid, p_raison text"",""CREATE OR REPLACE FUNCTION public.cancel_mission(p_mission_id uuid, p_raison text DEFAULT NULL::text)";
+public,cancel_mission,p_mission_id uuid, p_raison text"",jsonb,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.cancel_mission(p_mission_id uuid, p_raison text DEFAULT NULL::text)";
  RETURNS jsonb;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -919,13 +919,13 @@ begin;
 end;
 $function$;
 "
-public,cash_dist,money, money"",""CREATE OR REPLACE FUNCTION public.cash_dist(money, money)";
+public,cash_dist,money, money"",money,c,false,i,""CREATE OR REPLACE FUNCTION public.cash_dist(money, money)";
  RETURNS money;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$cash_dist$function$;
 "
-public,change_plan,p_abonnement_id uuid, p_nouveau_plan_id uuid, p_prorata boolean"",""CREATE OR REPLACE FUNCTION public.change_plan(p_abonnement_id uuid, p_nouveau_plan_id uuid, p_prorata boolean DEFAULT true)";
+public,change_plan,p_abonnement_id uuid, p_nouveau_plan_id uuid, p_prorata boolean"",uuid,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.change_plan(p_abonnement_id uuid, p_nouveau_plan_id uuid, p_prorata boolean DEFAULT true)";
  RETURNS uuid;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -1011,7 +1011,7 @@ BEGIN;
 END;
 $function$;
 "
-public,check_access_module,p_module_name character varying, p_entreprise_id uuid, p_regie_id uuid"",""CREATE OR REPLACE FUNCTION public.check_access_module(p_module_name character varying, p_entreprise_id uuid DEFAULT NULL::uuid, p_regie_id uuid DEFAULT NULL::uuid)";
+public,check_access_module,p_module_name character varying, p_entreprise_id uuid, p_regie_id uuid"",boolean,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.check_access_module(p_module_name character varying, p_entreprise_id uuid DEFAULT NULL::uuid, p_regie_id uuid DEFAULT NULL::uuid)";
  RETURNS boolean;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -1044,7 +1044,7 @@ BEGIN;
 END;
 $function$;
 "
-public,check_disponibilites_before_diffusion,,CREATE OR REPLACE FUNCTION public.check_disponibilites_before_diffusion()";
+public,check_disponibilites_before_diffusion,,trigger,plpgsql,true,v,CREATE OR REPLACE FUNCTION public.check_disponibilites_before_diffusion()";
  RETURNS trigger;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -1061,9 +1061,9 @@ BEGIN;
     FROM tickets_disponibilites;
     WHERE ticket_id = NEW.id;
     ;
-    -- Vérifier exactement 3 créneaux;
-    IF v_count_disponibilites != 3 THEN;
-      RAISE EXCEPTION 'Un ticket doit avoir exactement 3 disponibilités avant diffusion (actuellement : %)', v_count_disponibilites;
+    -- Vérifier AU MOINS 1 créneau (règle métier: 1 obligatoire, 2 optionnels);
+    IF v_count_disponibilites < 1 THEN;
+      RAISE EXCEPTION 'Un ticket doit avoir au moins 1 disponibilité avant diffusion (actuellement : %)', v_count_disponibilites;
     END IF;
   END IF;
   ;
@@ -1071,7 +1071,7 @@ BEGIN;
 END;
 $function$;
 "
-public,check_locataire_has_logement_for_ticket,,CREATE OR REPLACE FUNCTION public.check_locataire_has_logement_for_ticket()";
+public,check_locataire_has_logement_for_ticket,,trigger,plpgsql,true,v,CREATE OR REPLACE FUNCTION public.check_locataire_has_logement_for_ticket()";
  RETURNS trigger;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -1095,7 +1095,7 @@ BEGIN;
 END;
 $function$;
 "
-public,check_quota,p_quota_type character varying, p_entreprise_id uuid, p_regie_id uuid"",""CREATE OR REPLACE FUNCTION public.check_quota(p_quota_type character varying, p_entreprise_id uuid DEFAULT NULL::uuid, p_regie_id uuid DEFAULT NULL::uuid)";
+public,check_quota,p_quota_type character varying, p_entreprise_id uuid, p_regie_id uuid"",""TABLE(quota_atteint boolean, limite integer, utilisation integer)"",plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.check_quota(p_quota_type character varying, p_entreprise_id uuid DEFAULT NULL::uuid, p_regie_id uuid DEFAULT NULL::uuid)";
  RETURNS TABLE(quota_atteint boolean, limite integer, utilisation integer);
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -1198,7 +1198,7 @@ BEGIN;
 END;
 $function$;
 "
-public,complete_mission,p_mission_id uuid, p_rapport_url text"",""CREATE OR REPLACE FUNCTION public.complete_mission(p_mission_id uuid, p_rapport_url text DEFAULT NULL::text)";
+public,complete_mission,p_mission_id uuid, p_rapport_url text"",jsonb,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.complete_mission(p_mission_id uuid, p_rapport_url text DEFAULT NULL::text)";
  RETURNS jsonb;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -1251,7 +1251,7 @@ begin;
 end;
 $function$;
 "
-public,create_abonnement,p_plan_id uuid, p_entreprise_id uuid, p_regie_id uuid, p_type_periode character varying"",""CREATE OR REPLACE FUNCTION public.create_abonnement(p_plan_id uuid, p_entreprise_id uuid DEFAULT NULL::uuid, p_regie_id uuid DEFAULT NULL::uuid, p_type_periode character varying DEFAULT 'mensuel'::character varying)";
+public,create_abonnement,p_plan_id uuid, p_entreprise_id uuid, p_regie_id uuid, p_type_periode character varying"",uuid,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.create_abonnement(p_plan_id uuid, p_entreprise_id uuid DEFAULT NULL::uuid, p_regie_id uuid DEFAULT NULL::uuid, p_type_periode character varying DEFAULT 'mensuel'::character varying)";
  RETURNS uuid;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -1313,7 +1313,100 @@ BEGIN;
 END;
 $function$;
 "
-public,create_system_message,p_mission_id uuid, p_content text"",""CREATE OR REPLACE FUNCTION public.create_system_message(p_mission_id uuid, p_content text)";
+public,create_entreprise_simple,p_nom text, p_email text, p_telephone text, p_adresse text, p_code_postal text, p_ville text, p_siret text, p_description text, p_mode_diffusion text"",uuid,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.create_entreprise_simple(p_nom text, p_email text, p_telephone text DEFAULT NULL::text, p_adresse text DEFAULT NULL::text, p_code_postal text DEFAULT NULL::text, p_ville text DEFAULT NULL::text, p_siret text DEFAULT NULL::text, p_description text DEFAULT NULL::text, p_mode_diffusion text DEFAULT 'restreint'::text)";
+ RETURNS uuid;
+ LANGUAGE plpgsql;
+ SECURITY DEFINER;
+ SET search_path TO 'public';
+AS $function$;
+DECLARE;
+  v_regie_id uuid;
+  v_entreprise_id uuid;
+BEGIN;
+  -- Vérifier que l'utilisateur est une régie;
+  SELECT get_user_regie_id() INTO v_regie_id;
+  IF v_regie_id IS NULL THEN;
+    RAISE EXCEPTION 'Utilisateur non autorisé (pas une régie)';
+  END IF;
+;
+  -- Valider mode_diffusion (CORRECTION: general ou restreint);
+  IF p_mode_diffusion NOT IN ('general', 'restreint') THEN;
+    RAISE EXCEPTION 'mode_diffusion doit être general ou restreint (reçu: %)', p_mode_diffusion;
+  END IF;
+;
+  -- Log pour debug;
+  RAISE NOTICE '[create_entreprise_simple] regie_id=%, mode_diffusion=%', v_regie_id, p_mode_diffusion;
+;
+  -- Créer entreprise (profile_id = NULL);
+  INSERT INTO entreprises (;
+    nom, email, telephone, adresse, code_postal, ville, siret, description, profile_id;
+  ) VALUES (;
+    p_nom, p_email, p_telephone, p_adresse, p_code_postal, p_ville, p_siret, p_description, NULL;
+  ) RETURNING id INTO v_entreprise_id;
+;
+  -- Créer lien regies_entreprises;
+  INSERT INTO regies_entreprises (regie_id, entreprise_id, mode_diffusion);
+  VALUES (v_regie_id, v_entreprise_id, p_mode_diffusion);
+;
+  RETURN v_entreprise_id;
+END;
+$function$;
+"
+public,create_entreprise_with_profile,p_profile_id uuid, p_nom text, p_email text, p_telephone text, p_adresse text, p_code_postal text, p_ville text, p_siret text, p_description text, p_mode_diffusion text"",uuid,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.create_entreprise_with_profile(p_profile_id uuid, p_nom text, p_email text, p_telephone text DEFAULT NULL::text, p_adresse text DEFAULT NULL::text, p_code_postal text DEFAULT NULL::text, p_ville text DEFAULT NULL::text, p_siret text DEFAULT NULL::text, p_description text DEFAULT NULL::text, p_mode_diffusion text DEFAULT 'restreint'::text)";
+ RETURNS uuid;
+ LANGUAGE plpgsql;
+ SECURITY DEFINER;
+ SET search_path TO 'public';
+AS $function$;
+DECLARE;
+  v_regie_id uuid;
+  v_entreprise_id uuid;
+  v_profile_role user_role;
+BEGIN;
+  -- Vérifier que l'utilisateur est une régie;
+  SELECT get_user_regie_id() INTO v_regie_id;
+  IF v_regie_id IS NULL THEN;
+    RAISE EXCEPTION 'Utilisateur non autorisé (pas une régie)';
+  END IF;
+;
+  -- Vérifier que le profile existe et a le bon role;
+  SELECT role INTO v_profile_role;
+  FROM profiles;
+  WHERE id = p_profile_id;
+;
+  IF NOT FOUND THEN;
+    RAISE EXCEPTION 'Profile % non trouvé', p_profile_id;
+  END IF;
+;
+  IF v_profile_role != 'entreprise' THEN;
+    RAISE EXCEPTION 'Profile doit avoir role entreprise (actuellement: %)', v_profile_role;
+  END IF;
+;
+  -- Valider mode_diffusion (CORRECTION: general ou restreint);
+  IF p_mode_diffusion NOT IN ('general', 'restreint') THEN;
+    RAISE EXCEPTION 'mode_diffusion doit être general ou restreint (reçu: %)', p_mode_diffusion;
+  END IF;
+;
+  -- Log pour debug;
+  RAISE NOTICE '[create_entreprise_with_profile] regie_id=%, profile_id=%, mode_diffusion=%', ;
+    v_regie_id, p_profile_id, p_mode_diffusion;
+;
+  -- Créer entreprise avec profile_id;
+  INSERT INTO entreprises (;
+    nom, email, telephone, adresse, code_postal, ville, siret, description, profile_id;
+  ) VALUES (;
+    p_nom, p_email, p_telephone, p_adresse, p_code_postal, p_ville, p_siret, p_description, p_profile_id;
+  ) RETURNING id INTO v_entreprise_id;
+;
+  -- Créer lien regies_entreprises;
+  INSERT INTO regies_entreprises (regie_id, entreprise_id, mode_diffusion);
+  VALUES (v_regie_id, v_entreprise_id, p_mode_diffusion);
+;
+  RETURN v_entreprise_id;
+END;
+$function$;
+"
+public,create_system_message,p_mission_id uuid, p_content text"",messages,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.create_system_message(p_mission_id uuid, p_content text)";
  RETURNS messages;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -1343,80 +1436,40 @@ begin;
 end;
 $function$;
 "
-public,creer_locataire_complet,p_nom text, p_prenom text, p_email text, p_profile_id uuid, p_regie_id uuid, p_logement_id uuid, p_date_entree date, p_telephone text, p_date_naissance date, p_contact_urgence_nom text, p_contact_urgence_telephone text"",""CREATE OR REPLACE FUNCTION public.creer_locataire_complet(p_nom text, p_prenom text, p_email text, p_profile_id uuid, p_regie_id uuid, p_logement_id uuid DEFAULT NULL::uuid, p_date_entree date DEFAULT NULL::date, p_telephone text DEFAULT NULL::text, p_date_naissance date DEFAULT NULL::date, p_contact_urgence_nom text DEFAULT NULL::text, p_contact_urgence_telephone text DEFAULT NULL::text)";
- RETURNS json;
+public,create_ticket_locataire,p_titre text, p_description text, p_categorie text, p_sous_categorie text, p_piece text, p_locataire_id uuid, p_logement_id uuid"",uuid,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.create_ticket_locataire(p_titre text, p_description text, p_categorie text, p_sous_categorie text, p_piece text, p_locataire_id uuid, p_logement_id uuid)";
+ RETURNS uuid;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
+ SET search_path TO 'public';
 AS $function$;
 DECLARE;
-  v_locataire_id uuid;
-  v_logement_regie_id uuid;
+  v_ticket_id uuid;
 BEGIN;
-  -- garde-fou;
-  IF p_regie_id IS NULL THEN;
-    RAISE EXCEPTION 'p_regie_id is required';
-  END IF;
-;
-  -- si logement fourni, vérifier qu'il appartient à la régie;
-  IF p_logement_id IS NOT NULL THEN;
-    SELECT l.regie_id INTO v_logement_regie_id;
-    FROM public.logements l;
-    WHERE l.id = p_logement_id;
-;
-    IF v_logement_regie_id IS NULL THEN;
-      RAISE EXCEPTION 'Logement introuvable: %', p_logement_id;
-    END IF;
-;
-    IF v_logement_regie_id <> p_regie_id THEN;
-      RAISE EXCEPTION 'Logement % n''appartient pas à la régie %', p_logement_id, p_regie_id;
-    END IF;
-  END IF;
-;
-  -- insertion locataire;
-  INSERT INTO public.locataires (;
-    nom,;
-    prenom,;
-    email,;
-    profile_id,;
-    regie_id,;
-    logement_id,;
-    date_entree,;
-    telephone,;
-    date_naissance,;
-    contact_urgence_nom,;
-    contact_urgence_telephone;
+  INSERT INTO public.tickets (;
+    titre,;
+    description,;
+    categorie,;
+    sous_categorie,;
+    piece,;
+    locataire_id,;
+    logement_id;
   );
   VALUES (;
-    p_nom,;
-    p_prenom,;
-    p_email,;
-    p_profile_id,;
-    p_regie_id,;
-    p_logement_id,;
-    p_date_entree,;
-    p_telephone,;
-    p_date_naissance,;
-    p_contact_urgence_nom,;
-    p_contact_urgence_telephone;
+    p_titre,;
+    p_description,;
+    p_categorie,;
+    p_sous_categorie,;
+    p_piece,;
+    p_locataire_id,;
+    p_logement_id;
   );
-  RETURNING id INTO v_locataire_id;
+  RETURNING id INTO v_ticket_id;
 ;
-"  -- si logement fourni, passer en """"occupé""""";
-  IF p_logement_id IS NOT NULL THEN;
-    UPDATE public.logements;
-    SET statut = 'occupé';
-    WHERE id = p_logement_id;
-  END IF;
-;
-  RETURN json_build_object(;
-    'success', true,;
-    'locataire_id', v_locataire_id,;
-    'logement_id', p_logement_id;
-  );
+  RETURN v_ticket_id;
 END;
 $function$;
 "
-public,creer_locataire_complet,p_nom text, p_prenom text, p_email text, p_profile_id uuid, p_logement_id uuid, p_date_entree date, p_telephone text, p_date_naissance date, p_contact_urgence_nom text, p_contact_urgence_telephone text"",""CREATE OR REPLACE FUNCTION public.creer_locataire_complet(p_nom text, p_prenom text, p_email text, p_profile_id uuid, p_logement_id uuid DEFAULT NULL::uuid, p_date_entree date DEFAULT NULL::date, p_telephone text DEFAULT NULL::text, p_date_naissance date DEFAULT NULL::date, p_contact_urgence_nom text DEFAULT NULL::text, p_contact_urgence_telephone text DEFAULT NULL::text)";
+public,creer_locataire_complet,p_nom text, p_prenom text, p_email text, p_profile_id uuid, p_logement_id uuid, p_date_entree date, p_telephone text, p_date_naissance date, p_contact_urgence_nom text, p_contact_urgence_telephone text"",json,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.creer_locataire_complet(p_nom text, p_prenom text, p_email text, p_profile_id uuid, p_logement_id uuid DEFAULT NULL::uuid, p_date_entree date DEFAULT NULL::date, p_telephone text DEFAULT NULL::text, p_date_naissance date DEFAULT NULL::date, p_contact_urgence_nom text DEFAULT NULL::text, p_contact_urgence_telephone text DEFAULT NULL::text)";
  RETURNS json;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -1548,13 +1601,86 @@ EXCEPTION;
 END;
 $function$;
 "
-public,date_dist,date, date"",""CREATE OR REPLACE FUNCTION public.date_dist(date, date)";
+public,creer_locataire_complet,p_nom text, p_prenom text, p_email text, p_profile_id uuid, p_regie_id uuid, p_logement_id uuid, p_date_entree date, p_telephone text, p_date_naissance date, p_contact_urgence_nom text, p_contact_urgence_telephone text"",json,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.creer_locataire_complet(p_nom text, p_prenom text, p_email text, p_profile_id uuid, p_regie_id uuid, p_logement_id uuid DEFAULT NULL::uuid, p_date_entree date DEFAULT NULL::date, p_telephone text DEFAULT NULL::text, p_date_naissance date DEFAULT NULL::date, p_contact_urgence_nom text DEFAULT NULL::text, p_contact_urgence_telephone text DEFAULT NULL::text)";
+ RETURNS json;
+ LANGUAGE plpgsql;
+ SECURITY DEFINER;
+AS $function$;
+DECLARE;
+  v_locataire_id uuid;
+  v_logement_regie_id uuid;
+BEGIN;
+  -- garde-fou;
+  IF p_regie_id IS NULL THEN;
+    RAISE EXCEPTION 'p_regie_id is required';
+  END IF;
+;
+  -- si logement fourni, vérifier qu'il appartient à la régie;
+  IF p_logement_id IS NOT NULL THEN;
+    SELECT l.regie_id INTO v_logement_regie_id;
+    FROM public.logements l;
+    WHERE l.id = p_logement_id;
+;
+    IF v_logement_regie_id IS NULL THEN;
+      RAISE EXCEPTION 'Logement introuvable: %', p_logement_id;
+    END IF;
+;
+    IF v_logement_regie_id <> p_regie_id THEN;
+      RAISE EXCEPTION 'Logement % n''appartient pas à la régie %', p_logement_id, p_regie_id;
+    END IF;
+  END IF;
+;
+  -- insertion locataire;
+  INSERT INTO public.locataires (;
+    nom,;
+    prenom,;
+    email,;
+    profile_id,;
+    regie_id,;
+    logement_id,;
+    date_entree,;
+    telephone,;
+    date_naissance,;
+    contact_urgence_nom,;
+    contact_urgence_telephone;
+  );
+  VALUES (;
+    p_nom,;
+    p_prenom,;
+    p_email,;
+    p_profile_id,;
+    p_regie_id,;
+    p_logement_id,;
+    p_date_entree,;
+    p_telephone,;
+    p_date_naissance,;
+    p_contact_urgence_nom,;
+    p_contact_urgence_telephone;
+  );
+  RETURNING id INTO v_locataire_id;
+;
+"  -- si logement fourni, passer en """"occupé""""";
+  IF p_logement_id IS NOT NULL THEN;
+    UPDATE public.logements;
+    SET statut = 'occupé';
+    WHERE id = p_logement_id;
+  END IF;
+;
+  RETURN json_build_object(;
+    'success', true,;
+    'locataire_id', v_locataire_id,;
+    'logement_id', p_logement_id;
+  );
+END;
+$function$;
+"
+public,date_dist,date, date"",integer,c,false,i,""CREATE OR REPLACE FUNCTION public.date_dist(date, date)";
  RETURNS integer;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$date_dist$function$;
 "
-public,diffuser_ticket,p_ticket_id uuid, p_mode_diffusion text, p_entreprise_id uuid"",""CREATE OR REPLACE FUNCTION public.diffuser_ticket(p_ticket_id uuid, p_mode_diffusion text, p_entreprise_id uuid DEFAULT NULL::uuid)";
+public,diffuser_ticket,p_ticket_id uuid, p_mode_diffusion text, p_entreprise_id uuid"",void,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.diffuser_ticket(p_ticket_id uuid, p_mode_diffusion text, p_entreprise_id uuid DEFAULT NULL::uuid)";
  RETURNS void;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -1563,6 +1689,8 @@ AS $function$;
 DECLARE;
   v_statut_actuel ticket_status;
   v_regie_id uuid;
+  v_priorite text;
+  v_plafond numeric;
 BEGIN;
   -- Vérifier que l'utilisateur est bien associé à une régie;
   SELECT get_user_regie_id() INTO v_regie_id;
@@ -1570,8 +1698,9 @@ BEGIN;
     RAISE EXCEPTION 'Utilisateur non associé à une régie';
   END IF;
 ;
-  -- Récupérer statut actuel du ticket;
-  SELECT statut INTO v_statut_actuel ;
+  -- Récupérer statut actuel + priorité + plafond du ticket;
+  SELECT statut, priorite, plafond_intervention_chf ;
+  INTO v_statut_actuel, v_priorite, v_plafond;
   FROM tickets ;
   WHERE id = p_ticket_id;
   ;
@@ -1582,6 +1711,16 @@ BEGIN;
   -- Vérifier que le ticket est au statut 'ouvert' (prêt à diffuser);
   IF v_statut_actuel != 'ouvert' THEN;
     RAISE EXCEPTION 'Ticket doit être au statut ouvert pour diffusion (statut actuel: %)', v_statut_actuel;
+  END IF;
+;
+  -- 🔴 NOUVELLE VALIDATION: Priorité obligatoire;
+  IF v_priorite IS NULL THEN;
+    RAISE EXCEPTION 'Priorité manquante: ticket doit avoir une priorité avant diffusion';
+  END IF;
+;
+  -- 🔴 NOUVELLE VALIDATION: Plafond obligatoire;
+  IF v_plafond IS NULL THEN;
+    RAISE EXCEPTION 'Plafond intervention manquant: ticket doit avoir un plafond CHF avant diffusion';
   END IF;
 ;
   -- Validation mode diffusion;
@@ -1622,1075 +1761,1075 @@ BEGIN;
 END;
 $function$;
 "
-public,float4_dist,real, real"",""CREATE OR REPLACE FUNCTION public.float4_dist(real, real)";
+public,float4_dist,real, real"",real,c,false,i,""CREATE OR REPLACE FUNCTION public.float4_dist(real, real)";
  RETURNS real;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$float4_dist$function$;
 "
-public,float8_dist,double precision, double precision"",""CREATE OR REPLACE FUNCTION public.float8_dist(double precision, double precision)";
+public,float8_dist,double precision, double precision"",double precision,c,false,i,""CREATE OR REPLACE FUNCTION public.float8_dist(double precision, double precision)";
  RETURNS double precision;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$float8_dist$function$;
 "
-public,gbt_bit_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_bit_compress(internal)";
+public,gbt_bit_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_bit_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_bit_compress$function$;
 "
-public,gbt_bit_consistent,internal, bit, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_bit_consistent(internal, bit, smallint, oid, internal)";
+public,gbt_bit_consistent,internal, bit, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_bit_consistent(internal, bit, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_bit_consistent$function$;
 "
-public,gbt_bit_penalty,internal, internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_bit_penalty(internal, internal, internal)";
+public,gbt_bit_penalty,internal, internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_bit_penalty(internal, internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_bit_penalty$function$;
 "
-public,gbt_bit_picksplit,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_bit_picksplit(internal, internal)";
+public,gbt_bit_picksplit,internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_bit_picksplit(internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_bit_picksplit$function$;
 "
-public,gbt_bit_same,gbtreekey_var, gbtreekey_var, internal"",""CREATE OR REPLACE FUNCTION public.gbt_bit_same(gbtreekey_var, gbtreekey_var, internal)";
+public,gbt_bit_same,gbtreekey_var, gbtreekey_var, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_bit_same(gbtreekey_var, gbtreekey_var, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_bit_same$function$;
 "
-public,gbt_bit_union,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_bit_union(internal, internal)";
+public,gbt_bit_union,internal, internal"",gbtreekey_var,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_bit_union(internal, internal)";
  RETURNS gbtreekey_var;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_bit_union$function$;
 "
-public,gbt_bool_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_bool_compress(internal)";
+public,gbt_bool_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_bool_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE STRICT;
 AS '$libdir/btree_gist', $function$gbt_bool_compress$function$;
 "
-public,gbt_bool_consistent,internal, boolean, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_bool_consistent(internal, boolean, smallint, oid, internal)";
+public,gbt_bool_consistent,internal, boolean, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_bool_consistent(internal, boolean, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE STRICT;
 AS '$libdir/btree_gist', $function$gbt_bool_consistent$function$;
 "
-public,gbt_bool_fetch,internal,CREATE OR REPLACE FUNCTION public.gbt_bool_fetch(internal)";
+public,gbt_bool_fetch,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_bool_fetch(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE STRICT;
 AS '$libdir/btree_gist', $function$gbt_bool_fetch$function$;
 "
-public,gbt_bool_penalty,internal, internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_bool_penalty(internal, internal, internal)";
+public,gbt_bool_penalty,internal, internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_bool_penalty(internal, internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE STRICT;
 AS '$libdir/btree_gist', $function$gbt_bool_penalty$function$;
 "
-public,gbt_bool_picksplit,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_bool_picksplit(internal, internal)";
+public,gbt_bool_picksplit,internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_bool_picksplit(internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE STRICT;
 AS '$libdir/btree_gist', $function$gbt_bool_picksplit$function$;
 "
-public,gbt_bool_same,gbtreekey2, gbtreekey2, internal"",""CREATE OR REPLACE FUNCTION public.gbt_bool_same(gbtreekey2, gbtreekey2, internal)";
+public,gbt_bool_same,gbtreekey2, gbtreekey2, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_bool_same(gbtreekey2, gbtreekey2, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE STRICT;
 AS '$libdir/btree_gist', $function$gbt_bool_same$function$;
 "
-public,gbt_bool_union,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_bool_union(internal, internal)";
+public,gbt_bool_union,internal, internal"",gbtreekey2,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_bool_union(internal, internal)";
  RETURNS gbtreekey2;
  LANGUAGE c;
  IMMUTABLE STRICT;
 AS '$libdir/btree_gist', $function$gbt_bool_union$function$;
 "
-public,gbt_bpchar_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_bpchar_compress(internal)";
+public,gbt_bpchar_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_bpchar_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_bpchar_compress$function$;
 "
-public,gbt_bpchar_consistent,internal, character, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_bpchar_consistent(internal, character, smallint, oid, internal)";
+public,gbt_bpchar_consistent,internal, character, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_bpchar_consistent(internal, character, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_bpchar_consistent$function$;
 "
-public,gbt_bytea_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_bytea_compress(internal)";
+public,gbt_bytea_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_bytea_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_bytea_compress$function$;
 "
-public,gbt_bytea_consistent,internal, bytea, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_bytea_consistent(internal, bytea, smallint, oid, internal)";
+public,gbt_bytea_consistent,internal, bytea, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_bytea_consistent(internal, bytea, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_bytea_consistent$function$;
 "
-public,gbt_bytea_penalty,internal, internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_bytea_penalty(internal, internal, internal)";
+public,gbt_bytea_penalty,internal, internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_bytea_penalty(internal, internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_bytea_penalty$function$;
 "
-public,gbt_bytea_picksplit,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_bytea_picksplit(internal, internal)";
+public,gbt_bytea_picksplit,internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_bytea_picksplit(internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_bytea_picksplit$function$;
 "
-public,gbt_bytea_same,gbtreekey_var, gbtreekey_var, internal"",""CREATE OR REPLACE FUNCTION public.gbt_bytea_same(gbtreekey_var, gbtreekey_var, internal)";
+public,gbt_bytea_same,gbtreekey_var, gbtreekey_var, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_bytea_same(gbtreekey_var, gbtreekey_var, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_bytea_same$function$;
 "
-public,gbt_bytea_union,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_bytea_union(internal, internal)";
+public,gbt_bytea_union,internal, internal"",gbtreekey_var,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_bytea_union(internal, internal)";
  RETURNS gbtreekey_var;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_bytea_union$function$;
 "
-public,gbt_cash_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_cash_compress(internal)";
+public,gbt_cash_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_cash_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_cash_compress$function$;
 "
-public,gbt_cash_consistent,internal, money, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_cash_consistent(internal, money, smallint, oid, internal)";
+public,gbt_cash_consistent,internal, money, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_cash_consistent(internal, money, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_cash_consistent$function$;
 "
-public,gbt_cash_distance,internal, money, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_cash_distance(internal, money, smallint, oid, internal)";
+public,gbt_cash_distance,internal, money, smallint, oid, internal"",double precision,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_cash_distance(internal, money, smallint, oid, internal)";
  RETURNS double precision;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_cash_distance$function$;
 "
-public,gbt_cash_fetch,internal,CREATE OR REPLACE FUNCTION public.gbt_cash_fetch(internal)";
+public,gbt_cash_fetch,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_cash_fetch(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_cash_fetch$function$;
 "
-public,gbt_cash_penalty,internal, internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_cash_penalty(internal, internal, internal)";
+public,gbt_cash_penalty,internal, internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_cash_penalty(internal, internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_cash_penalty$function$;
 "
-public,gbt_cash_picksplit,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_cash_picksplit(internal, internal)";
+public,gbt_cash_picksplit,internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_cash_picksplit(internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_cash_picksplit$function$;
 "
-public,gbt_cash_same,gbtreekey16, gbtreekey16, internal"",""CREATE OR REPLACE FUNCTION public.gbt_cash_same(gbtreekey16, gbtreekey16, internal)";
+public,gbt_cash_same,gbtreekey16, gbtreekey16, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_cash_same(gbtreekey16, gbtreekey16, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_cash_same$function$;
 "
-public,gbt_cash_union,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_cash_union(internal, internal)";
+public,gbt_cash_union,internal, internal"",gbtreekey16,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_cash_union(internal, internal)";
  RETURNS gbtreekey16;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_cash_union$function$;
 "
-public,gbt_date_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_date_compress(internal)";
+public,gbt_date_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_date_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_date_compress$function$;
 "
-public,gbt_date_consistent,internal, date, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_date_consistent(internal, date, smallint, oid, internal)";
+public,gbt_date_consistent,internal, date, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_date_consistent(internal, date, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_date_consistent$function$;
 "
-public,gbt_date_distance,internal, date, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_date_distance(internal, date, smallint, oid, internal)";
+public,gbt_date_distance,internal, date, smallint, oid, internal"",double precision,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_date_distance(internal, date, smallint, oid, internal)";
  RETURNS double precision;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_date_distance$function$;
 "
-public,gbt_date_fetch,internal,CREATE OR REPLACE FUNCTION public.gbt_date_fetch(internal)";
+public,gbt_date_fetch,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_date_fetch(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_date_fetch$function$;
 "
-public,gbt_date_penalty,internal, internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_date_penalty(internal, internal, internal)";
+public,gbt_date_penalty,internal, internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_date_penalty(internal, internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_date_penalty$function$;
 "
-public,gbt_date_picksplit,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_date_picksplit(internal, internal)";
+public,gbt_date_picksplit,internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_date_picksplit(internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_date_picksplit$function$;
 "
-public,gbt_date_same,gbtreekey8, gbtreekey8, internal"",""CREATE OR REPLACE FUNCTION public.gbt_date_same(gbtreekey8, gbtreekey8, internal)";
+public,gbt_date_same,gbtreekey8, gbtreekey8, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_date_same(gbtreekey8, gbtreekey8, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_date_same$function$;
 "
-public,gbt_date_union,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_date_union(internal, internal)";
+public,gbt_date_union,internal, internal"",gbtreekey8,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_date_union(internal, internal)";
  RETURNS gbtreekey8;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_date_union$function$;
 "
-public,gbt_decompress,internal,CREATE OR REPLACE FUNCTION public.gbt_decompress(internal)";
+public,gbt_decompress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_decompress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_decompress$function$;
 "
-public,gbt_enum_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_enum_compress(internal)";
+public,gbt_enum_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_enum_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_enum_compress$function$;
 "
-public,gbt_enum_consistent,internal, anyenum, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_enum_consistent(internal, anyenum, smallint, oid, internal)";
+public,gbt_enum_consistent,internal, anyenum, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_enum_consistent(internal, anyenum, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_enum_consistent$function$;
 "
-public,gbt_enum_fetch,internal,CREATE OR REPLACE FUNCTION public.gbt_enum_fetch(internal)";
+public,gbt_enum_fetch,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_enum_fetch(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_enum_fetch$function$;
 "
-public,gbt_enum_penalty,internal, internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_enum_penalty(internal, internal, internal)";
+public,gbt_enum_penalty,internal, internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_enum_penalty(internal, internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_enum_penalty$function$;
 "
-public,gbt_enum_picksplit,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_enum_picksplit(internal, internal)";
+public,gbt_enum_picksplit,internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_enum_picksplit(internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_enum_picksplit$function$;
 "
-public,gbt_enum_same,gbtreekey8, gbtreekey8, internal"",""CREATE OR REPLACE FUNCTION public.gbt_enum_same(gbtreekey8, gbtreekey8, internal)";
+public,gbt_enum_same,gbtreekey8, gbtreekey8, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_enum_same(gbtreekey8, gbtreekey8, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_enum_same$function$;
 "
-public,gbt_enum_union,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_enum_union(internal, internal)";
+public,gbt_enum_union,internal, internal"",gbtreekey8,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_enum_union(internal, internal)";
  RETURNS gbtreekey8;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_enum_union$function$;
 "
-public,gbt_float4_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_float4_compress(internal)";
+public,gbt_float4_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_float4_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_float4_compress$function$;
 "
-public,gbt_float4_consistent,internal, real, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_float4_consistent(internal, real, smallint, oid, internal)";
+public,gbt_float4_consistent,internal, real, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_float4_consistent(internal, real, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_float4_consistent$function$;
 "
-public,gbt_float4_distance,internal, real, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_float4_distance(internal, real, smallint, oid, internal)";
+public,gbt_float4_distance,internal, real, smallint, oid, internal"",double precision,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_float4_distance(internal, real, smallint, oid, internal)";
  RETURNS double precision;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_float4_distance$function$;
 "
-public,gbt_float4_fetch,internal,CREATE OR REPLACE FUNCTION public.gbt_float4_fetch(internal)";
+public,gbt_float4_fetch,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_float4_fetch(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_float4_fetch$function$;
 "
-public,gbt_float4_penalty,internal, internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_float4_penalty(internal, internal, internal)";
+public,gbt_float4_penalty,internal, internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_float4_penalty(internal, internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_float4_penalty$function$;
 "
-public,gbt_float4_picksplit,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_float4_picksplit(internal, internal)";
+public,gbt_float4_picksplit,internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_float4_picksplit(internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_float4_picksplit$function$;
 "
-public,gbt_float4_same,gbtreekey8, gbtreekey8, internal"",""CREATE OR REPLACE FUNCTION public.gbt_float4_same(gbtreekey8, gbtreekey8, internal)";
+public,gbt_float4_same,gbtreekey8, gbtreekey8, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_float4_same(gbtreekey8, gbtreekey8, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_float4_same$function$;
 "
-public,gbt_float4_union,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_float4_union(internal, internal)";
+public,gbt_float4_union,internal, internal"",gbtreekey8,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_float4_union(internal, internal)";
  RETURNS gbtreekey8;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_float4_union$function$;
 "
-public,gbt_float8_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_float8_compress(internal)";
+public,gbt_float8_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_float8_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_float8_compress$function$;
 "
-public,gbt_float8_consistent,internal, double precision, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_float8_consistent(internal, double precision, smallint, oid, internal)";
+public,gbt_float8_consistent,internal, double precision, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_float8_consistent(internal, double precision, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_float8_consistent$function$;
 "
-public,gbt_float8_distance,internal, double precision, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_float8_distance(internal, double precision, smallint, oid, internal)";
+public,gbt_float8_distance,internal, double precision, smallint, oid, internal"",double precision,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_float8_distance(internal, double precision, smallint, oid, internal)";
  RETURNS double precision;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_float8_distance$function$;
 "
-public,gbt_float8_fetch,internal,CREATE OR REPLACE FUNCTION public.gbt_float8_fetch(internal)";
+public,gbt_float8_fetch,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_float8_fetch(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_float8_fetch$function$;
 "
-public,gbt_float8_penalty,internal, internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_float8_penalty(internal, internal, internal)";
+public,gbt_float8_penalty,internal, internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_float8_penalty(internal, internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_float8_penalty$function$;
 "
-public,gbt_float8_picksplit,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_float8_picksplit(internal, internal)";
+public,gbt_float8_picksplit,internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_float8_picksplit(internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_float8_picksplit$function$;
 "
-public,gbt_float8_same,gbtreekey16, gbtreekey16, internal"",""CREATE OR REPLACE FUNCTION public.gbt_float8_same(gbtreekey16, gbtreekey16, internal)";
+public,gbt_float8_same,gbtreekey16, gbtreekey16, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_float8_same(gbtreekey16, gbtreekey16, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_float8_same$function$;
 "
-public,gbt_float8_union,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_float8_union(internal, internal)";
+public,gbt_float8_union,internal, internal"",gbtreekey16,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_float8_union(internal, internal)";
  RETURNS gbtreekey16;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_float8_union$function$;
 "
-public,gbt_inet_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_inet_compress(internal)";
+public,gbt_inet_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_inet_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_inet_compress$function$;
 "
-public,gbt_inet_consistent,internal, inet, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_inet_consistent(internal, inet, smallint, oid, internal)";
+public,gbt_inet_consistent,internal, inet, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_inet_consistent(internal, inet, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_inet_consistent$function$;
 "
-public,gbt_inet_penalty,internal, internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_inet_penalty(internal, internal, internal)";
+public,gbt_inet_penalty,internal, internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_inet_penalty(internal, internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_inet_penalty$function$;
 "
-public,gbt_inet_picksplit,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_inet_picksplit(internal, internal)";
+public,gbt_inet_picksplit,internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_inet_picksplit(internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_inet_picksplit$function$;
 "
-public,gbt_inet_same,gbtreekey16, gbtreekey16, internal"",""CREATE OR REPLACE FUNCTION public.gbt_inet_same(gbtreekey16, gbtreekey16, internal)";
+public,gbt_inet_same,gbtreekey16, gbtreekey16, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_inet_same(gbtreekey16, gbtreekey16, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_inet_same$function$;
 "
-public,gbt_inet_union,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_inet_union(internal, internal)";
+public,gbt_inet_union,internal, internal"",gbtreekey16,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_inet_union(internal, internal)";
  RETURNS gbtreekey16;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_inet_union$function$;
 "
-public,gbt_int2_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_int2_compress(internal)";
+public,gbt_int2_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_int2_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int2_compress$function$;
 "
-public,gbt_int2_consistent,internal, smallint, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_int2_consistent(internal, smallint, smallint, oid, internal)";
+public,gbt_int2_consistent,internal, smallint, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_int2_consistent(internal, smallint, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int2_consistent$function$;
 "
-public,gbt_int2_distance,internal, smallint, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_int2_distance(internal, smallint, smallint, oid, internal)";
+public,gbt_int2_distance,internal, smallint, smallint, oid, internal"",double precision,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_int2_distance(internal, smallint, smallint, oid, internal)";
  RETURNS double precision;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int2_distance$function$;
 "
-public,gbt_int2_fetch,internal,CREATE OR REPLACE FUNCTION public.gbt_int2_fetch(internal)";
+public,gbt_int2_fetch,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_int2_fetch(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int2_fetch$function$;
 "
-public,gbt_int2_penalty,internal, internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_int2_penalty(internal, internal, internal)";
+public,gbt_int2_penalty,internal, internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_int2_penalty(internal, internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int2_penalty$function$;
 "
-public,gbt_int2_picksplit,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_int2_picksplit(internal, internal)";
+public,gbt_int2_picksplit,internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_int2_picksplit(internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int2_picksplit$function$;
 "
-public,gbt_int2_same,gbtreekey4, gbtreekey4, internal"",""CREATE OR REPLACE FUNCTION public.gbt_int2_same(gbtreekey4, gbtreekey4, internal)";
+public,gbt_int2_same,gbtreekey4, gbtreekey4, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_int2_same(gbtreekey4, gbtreekey4, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int2_same$function$;
 "
-public,gbt_int2_union,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_int2_union(internal, internal)";
+public,gbt_int2_union,internal, internal"",gbtreekey4,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_int2_union(internal, internal)";
  RETURNS gbtreekey4;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int2_union$function$;
 "
-public,gbt_int4_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_int4_compress(internal)";
+public,gbt_int4_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_int4_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int4_compress$function$;
 "
-public,gbt_int4_consistent,internal, integer, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_int4_consistent(internal, integer, smallint, oid, internal)";
+public,gbt_int4_consistent,internal, integer, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_int4_consistent(internal, integer, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int4_consistent$function$;
 "
-public,gbt_int4_distance,internal, integer, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_int4_distance(internal, integer, smallint, oid, internal)";
+public,gbt_int4_distance,internal, integer, smallint, oid, internal"",double precision,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_int4_distance(internal, integer, smallint, oid, internal)";
  RETURNS double precision;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int4_distance$function$;
 "
-public,gbt_int4_fetch,internal,CREATE OR REPLACE FUNCTION public.gbt_int4_fetch(internal)";
+public,gbt_int4_fetch,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_int4_fetch(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int4_fetch$function$;
 "
-public,gbt_int4_penalty,internal, internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_int4_penalty(internal, internal, internal)";
+public,gbt_int4_penalty,internal, internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_int4_penalty(internal, internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int4_penalty$function$;
 "
-public,gbt_int4_picksplit,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_int4_picksplit(internal, internal)";
+public,gbt_int4_picksplit,internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_int4_picksplit(internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int4_picksplit$function$;
 "
-public,gbt_int4_same,gbtreekey8, gbtreekey8, internal"",""CREATE OR REPLACE FUNCTION public.gbt_int4_same(gbtreekey8, gbtreekey8, internal)";
+public,gbt_int4_same,gbtreekey8, gbtreekey8, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_int4_same(gbtreekey8, gbtreekey8, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int4_same$function$;
 "
-public,gbt_int4_union,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_int4_union(internal, internal)";
+public,gbt_int4_union,internal, internal"",gbtreekey8,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_int4_union(internal, internal)";
  RETURNS gbtreekey8;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int4_union$function$;
 "
-public,gbt_int8_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_int8_compress(internal)";
+public,gbt_int8_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_int8_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int8_compress$function$;
 "
-public,gbt_int8_consistent,internal, bigint, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_int8_consistent(internal, bigint, smallint, oid, internal)";
+public,gbt_int8_consistent,internal, bigint, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_int8_consistent(internal, bigint, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int8_consistent$function$;
 "
-public,gbt_int8_distance,internal, bigint, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_int8_distance(internal, bigint, smallint, oid, internal)";
+public,gbt_int8_distance,internal, bigint, smallint, oid, internal"",double precision,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_int8_distance(internal, bigint, smallint, oid, internal)";
  RETURNS double precision;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int8_distance$function$;
 "
-public,gbt_int8_fetch,internal,CREATE OR REPLACE FUNCTION public.gbt_int8_fetch(internal)";
+public,gbt_int8_fetch,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_int8_fetch(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int8_fetch$function$;
 "
-public,gbt_int8_penalty,internal, internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_int8_penalty(internal, internal, internal)";
+public,gbt_int8_penalty,internal, internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_int8_penalty(internal, internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int8_penalty$function$;
 "
-public,gbt_int8_picksplit,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_int8_picksplit(internal, internal)";
+public,gbt_int8_picksplit,internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_int8_picksplit(internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int8_picksplit$function$;
 "
-public,gbt_int8_same,gbtreekey16, gbtreekey16, internal"",""CREATE OR REPLACE FUNCTION public.gbt_int8_same(gbtreekey16, gbtreekey16, internal)";
+public,gbt_int8_same,gbtreekey16, gbtreekey16, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_int8_same(gbtreekey16, gbtreekey16, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int8_same$function$;
 "
-public,gbt_int8_union,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_int8_union(internal, internal)";
+public,gbt_int8_union,internal, internal"",gbtreekey16,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_int8_union(internal, internal)";
  RETURNS gbtreekey16;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_int8_union$function$;
 "
-public,gbt_intv_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_intv_compress(internal)";
+public,gbt_intv_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_intv_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_intv_compress$function$;
 "
-public,gbt_intv_consistent,internal, interval, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_intv_consistent(internal, interval, smallint, oid, internal)";
+public,gbt_intv_consistent,internal, interval, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_intv_consistent(internal, interval, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_intv_consistent$function$;
 "
-public,gbt_intv_decompress,internal,CREATE OR REPLACE FUNCTION public.gbt_intv_decompress(internal)";
+public,gbt_intv_decompress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_intv_decompress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_intv_decompress$function$;
 "
-public,gbt_intv_distance,internal, interval, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_intv_distance(internal, interval, smallint, oid, internal)";
+public,gbt_intv_distance,internal, interval, smallint, oid, internal"",double precision,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_intv_distance(internal, interval, smallint, oid, internal)";
  RETURNS double precision;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_intv_distance$function$;
 "
-public,gbt_intv_fetch,internal,CREATE OR REPLACE FUNCTION public.gbt_intv_fetch(internal)";
+public,gbt_intv_fetch,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_intv_fetch(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_intv_fetch$function$;
 "
-public,gbt_intv_penalty,internal, internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_intv_penalty(internal, internal, internal)";
+public,gbt_intv_penalty,internal, internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_intv_penalty(internal, internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_intv_penalty$function$;
 "
-public,gbt_intv_picksplit,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_intv_picksplit(internal, internal)";
+public,gbt_intv_picksplit,internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_intv_picksplit(internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_intv_picksplit$function$;
 "
-public,gbt_intv_same,gbtreekey32, gbtreekey32, internal"",""CREATE OR REPLACE FUNCTION public.gbt_intv_same(gbtreekey32, gbtreekey32, internal)";
+public,gbt_intv_same,gbtreekey32, gbtreekey32, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_intv_same(gbtreekey32, gbtreekey32, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_intv_same$function$;
 "
-public,gbt_intv_union,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_intv_union(internal, internal)";
+public,gbt_intv_union,internal, internal"",gbtreekey32,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_intv_union(internal, internal)";
  RETURNS gbtreekey32;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_intv_union$function$;
 "
-public,gbt_macad8_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_macad8_compress(internal)";
+public,gbt_macad8_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_macad8_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_macad8_compress$function$;
 "
-public,gbt_macad8_consistent,internal, macaddr8, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_macad8_consistent(internal, macaddr8, smallint, oid, internal)";
+public,gbt_macad8_consistent,internal, macaddr8, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_macad8_consistent(internal, macaddr8, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_macad8_consistent$function$;
 "
-public,gbt_macad8_fetch,internal,CREATE OR REPLACE FUNCTION public.gbt_macad8_fetch(internal)";
+public,gbt_macad8_fetch,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_macad8_fetch(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_macad8_fetch$function$;
 "
-public,gbt_macad8_penalty,internal, internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_macad8_penalty(internal, internal, internal)";
+public,gbt_macad8_penalty,internal, internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_macad8_penalty(internal, internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_macad8_penalty$function$;
 "
-public,gbt_macad8_picksplit,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_macad8_picksplit(internal, internal)";
+public,gbt_macad8_picksplit,internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_macad8_picksplit(internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_macad8_picksplit$function$;
 "
-public,gbt_macad8_same,gbtreekey16, gbtreekey16, internal"",""CREATE OR REPLACE FUNCTION public.gbt_macad8_same(gbtreekey16, gbtreekey16, internal)";
+public,gbt_macad8_same,gbtreekey16, gbtreekey16, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_macad8_same(gbtreekey16, gbtreekey16, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_macad8_same$function$;
 "
-public,gbt_macad8_union,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_macad8_union(internal, internal)";
+public,gbt_macad8_union,internal, internal"",gbtreekey16,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_macad8_union(internal, internal)";
  RETURNS gbtreekey16;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_macad8_union$function$;
 "
-public,gbt_macad_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_macad_compress(internal)";
+public,gbt_macad_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_macad_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_macad_compress$function$;
 "
-public,gbt_macad_consistent,internal, macaddr, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_macad_consistent(internal, macaddr, smallint, oid, internal)";
+public,gbt_macad_consistent,internal, macaddr, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_macad_consistent(internal, macaddr, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_macad_consistent$function$;
 "
-public,gbt_macad_fetch,internal,CREATE OR REPLACE FUNCTION public.gbt_macad_fetch(internal)";
+public,gbt_macad_fetch,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_macad_fetch(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_macad_fetch$function$;
 "
-public,gbt_macad_penalty,internal, internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_macad_penalty(internal, internal, internal)";
+public,gbt_macad_penalty,internal, internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_macad_penalty(internal, internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_macad_penalty$function$;
 "
-public,gbt_macad_picksplit,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_macad_picksplit(internal, internal)";
+public,gbt_macad_picksplit,internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_macad_picksplit(internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_macad_picksplit$function$;
 "
-public,gbt_macad_same,gbtreekey16, gbtreekey16, internal"",""CREATE OR REPLACE FUNCTION public.gbt_macad_same(gbtreekey16, gbtreekey16, internal)";
+public,gbt_macad_same,gbtreekey16, gbtreekey16, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_macad_same(gbtreekey16, gbtreekey16, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_macad_same$function$;
 "
-public,gbt_macad_union,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_macad_union(internal, internal)";
+public,gbt_macad_union,internal, internal"",gbtreekey16,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_macad_union(internal, internal)";
  RETURNS gbtreekey16;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_macad_union$function$;
 "
-public,gbt_numeric_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_numeric_compress(internal)";
+public,gbt_numeric_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_numeric_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_numeric_compress$function$;
 "
-public,gbt_numeric_consistent,internal, numeric, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_numeric_consistent(internal, numeric, smallint, oid, internal)";
+public,gbt_numeric_consistent,internal, numeric, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_numeric_consistent(internal, numeric, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_numeric_consistent$function$;
 "
-public,gbt_numeric_penalty,internal, internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_numeric_penalty(internal, internal, internal)";
+public,gbt_numeric_penalty,internal, internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_numeric_penalty(internal, internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_numeric_penalty$function$;
 "
-public,gbt_numeric_picksplit,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_numeric_picksplit(internal, internal)";
+public,gbt_numeric_picksplit,internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_numeric_picksplit(internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_numeric_picksplit$function$;
 "
-public,gbt_numeric_same,gbtreekey_var, gbtreekey_var, internal"",""CREATE OR REPLACE FUNCTION public.gbt_numeric_same(gbtreekey_var, gbtreekey_var, internal)";
+public,gbt_numeric_same,gbtreekey_var, gbtreekey_var, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_numeric_same(gbtreekey_var, gbtreekey_var, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_numeric_same$function$;
 "
-public,gbt_numeric_union,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_numeric_union(internal, internal)";
+public,gbt_numeric_union,internal, internal"",gbtreekey_var,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_numeric_union(internal, internal)";
  RETURNS gbtreekey_var;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_numeric_union$function$;
 "
-public,gbt_oid_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_oid_compress(internal)";
+public,gbt_oid_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_oid_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_oid_compress$function$;
 "
-public,gbt_oid_consistent,internal, oid, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_oid_consistent(internal, oid, smallint, oid, internal)";
+public,gbt_oid_consistent,internal, oid, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_oid_consistent(internal, oid, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_oid_consistent$function$;
 "
-public,gbt_oid_distance,internal, oid, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_oid_distance(internal, oid, smallint, oid, internal)";
+public,gbt_oid_distance,internal, oid, smallint, oid, internal"",double precision,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_oid_distance(internal, oid, smallint, oid, internal)";
  RETURNS double precision;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_oid_distance$function$;
 "
-public,gbt_oid_fetch,internal,CREATE OR REPLACE FUNCTION public.gbt_oid_fetch(internal)";
+public,gbt_oid_fetch,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_oid_fetch(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_oid_fetch$function$;
 "
-public,gbt_oid_penalty,internal, internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_oid_penalty(internal, internal, internal)";
+public,gbt_oid_penalty,internal, internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_oid_penalty(internal, internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_oid_penalty$function$;
 "
-public,gbt_oid_picksplit,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_oid_picksplit(internal, internal)";
+public,gbt_oid_picksplit,internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_oid_picksplit(internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_oid_picksplit$function$;
 "
-public,gbt_oid_same,gbtreekey8, gbtreekey8, internal"",""CREATE OR REPLACE FUNCTION public.gbt_oid_same(gbtreekey8, gbtreekey8, internal)";
+public,gbt_oid_same,gbtreekey8, gbtreekey8, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_oid_same(gbtreekey8, gbtreekey8, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_oid_same$function$;
 "
-public,gbt_oid_union,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_oid_union(internal, internal)";
+public,gbt_oid_union,internal, internal"",gbtreekey8,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_oid_union(internal, internal)";
  RETURNS gbtreekey8;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_oid_union$function$;
 "
-public,gbt_text_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_text_compress(internal)";
+public,gbt_text_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_text_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_text_compress$function$;
 "
-public,gbt_text_consistent,internal, text, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_text_consistent(internal, text, smallint, oid, internal)";
+public,gbt_text_consistent,internal, text, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_text_consistent(internal, text, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_text_consistent$function$;
 "
-public,gbt_text_penalty,internal, internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_text_penalty(internal, internal, internal)";
+public,gbt_text_penalty,internal, internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_text_penalty(internal, internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_text_penalty$function$;
 "
-public,gbt_text_picksplit,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_text_picksplit(internal, internal)";
+public,gbt_text_picksplit,internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_text_picksplit(internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_text_picksplit$function$;
 "
-public,gbt_text_same,gbtreekey_var, gbtreekey_var, internal"",""CREATE OR REPLACE FUNCTION public.gbt_text_same(gbtreekey_var, gbtreekey_var, internal)";
+public,gbt_text_same,gbtreekey_var, gbtreekey_var, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_text_same(gbtreekey_var, gbtreekey_var, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_text_same$function$;
 "
-public,gbt_text_union,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_text_union(internal, internal)";
+public,gbt_text_union,internal, internal"",gbtreekey_var,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_text_union(internal, internal)";
  RETURNS gbtreekey_var;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_text_union$function$;
 "
-public,gbt_time_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_time_compress(internal)";
+public,gbt_time_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_time_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_time_compress$function$;
 "
-public,gbt_time_consistent,internal, time without time zone, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_time_consistent(internal, time without time zone, smallint, oid, internal)";
+public,gbt_time_consistent,internal, time without time zone, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_time_consistent(internal, time without time zone, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_time_consistent$function$;
 "
-public,gbt_time_distance,internal, time without time zone, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_time_distance(internal, time without time zone, smallint, oid, internal)";
+public,gbt_time_distance,internal, time without time zone, smallint, oid, internal"",double precision,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_time_distance(internal, time without time zone, smallint, oid, internal)";
  RETURNS double precision;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_time_distance$function$;
 "
-public,gbt_time_fetch,internal,CREATE OR REPLACE FUNCTION public.gbt_time_fetch(internal)";
+public,gbt_time_fetch,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_time_fetch(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_time_fetch$function$;
 "
-public,gbt_time_penalty,internal, internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_time_penalty(internal, internal, internal)";
+public,gbt_time_penalty,internal, internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_time_penalty(internal, internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_time_penalty$function$;
 "
-public,gbt_time_picksplit,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_time_picksplit(internal, internal)";
+public,gbt_time_picksplit,internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_time_picksplit(internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_time_picksplit$function$;
 "
-public,gbt_time_same,gbtreekey16, gbtreekey16, internal"",""CREATE OR REPLACE FUNCTION public.gbt_time_same(gbtreekey16, gbtreekey16, internal)";
+public,gbt_time_same,gbtreekey16, gbtreekey16, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_time_same(gbtreekey16, gbtreekey16, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_time_same$function$;
 "
-public,gbt_time_union,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_time_union(internal, internal)";
+public,gbt_time_union,internal, internal"",gbtreekey16,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_time_union(internal, internal)";
  RETURNS gbtreekey16;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_time_union$function$;
 "
-public,gbt_timetz_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_timetz_compress(internal)";
+public,gbt_timetz_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_timetz_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_timetz_compress$function$;
 "
-public,gbt_timetz_consistent,internal, time with time zone, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_timetz_consistent(internal, time with time zone, smallint, oid, internal)";
+public,gbt_timetz_consistent,internal, time with time zone, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_timetz_consistent(internal, time with time zone, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_timetz_consistent$function$;
 "
-public,gbt_ts_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_ts_compress(internal)";
+public,gbt_ts_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_ts_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_ts_compress$function$;
 "
-public,gbt_ts_consistent,internal, timestamp without time zone, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_ts_consistent(internal, timestamp without time zone, smallint, oid, internal)";
+public,gbt_ts_consistent,internal, timestamp without time zone, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_ts_consistent(internal, timestamp without time zone, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_ts_consistent$function$;
 "
-public,gbt_ts_distance,internal, timestamp without time zone, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_ts_distance(internal, timestamp without time zone, smallint, oid, internal)";
+public,gbt_ts_distance,internal, timestamp without time zone, smallint, oid, internal"",double precision,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_ts_distance(internal, timestamp without time zone, smallint, oid, internal)";
  RETURNS double precision;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_ts_distance$function$;
 "
-public,gbt_ts_fetch,internal,CREATE OR REPLACE FUNCTION public.gbt_ts_fetch(internal)";
+public,gbt_ts_fetch,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_ts_fetch(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_ts_fetch$function$;
 "
-public,gbt_ts_penalty,internal, internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_ts_penalty(internal, internal, internal)";
+public,gbt_ts_penalty,internal, internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_ts_penalty(internal, internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_ts_penalty$function$;
 "
-public,gbt_ts_picksplit,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_ts_picksplit(internal, internal)";
+public,gbt_ts_picksplit,internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_ts_picksplit(internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_ts_picksplit$function$;
 "
-public,gbt_ts_same,gbtreekey16, gbtreekey16, internal"",""CREATE OR REPLACE FUNCTION public.gbt_ts_same(gbtreekey16, gbtreekey16, internal)";
+public,gbt_ts_same,gbtreekey16, gbtreekey16, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_ts_same(gbtreekey16, gbtreekey16, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_ts_same$function$;
 "
-public,gbt_ts_union,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_ts_union(internal, internal)";
+public,gbt_ts_union,internal, internal"",gbtreekey16,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_ts_union(internal, internal)";
  RETURNS gbtreekey16;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_ts_union$function$;
 "
-public,gbt_tstz_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_tstz_compress(internal)";
+public,gbt_tstz_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_tstz_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_tstz_compress$function$;
 "
-public,gbt_tstz_consistent,internal, timestamp with time zone, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_tstz_consistent(internal, timestamp with time zone, smallint, oid, internal)";
+public,gbt_tstz_consistent,internal, timestamp with time zone, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_tstz_consistent(internal, timestamp with time zone, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_tstz_consistent$function$;
 "
-public,gbt_tstz_distance,internal, timestamp with time zone, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_tstz_distance(internal, timestamp with time zone, smallint, oid, internal)";
+public,gbt_tstz_distance,internal, timestamp with time zone, smallint, oid, internal"",double precision,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_tstz_distance(internal, timestamp with time zone, smallint, oid, internal)";
  RETURNS double precision;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_tstz_distance$function$;
 "
-public,gbt_uuid_compress,internal,CREATE OR REPLACE FUNCTION public.gbt_uuid_compress(internal)";
+public,gbt_uuid_compress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_uuid_compress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_uuid_compress$function$;
 "
-public,gbt_uuid_consistent,internal, uuid, smallint, oid, internal"",""CREATE OR REPLACE FUNCTION public.gbt_uuid_consistent(internal, uuid, smallint, oid, internal)";
+public,gbt_uuid_consistent,internal, uuid, smallint, oid, internal"",boolean,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_uuid_consistent(internal, uuid, smallint, oid, internal)";
  RETURNS boolean;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_uuid_consistent$function$;
 "
-public,gbt_uuid_fetch,internal,CREATE OR REPLACE FUNCTION public.gbt_uuid_fetch(internal)";
+public,gbt_uuid_fetch,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_uuid_fetch(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_uuid_fetch$function$;
 "
-public,gbt_uuid_penalty,internal, internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_uuid_penalty(internal, internal, internal)";
+public,gbt_uuid_penalty,internal, internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_uuid_penalty(internal, internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_uuid_penalty$function$;
 "
-public,gbt_uuid_picksplit,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_uuid_picksplit(internal, internal)";
+public,gbt_uuid_picksplit,internal, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_uuid_picksplit(internal, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_uuid_picksplit$function$;
 "
-public,gbt_uuid_same,gbtreekey32, gbtreekey32, internal"",""CREATE OR REPLACE FUNCTION public.gbt_uuid_same(gbtreekey32, gbtreekey32, internal)";
+public,gbt_uuid_same,gbtreekey32, gbtreekey32, internal"",internal,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_uuid_same(gbtreekey32, gbtreekey32, internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_uuid_same$function$;
 "
-public,gbt_uuid_union,internal, internal"",""CREATE OR REPLACE FUNCTION public.gbt_uuid_union(internal, internal)";
+public,gbt_uuid_union,internal, internal"",gbtreekey32,c,false,i,""CREATE OR REPLACE FUNCTION public.gbt_uuid_union(internal, internal)";
  RETURNS gbtreekey32;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_uuid_union$function$;
 "
-public,gbt_var_decompress,internal,CREATE OR REPLACE FUNCTION public.gbt_var_decompress(internal)";
+public,gbt_var_decompress,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_var_decompress(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_var_decompress$function$;
 "
-public,gbt_var_fetch,internal,CREATE OR REPLACE FUNCTION public.gbt_var_fetch(internal)";
+public,gbt_var_fetch,internal,internal,c,false,i,CREATE OR REPLACE FUNCTION public.gbt_var_fetch(internal)";
  RETURNS internal;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbt_var_fetch$function$;
 "
-public,gbtreekey16_in,cstring,CREATE OR REPLACE FUNCTION public.gbtreekey16_in(cstring)";
+public,gbtreekey16_in,cstring,gbtreekey16,c,false,i,CREATE OR REPLACE FUNCTION public.gbtreekey16_in(cstring)";
  RETURNS gbtreekey16;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbtreekey_in$function$;
 "
-public,gbtreekey16_out,gbtreekey16,CREATE OR REPLACE FUNCTION public.gbtreekey16_out(gbtreekey16)";
+public,gbtreekey16_out,gbtreekey16,cstring,c,false,i,CREATE OR REPLACE FUNCTION public.gbtreekey16_out(gbtreekey16)";
  RETURNS cstring;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbtreekey_out$function$;
 "
-public,gbtreekey2_in,cstring,CREATE OR REPLACE FUNCTION public.gbtreekey2_in(cstring)";
+public,gbtreekey2_in,cstring,gbtreekey2,c,false,i,CREATE OR REPLACE FUNCTION public.gbtreekey2_in(cstring)";
  RETURNS gbtreekey2;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbtreekey_in$function$;
 "
-public,gbtreekey2_out,gbtreekey2,CREATE OR REPLACE FUNCTION public.gbtreekey2_out(gbtreekey2)";
+public,gbtreekey2_out,gbtreekey2,cstring,c,false,i,CREATE OR REPLACE FUNCTION public.gbtreekey2_out(gbtreekey2)";
  RETURNS cstring;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbtreekey_out$function$;
 "
-public,gbtreekey32_in,cstring,CREATE OR REPLACE FUNCTION public.gbtreekey32_in(cstring)";
+public,gbtreekey32_in,cstring,gbtreekey32,c,false,i,CREATE OR REPLACE FUNCTION public.gbtreekey32_in(cstring)";
  RETURNS gbtreekey32;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbtreekey_in$function$;
 "
-public,gbtreekey32_out,gbtreekey32,CREATE OR REPLACE FUNCTION public.gbtreekey32_out(gbtreekey32)";
+public,gbtreekey32_out,gbtreekey32,cstring,c,false,i,CREATE OR REPLACE FUNCTION public.gbtreekey32_out(gbtreekey32)";
  RETURNS cstring;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbtreekey_out$function$;
 "
-public,gbtreekey4_in,cstring,CREATE OR REPLACE FUNCTION public.gbtreekey4_in(cstring)";
+public,gbtreekey4_in,cstring,gbtreekey4,c,false,i,CREATE OR REPLACE FUNCTION public.gbtreekey4_in(cstring)";
  RETURNS gbtreekey4;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbtreekey_in$function$;
 "
-public,gbtreekey4_out,gbtreekey4,CREATE OR REPLACE FUNCTION public.gbtreekey4_out(gbtreekey4)";
+public,gbtreekey4_out,gbtreekey4,cstring,c,false,i,CREATE OR REPLACE FUNCTION public.gbtreekey4_out(gbtreekey4)";
  RETURNS cstring;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbtreekey_out$function$;
 "
-public,gbtreekey8_in,cstring,CREATE OR REPLACE FUNCTION public.gbtreekey8_in(cstring)";
+public,gbtreekey8_in,cstring,gbtreekey8,c,false,i,CREATE OR REPLACE FUNCTION public.gbtreekey8_in(cstring)";
  RETURNS gbtreekey8;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbtreekey_in$function$;
 "
-public,gbtreekey8_out,gbtreekey8,CREATE OR REPLACE FUNCTION public.gbtreekey8_out(gbtreekey8)";
+public,gbtreekey8_out,gbtreekey8,cstring,c,false,i,CREATE OR REPLACE FUNCTION public.gbtreekey8_out(gbtreekey8)";
  RETURNS cstring;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbtreekey_out$function$;
 "
-public,gbtreekey_var_in,cstring,CREATE OR REPLACE FUNCTION public.gbtreekey_var_in(cstring)";
+public,gbtreekey_var_in,cstring,gbtreekey_var,c,false,i,CREATE OR REPLACE FUNCTION public.gbtreekey_var_in(cstring)";
  RETURNS gbtreekey_var;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbtreekey_in$function$;
 "
-public,gbtreekey_var_out,gbtreekey_var,CREATE OR REPLACE FUNCTION public.gbtreekey_var_out(gbtreekey_var)";
+public,gbtreekey_var_out,gbtreekey_var,cstring,c,false,i,CREATE OR REPLACE FUNCTION public.gbtreekey_var_out(gbtreekey_var)";
  RETURNS cstring;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$gbtreekey_out$function$;
 "
-public,generate_facture_from_mission,p_mission_id uuid, p_montant_ht numeric, p_date_echeance date, p_taux_tva numeric, p_taux_commission numeric"",""CREATE OR REPLACE FUNCTION public.generate_facture_from_mission(p_mission_id uuid, p_montant_ht numeric, p_date_echeance date DEFAULT (CURRENT_DATE + '30 days'::interval), p_taux_tva numeric DEFAULT 20.00, p_taux_commission numeric DEFAULT 10.00)";
+public,generate_facture_from_mission,p_mission_id uuid, p_montant_ht numeric, p_date_echeance date, p_taux_tva numeric, p_taux_commission numeric"",factures,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.generate_facture_from_mission(p_mission_id uuid, p_montant_ht numeric, p_date_echeance date DEFAULT (CURRENT_DATE + '30 days'::interval), p_taux_tva numeric DEFAULT 20.00, p_taux_commission numeric DEFAULT 10.00)";
  RETURNS factures;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -2761,7 +2900,7 @@ begin;
 end;
 $function$;
 "
-public,get_current_plan,p_entreprise_id uuid, p_regie_id uuid"",""CREATE OR REPLACE FUNCTION public.get_current_plan(p_entreprise_id uuid DEFAULT NULL::uuid, p_regie_id uuid DEFAULT NULL::uuid)";
+public,get_current_plan,p_entreprise_id uuid, p_regie_id uuid"",""TABLE(abonnement_id uuid, plan_id uuid, plan_nom character varying, statut character varying, date_fin date, limite_missions_mois integer, limite_techniciens integer, limite_utilisateurs integer, modules_actifs jsonb)"",plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.get_current_plan(p_entreprise_id uuid DEFAULT NULL::uuid, p_regie_id uuid DEFAULT NULL::uuid)";
  RETURNS TABLE(abonnement_id uuid, plan_id uuid, plan_nom character varying, statut character varying, date_fin date, limite_missions_mois integer, limite_techniciens integer, limite_utilisateurs integer, modules_actifs jsonb);
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -2789,7 +2928,40 @@ BEGIN;
 END;
 $function$;
 "
-public,get_mission_actors,p_mission_id uuid,CREATE OR REPLACE FUNCTION public.get_mission_actors(p_mission_id uuid)";
+public,get_entreprises_autorisees,,TABLE(id uuid, nom text, email text, siret text, mode_diffusion text)"",plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.get_entreprises_autorisees()";
+ RETURNS TABLE(id uuid, nom text, email text, siret text, mode_diffusion text);
+ LANGUAGE plpgsql;
+ SECURITY DEFINER;
+ SET search_path TO 'public';
+AS $function$;
+DECLARE;
+  v_regie_id uuid;
+BEGIN;
+  -- Récupérer regie_id de l'utilisateur;
+  SELECT r.id INTO v_regie_id;
+  FROM regies r;
+  WHERE r.profile_id = auth.uid();
+  ;
+  IF v_regie_id IS NULL THEN;
+    RETURN;  -- Pas d'erreur, juste vide si pas régie
+  END IF;
+  ;
+  -- Retourner entreprises autorisées;
+  RETURN QUERY;
+  SELECT;
+    e.id,;
+    e.nom,;
+    e.email,;
+    e.siret,;
+    re.mode_diffusion;
+  FROM entreprises e;
+  JOIN regies_entreprises re ON re.entreprise_id = e.id;
+  WHERE re.regie_id = v_regie_id;
+  ORDER BY e.nom ASC;
+END;
+$function$;
+"
+public,get_mission_actors,p_mission_id uuid,TABLE(user_id uuid, role text)"",plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.get_mission_actors(p_mission_id uuid)";
  RETURNS TABLE(user_id uuid, role text);
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -2817,7 +2989,243 @@ begin;
 end;
 $function$;
 "
-public,get_user_regie_id,,CREATE OR REPLACE FUNCTION public.get_user_regie_id()";
+public,get_ticket_detail_locataire,p_ticket_id uuid,TABLE(id uuid, titre text, description text, statut ticket_status, priorite text, categorie text, sous_categorie text, piece text, created_at timestamp with time zone, updated_at timestamp with time zone, date_limite timestamp with time zone, plafond_intervention_chf numeric, devise text, urgence boolean, mode_diffusion text, locked_at timestamp with time zone, locataire_id uuid, logement_id uuid, logement_numero text, logement_adresse text, immeuble_id uuid, immeuble_adresse text, regie_id uuid, entreprise_id uuid)"",plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.get_ticket_detail_locataire(p_ticket_id uuid)";
+ RETURNS TABLE(id uuid, titre text, description text, statut ticket_status, priorite text, categorie text, sous_categorie text, piece text, created_at timestamp with time zone, updated_at timestamp with time zone, date_limite timestamp with time zone, plafond_intervention_chf numeric, devise text, urgence boolean, mode_diffusion text, locked_at timestamp with time zone, locataire_id uuid, logement_id uuid, logement_numero text, logement_adresse text, immeuble_id uuid, immeuble_adresse text, regie_id uuid, entreprise_id uuid);
+ LANGUAGE plpgsql;
+ SECURITY DEFINER;
+ SET search_path TO 'public';
+AS $function$;
+DECLARE;
+  v_locataire_id uuid;
+BEGIN;
+  -- Récupérer locataire_id de l'utilisateur connecté;
+  SELECT l.id INTO v_locataire_id;
+  FROM public.locataires l;
+  WHERE l.profile_id = auth.uid();
+;
+  -- Vérifier que le locataire existe;
+  IF v_locataire_id IS NULL THEN;
+    RETURN; -- Pas d'erreur, juste vide
+  END IF;
+;
+  -- Retourner détail ticket UNIQUEMENT si appartient au locataire;
+  RETURN QUERY;
+  SELECT;
+    t.id,;
+    t.titre,;
+    t.description,;
+    t.statut,;
+    t.priorite,;
+    t.categorie,;
+    t.sous_categorie,;
+    t.piece,;
+    t.created_at,;
+    t.updated_at,;
+    t.date_limite,;
+    t.plafond_intervention_chf,;
+    t.devise,;
+    t.urgence,;
+    t.mode_diffusion,;
+    t.locked_at,;
+    t.locataire_id,;
+    t.logement_id,;
+    lg.numero AS logement_numero,;
+    lg.adresse AS logement_adresse,;
+    lg.immeuble_id,;
+    i.adresse AS immeuble_adresse,;
+    t.regie_id,;
+    t.entreprise_id;
+  FROM public.tickets t;
+  INNER JOIN public.logements lg ON lg.id = t.logement_id;
+  INNER JOIN public.immeubles i ON i.id = lg.immeuble_id;
+  WHERE t.id = p_ticket_id;
+    AND t.locataire_id = v_locataire_id; -- ✅ SÉCURITÉ: vérif appartenance
+END;
+$function$;
+"
+public,get_ticket_detail_regie,p_ticket_id uuid,TABLE(id uuid, titre text, description text, statut ticket_status, priorite text, categorie text, sous_categorie text, piece text, created_at timestamp with time zone, updated_at timestamp with time zone, plafond_intervention_chf numeric, locataire_id uuid, locataire_nom text, locataire_prenom text, locataire_email text, logement_id uuid, logement_numero text, immeuble_id uuid, immeuble_adresse text, regie_id uuid, regie_nom text)"",plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.get_ticket_detail_regie(p_ticket_id uuid)";
+ RETURNS TABLE(id uuid, titre text, description text, statut ticket_status, priorite text, categorie text, sous_categorie text, piece text, created_at timestamp with time zone, updated_at timestamp with time zone, plafond_intervention_chf numeric, locataire_id uuid, locataire_nom text, locataire_prenom text, locataire_email text, logement_id uuid, logement_numero text, immeuble_id uuid, immeuble_adresse text, regie_id uuid, regie_nom text);
+ LANGUAGE plpgsql;
+ SECURITY DEFINER;
+ SET search_path TO 'public';
+AS $function$;
+DECLARE;
+  v_regie_id uuid;
+BEGIN;
+  SELECT r.id INTO v_regie_id;
+  FROM public.regies r;
+  WHERE r.profile_id = auth.uid();
+;
+  -- ✅ PATCH DEBUG: RETURN au lieu de RAISE EXCEPTION;
+  IF v_regie_id IS NULL THEN;
+    -- AVANT: RAISE EXCEPTION 'Utilisateur non associé à une régie';
+    RETURN;
+  END IF;
+;
+  RETURN QUERY;
+  SELECT;
+    t.id,;
+    t.titre,;
+    t.description,;
+    t.statut,;
+    t.priorite,;
+    t.categorie,;
+    t.sous_categorie,;
+    t.piece,;
+    t.created_at,;
+    t.updated_at,;
+    t.plafond_intervention_chf,;
+    t.locataire_id,;
+    l.nom AS locataire_nom,;
+    l.prenom AS locataire_prenom,;
+    l.email AS locataire_email,;
+    t.logement_id,;
+    lg.numero AS logement_numero,;
+    lg.immeuble_id,;
+    i.adresse AS immeuble_adresse,;
+    t.regie_id,;
+    r.nom_agence AS regie_nom;
+  FROM public.tickets t;
+  INNER JOIN public.locataires l ON l.id = t.locataire_id;
+  INNER JOIN public.logements lg ON lg.id = t.logement_id;
+  INNER JOIN public.immeubles i ON i.id = lg.immeuble_id;
+  INNER JOIN public.regies r ON r.id = t.regie_id;
+  WHERE t.id = p_ticket_id;
+    AND t.regie_id = v_regie_id;
+END;
+$function$;
+"
+public,get_tickets_dashboard_regie,,TABLE(count_nouveau integer, count_en_attente integer, count_en_cours integer, count_termine integer)"",plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.get_tickets_dashboard_regie()";
+ RETURNS TABLE(count_nouveau integer, count_en_attente integer, count_en_cours integer, count_termine integer);
+ LANGUAGE plpgsql;
+ SECURITY DEFINER;
+ SET search_path TO 'public';
+AS $function$;
+DECLARE;
+  v_regie_id uuid;
+BEGIN;
+  -- Récupérer regie_id de l'utilisateur courant;
+  SELECT r.id INTO v_regie_id;
+  FROM public.regies r;
+  WHERE r.profile_id = auth.uid();
+;
+  -- Vérifier que l'utilisateur est bien une régie;
+  IF v_regie_id IS NULL THEN;
+    RAISE EXCEPTION 'Utilisateur non associé à une régie';
+  END IF;
+;
+  -- Compter tickets par statut (accès DIRECT, bypass RLS);
+  RETURN QUERY;
+  SELECT;
+    COUNT(*) FILTER (WHERE statut = 'nouveau')::integer AS count_nouveau,;
+    COUNT(*) FILTER (WHERE statut = 'en_attente')::integer AS count_en_attente,;
+    COUNT(*) FILTER (WHERE statut = 'en_cours')::integer AS count_en_cours,;
+    COUNT(*) FILTER (WHERE statut = 'termine')::integer AS count_termine;
+  FROM public.tickets;
+  WHERE regie_id = v_regie_id;
+END;
+$function$;
+"
+public,get_tickets_list_regie,p_statut ticket_status,TABLE(id uuid, titre text, description text, statut ticket_status, priorite text, categorie text, sous_categorie text, piece text, created_at timestamp with time zone, plafond_intervention_chf numeric, locataire_nom text, locataire_prenom text, logement_numero text)"",plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.get_tickets_list_regie(p_statut ticket_status)";
+ RETURNS TABLE(id uuid, titre text, description text, statut ticket_status, priorite text, categorie text, sous_categorie text, piece text, created_at timestamp with time zone, plafond_intervention_chf numeric, locataire_nom text, locataire_prenom text, logement_numero text);
+ LANGUAGE plpgsql;
+ SECURITY DEFINER;
+ SET search_path TO 'public';
+AS $function$;
+DECLARE;
+  v_regie_id uuid;
+BEGIN;
+  -- Récupérer regie_id de l'utilisateur courant;
+  SELECT r.id INTO v_regie_id;
+  FROM public.regies r;
+  WHERE r.profile_id = auth.uid();
+;
+  -- ✅ PATCH DEBUG: RETURN au lieu de RAISE EXCEPTION;
+  IF v_regie_id IS NULL THEN;
+    -- AVANT: RAISE EXCEPTION 'Utilisateur non associé à une régie';
+    -- APRÈS (TEMPORAIRE):;
+    RETURN; -- Retourne ensemble vide
+  END IF;
+;
+  -- Retourner tickets avec jointures (DIRECT, bypass RLS);
+  RETURN QUERY;
+  SELECT;
+    t.id,;
+    t.titre,;
+    t.description,;
+    t.statut,;
+    t.priorite,;
+    t.categorie,;
+    t.sous_categorie,;
+    t.piece,;
+    t.created_at,;
+    t.plafond_intervention_chf,;
+    l.nom AS locataire_nom,;
+    l.prenom AS locataire_prenom,;
+    lg.numero AS logement_numero;
+  FROM public.tickets t;
+  INNER JOIN public.locataires l ON l.id = t.locataire_id;
+  INNER JOIN public.logements lg ON lg.id = t.logement_id;
+  WHERE t.regie_id = v_regie_id;
+    AND t.statut = p_statut;
+  ORDER BY t.created_at DESC;
+END;
+$function$;
+"
+public,get_tickets_locataire,,TABLE(id uuid, titre text, description text, statut ticket_status, priorite text, categorie text, sous_categorie text, piece text, created_at timestamp with time zone, updated_at timestamp with time zone, date_limite timestamp with time zone, plafond_intervention_chf numeric, devise text, urgence boolean, mode_diffusion text, locataire_id uuid, logement_id uuid, logement_numero text, immeuble_id uuid, immeuble_adresse text, regie_id uuid, entreprise_id uuid)"",plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.get_tickets_locataire()";
+ RETURNS TABLE(id uuid, titre text, description text, statut ticket_status, priorite text, categorie text, sous_categorie text, piece text, created_at timestamp with time zone, updated_at timestamp with time zone, date_limite timestamp with time zone, plafond_intervention_chf numeric, devise text, urgence boolean, mode_diffusion text, locataire_id uuid, logement_id uuid, logement_numero text, immeuble_id uuid, immeuble_adresse text, regie_id uuid, entreprise_id uuid);
+ LANGUAGE plpgsql;
+ SECURITY DEFINER;
+ SET search_path TO 'public';
+AS $function$;
+DECLARE;
+  v_locataire_id uuid;
+BEGIN;
+  -- Récupérer locataire_id de l'utilisateur connecté;
+  SELECT l.id INTO v_locataire_id;
+  FROM public.locataires l;
+  WHERE l.profile_id = auth.uid();
+;
+  -- Si pas locataire, retourner vide (pas d'erreur, juste aucun ticket);
+  IF v_locataire_id IS NULL THEN;
+    RETURN;
+  END IF;
+;
+  -- Retourner tickets du locataire avec jointures SÛRES (logements, immeubles);
+  -- ⚠️ PAS de jointure regies_entreprises / entreprises (récursion);
+  RETURN QUERY;
+  SELECT;
+    t.id,;
+    t.titre,;
+    t.description,;
+    t.statut,;
+    t.priorite,;
+    t.categorie,;
+    t.sous_categorie,;
+    t.piece,;
+    t.created_at,;
+    t.updated_at,;
+    t.date_limite,;
+    t.plafond_intervention_chf,;
+    t.devise,;
+    t.urgence,;
+    t.mode_diffusion,;
+    t.locataire_id,;
+    t.logement_id,;
+    lg.numero AS logement_numero,;
+    lg.immeuble_id,;
+    i.adresse AS immeuble_adresse,;
+    t.regie_id,;
+    t.entreprise_id;
+  FROM public.tickets t;
+  INNER JOIN public.logements lg ON lg.id = t.logement_id;
+  INNER JOIN public.immeubles i ON i.id = lg.immeuble_id;
+  WHERE t.locataire_id = v_locataire_id;
+  ORDER BY t.created_at DESC;
+END;
+$function$;
+"
+public,get_user_regie_id,,uuid,sql,true,s,CREATE OR REPLACE FUNCTION public.get_user_regie_id()";
  RETURNS uuid;
  LANGUAGE sql;
  STABLE SECURITY DEFINER;
@@ -2841,7 +3249,7 @@ AS $function$;
   ) as user_regie;
 $function$;
 "
-public,get_user_technicien_id,,CREATE OR REPLACE FUNCTION public.get_user_technicien_id()";
+public,get_user_technicien_id,,uuid,sql,true,s,CREATE OR REPLACE FUNCTION public.get_user_technicien_id()";
  RETURNS uuid;
  LANGUAGE sql;
  STABLE SECURITY DEFINER;
@@ -2851,7 +3259,7 @@ AS $function$;
   limit 1;
 $function$;
 "
-public,handle_updated_at,,CREATE OR REPLACE FUNCTION public.handle_updated_at()";
+public,handle_updated_at,,trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION public.handle_updated_at()";
  RETURNS trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -2861,7 +3269,7 @@ begin;
 end;
 $function$;
 "
-public,increment_mission_quota,p_entreprise_id uuid,CREATE OR REPLACE FUNCTION public.increment_mission_quota(p_entreprise_id uuid)";
+public,increment_mission_quota,p_entreprise_id uuid,void,plpgsql,true,v,CREATE OR REPLACE FUNCTION public.increment_mission_quota(p_entreprise_id uuid)";
  RETURNS void;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -2887,7 +3295,7 @@ BEGIN;
 END;
 $function$;
 "
-public,increment_quota_on_mission,,CREATE OR REPLACE FUNCTION public.increment_quota_on_mission()";
+public,increment_quota_on_mission,,trigger,plpgsql,true,v,CREATE OR REPLACE FUNCTION public.increment_quota_on_mission()";
  RETURNS trigger;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -2902,31 +3310,31 @@ BEGIN;
 END;
 $function$;
 "
-public,int2_dist,smallint, smallint"",""CREATE OR REPLACE FUNCTION public.int2_dist(smallint, smallint)";
+public,int2_dist,smallint, smallint"",smallint,c,false,i,""CREATE OR REPLACE FUNCTION public.int2_dist(smallint, smallint)";
  RETURNS smallint;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$int2_dist$function$;
 "
-public,int4_dist,integer, integer"",""CREATE OR REPLACE FUNCTION public.int4_dist(integer, integer)";
+public,int4_dist,integer, integer"",integer,c,false,i,""CREATE OR REPLACE FUNCTION public.int4_dist(integer, integer)";
  RETURNS integer;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$int4_dist$function$;
 "
-public,int8_dist,bigint, bigint"",""CREATE OR REPLACE FUNCTION public.int8_dist(bigint, bigint)";
+public,int8_dist,bigint, bigint"",bigint,c,false,i,""CREATE OR REPLACE FUNCTION public.int8_dist(bigint, bigint)";
  RETURNS bigint;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$int8_dist$function$;
 "
-public,interval_dist,interval, interval"",""CREATE OR REPLACE FUNCTION public.interval_dist(interval, interval)";
+public,interval_dist,interval, interval"",interval,c,false,i,""CREATE OR REPLACE FUNCTION public.interval_dist(interval, interval)";
  RETURNS interval;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$interval_dist$function$;
 "
-public,is_admin_jtec,,CREATE OR REPLACE FUNCTION public.is_admin_jtec()";
+public,is_admin_jtec,,boolean,sql,true,s,CREATE OR REPLACE FUNCTION public.is_admin_jtec()";
  RETURNS boolean;
  LANGUAGE sql;
  STABLE SECURITY DEFINER;
@@ -2938,7 +3346,164 @@ AS $function$;
   );
 $function$;
 "
-public,liberer_logement_locataire,p_locataire_id uuid, p_date_sortie date"",""CREATE OR REPLACE FUNCTION public.liberer_logement_locataire(p_locataire_id uuid, p_date_sortie date DEFAULT CURRENT_DATE)";
+public,is_user_entreprise_owner,p_entreprise_id uuid,boolean,sql,true,s,CREATE OR REPLACE FUNCTION public.is_user_entreprise_owner(p_entreprise_id uuid)";
+ RETURNS boolean;
+ LANGUAGE sql;
+ STABLE SECURITY DEFINER;
+ SET search_path TO 'public';
+AS $function$;
+  -- SECURITY DEFINER bypass RLS sur entreprises;
+  SELECT EXISTS (;
+    SELECT 1;
+    FROM entreprises;
+    WHERE id = p_entreprise_id;
+      AND profile_id = auth.uid();
+  );
+$function$;
+"
+public,jtec_debug_schema,,TABLE(info_type text, info_value text)"",plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.jtec_debug_schema()";
+ RETURNS TABLE(info_type text, info_value text);
+ LANGUAGE plpgsql;
+ SECURITY DEFINER;
+ SET search_path TO 'public';
+AS $function$;
+BEGIN;
+  -- Database actuelle;
+  RETURN QUERY SELECT 'current_database'::TEXT, current_database()::TEXT;
+  ;
+  -- Schéma actuel;
+  RETURN QUERY SELECT 'current_schema'::TEXT, current_schema()::TEXT;
+  ;
+  -- Search path;
+  RETURN QUERY SELECT 'search_path'::TEXT, current_setting('search_path')::TEXT;
+  ;
+  -- Vérifier que public.tickets existe;
+  RETURN QUERY SELECT ;
+    'table_tickets_exists'::TEXT, ;
+    CASE WHEN to_regclass('public.tickets') IS NOT NULL THEN 'true' ELSE 'false' END::TEXT;
+  ;
+  -- Lister les colonnes de public.tickets;
+  RETURN QUERY;
+  SELECT ;
+    'tickets_columns'::TEXT,;
+    string_agg(column_name, ', ' ORDER BY ordinal_position)::TEXT;
+  FROM information_schema.columns;
+  WHERE table_schema = 'public' AND table_name = 'tickets';
+  ;
+  -- Vérifier spécifiquement locataire_id;
+  RETURN QUERY;
+  SELECT ;
+    'column_locataire_id_exists'::TEXT,;
+    CASE WHEN EXISTS (;
+      SELECT 1 FROM information_schema.columns;
+      WHERE table_schema = 'public' ;
+        AND table_name = 'tickets' ;
+        AND column_name = 'locataire_id';
+    ) THEN 'true' ELSE 'false' END::TEXT;
+  ;
+  -- Vérifier type de locataire_id;
+  RETURN QUERY;
+  SELECT ;
+    'column_locataire_id_type'::TEXT,;
+    COALESCE(;
+      (SELECT data_type FROM information_schema.columns;
+       WHERE table_schema = 'public' ;
+         AND table_name = 'tickets' ;
+         AND column_name = 'locataire_id'),;
+      'NOT_FOUND';
+    )::TEXT;
+  ;
+  -- Version PostgreSQL;
+  RETURN QUERY SELECT 'postgres_version'::TEXT, version()::TEXT;
+END;
+$function$;
+"
+public,jtec_insert_ticket_audit,p_locataire_id uuid, p_logement_id uuid, p_regie_id uuid, p_titre text, p_description text, p_categorie text"",jsonb,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.jtec_insert_ticket_audit(p_locataire_id uuid, p_logement_id uuid, p_regie_id uuid, p_titre text, p_description text, p_categorie text)";
+ RETURNS jsonb;
+ LANGUAGE plpgsql;
+ SECURITY DEFINER;
+ SET search_path TO 'public';
+AS $function$;
+DECLARE;
+  v_ticket_id uuid;
+  v_created_at timestamptz;
+BEGIN;
+  -- INSERT direct en SQL (bypass PostgREST);
+  INSERT INTO public.tickets (;
+    titre,;
+    description,;
+    categorie,;
+    locataire_id,;
+    logement_id,;
+    regie_id;
+  );
+  VALUES (;
+    p_titre,;
+    p_description,;
+    p_categorie,;
+    p_locataire_id,;
+    p_logement_id,;
+    p_regie_id;
+  );
+  RETURNING id, created_at INTO v_ticket_id, v_created_at;
+;
+  RETURN jsonb_build_object(;
+    'success', true,;
+    'ticket_id', v_ticket_id,;
+    'created_at', v_created_at,;
+    'method', 'direct_sql_insert',;
+    'message', 'INSERT SQL réussi via RPC';
+  );
+EXCEPTION;
+  WHEN OTHERS THEN;
+    RETURN jsonb_build_object(;
+      'success', false,;
+      'error_message', SQLERRM,;
+      'error_state', SQLSTATE,;
+      'method', 'direct_sql_insert';
+    );
+END;
+$function$;
+"
+public,jtec_test_insert_ticket,p_locataire_id uuid, p_logement_id uuid, p_regie_id uuid"",""TABLE(success boolean, ticket_id uuid, error_message text)"",plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.jtec_test_insert_ticket(p_locataire_id uuid, p_logement_id uuid, p_regie_id uuid)";
+ RETURNS TABLE(success boolean, ticket_id uuid, error_message text);
+ LANGUAGE plpgsql;
+ SECURITY DEFINER;
+ SET search_path TO 'public';
+AS $function$;
+DECLARE;
+  v_ticket_id UUID;
+BEGIN;
+  -- Tenter un INSERT minimal dans public.tickets;
+  BEGIN;
+    INSERT INTO public.tickets (;
+      titre,;
+      description,;
+      categorie,;
+      locataire_id,;
+      logement_id,;
+      regie_id;
+    ) VALUES (;
+      '[TEST AUDIT]',;
+      'Test insertion via RPC pour diagnostiquer erreur API',;
+      'autre',;
+      p_locataire_id,;
+      p_logement_id,;
+      p_regie_id;
+    );
+    RETURNING id INTO v_ticket_id;
+    ;
+    -- Succès;
+    RETURN QUERY SELECT true, v_ticket_id, NULL::TEXT;
+    ;
+  EXCEPTION WHEN OTHERS THEN;
+    -- Échec: retourner l'erreur;
+    RETURN QUERY SELECT false, NULL::UUID, SQLERRM::TEXT;
+  END;
+END;
+$function$;
+"
+public,liberer_logement_locataire,p_locataire_id uuid, p_date_sortie date"",json,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.liberer_logement_locataire(p_locataire_id uuid, p_date_sortie date DEFAULT CURRENT_DATE)";
  RETURNS json;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -2995,7 +3560,7 @@ EXCEPTION;
 END;
 $function$;
 "
-public,mark_notification_as_read,p_notification_id uuid, p_user_id uuid"",""CREATE OR REPLACE FUNCTION public.mark_notification_as_read(p_notification_id uuid, p_user_id uuid)";
+public,mark_notification_as_read,p_notification_id uuid, p_user_id uuid"",notifications,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.mark_notification_as_read(p_notification_id uuid, p_user_id uuid)";
  RETURNS notifications;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -3023,7 +3588,7 @@ begin;
 end;
 $function$;
 "
-public,notify_facture_status_change,,CREATE OR REPLACE FUNCTION public.notify_facture_status_change()";
+public,notify_facture_status_change,,trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION public.notify_facture_status_change()";
  RETURNS trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -3042,7 +3607,7 @@ begin;
 end;
 $function$;
 "
-public,notify_mission_status_change,,CREATE OR REPLACE FUNCTION public.notify_mission_status_change()";
+public,notify_mission_status_change,,trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION public.notify_mission_status_change()";
  RETURNS trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -3056,7 +3621,7 @@ begin;
 end;
 $function$;
 "
-public,notify_mission_status_change_extended,,CREATE OR REPLACE FUNCTION public.notify_mission_status_change_extended()";
+public,notify_mission_status_change_extended,,trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION public.notify_mission_status_change_extended()";
  RETURNS trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -3098,39 +3663,54 @@ begin;
 end;
 $function$;
 "
-public,notify_new_ticket,,CREATE OR REPLACE FUNCTION public.notify_new_ticket()";
+public,notify_new_ticket,,trigger,plpgsql,true,v,CREATE OR REPLACE FUNCTION public.notify_new_ticket()";
  RETURNS trigger;
  LANGUAGE plpgsql;
+ SECURITY DEFINER;
+ SET search_path TO 'public';
 AS $function$;
-declare;
-  v_actor record;
-begin;
-  -- Notifier la régie et le locataire;
-  for v_actor in ;
-    select id from profiles ;
-    where regie_id = NEW.regie_id or locataire_id = NEW.locataire_id;
-  loop;
-    insert into notifications (;
-      user_id,;
-      type,;
-      title,;
-      message,;
-      related_ticket_id;
-    );
-    values (;
-      v_actor.user_id,;
-      'new_ticket',;
-      'Nouveau ticket créé',;
-      'Ticket ' || NEW.numero || ' : ' || left(NEW.description, 100),;
-      NEW.id;
-    );
-  end loop;
-  ;
-  return NEW;
-end;
+DECLARE;
+  v_profile_id uuid;
+BEGIN;
+  -- Notifier la régie (via regie_id dans profiles);
+  INSERT INTO notifications (;
+    user_id,;
+    type,;
+    title,;
+    message,;
+    related_ticket_id;
+  );
+  SELECT ;
+    p.id,;
+    'new_ticket',;
+    'Nouveau ticket créé',;
+    'Ticket #' || NEW.id || ' : ' || left(NEW.description, 100),;
+    NEW.id;
+  FROM profiles p;
+  WHERE p.regie_id = NEW.regie_id;
+;
+  -- Notifier le locataire (via locataires.profile_id);
+  INSERT INTO notifications (;
+    user_id,;
+    type,;
+    title,;
+    message,;
+    related_ticket_id;
+  );
+  SELECT ;
+    l.profile_id,;
+    'new_ticket',;
+    'Nouveau ticket créé',;
+    'Ticket #' || NEW.id || ' : ' || left(NEW.description, 100),;
+    NEW.id;
+  FROM locataires l;
+  WHERE l.id = NEW.locataire_id;
+;
+  RETURN NEW;
+END;
 $function$;
 "
-public,notify_technicien_assignment,,CREATE OR REPLACE FUNCTION public.notify_technicien_assignment()";
+public,notify_technicien_assignment,,trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION public.notify_technicien_assignment()";
  RETURNS trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -3177,13 +3757,13 @@ begin;
 end;
 $function$;
 "
-public,oid_dist,oid, oid"",""CREATE OR REPLACE FUNCTION public.oid_dist(oid, oid)";
+public,oid_dist,oid, oid"",oid,c,false,i,""CREATE OR REPLACE FUNCTION public.oid_dist(oid, oid)";
  RETURNS oid;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$oid_dist$function$;
 "
-public,prevent_role_self_escalation,,CREATE OR REPLACE FUNCTION public.prevent_role_self_escalation()";
+public,prevent_role_self_escalation,,trigger,plpgsql,true,v,CREATE OR REPLACE FUNCTION public.prevent_role_self_escalation()";
  RETURNS trigger;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -3229,7 +3809,7 @@ begin;
 end;
 $function$;
 "
-public,refuser_agence,p_regie_id uuid, p_admin_id uuid, p_commentaire text"",""CREATE OR REPLACE FUNCTION public.refuser_agence(p_regie_id uuid, p_admin_id uuid, p_commentaire text)";
+public,refuser_agence,p_regie_id uuid, p_admin_id uuid, p_commentaire text"",jsonb,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.refuser_agence(p_regie_id uuid, p_admin_id uuid, p_commentaire text)";
  RETURNS jsonb;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -3295,7 +3875,7 @@ begin;
 end;
 $function$;
 "
-public,send_message,p_mission_id uuid, p_sender_user_id uuid, p_content text"",""CREATE OR REPLACE FUNCTION public.send_message(p_mission_id uuid, p_sender_user_id uuid, p_content text)";
+public,send_message,p_mission_id uuid, p_sender_user_id uuid, p_content text"",messages,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.send_message(p_mission_id uuid, p_sender_user_id uuid, p_content text)";
  RETURNS messages;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -3375,7 +3955,7 @@ begin;
 end;
 $function$;
 "
-public,set_ticket_regie_id,,CREATE OR REPLACE FUNCTION public.set_ticket_regie_id()";
+public,set_ticket_regie_id,,trigger,plpgsql,true,v,CREATE OR REPLACE FUNCTION public.set_ticket_regie_id()";
  RETURNS trigger;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -3399,7 +3979,7 @@ begin;
 end;
 $function$;
 "
-public,start_mission,p_mission_id uuid,CREATE OR REPLACE FUNCTION public.start_mission(p_mission_id uuid)";
+public,start_mission,p_mission_id uuid,jsonb,plpgsql,true,v,CREATE OR REPLACE FUNCTION public.start_mission(p_mission_id uuid)";
  RETURNS jsonb;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -3440,7 +4020,7 @@ begin;
 end;
 $function$;
 "
-public,sync_ticket_statut_from_mission,,CREATE OR REPLACE FUNCTION public.sync_ticket_statut_from_mission()";
+public,sync_ticket_statut_from_mission,,trigger,plpgsql,true,v,CREATE OR REPLACE FUNCTION public.sync_ticket_statut_from_mission()";
  RETURNS trigger;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -3485,7 +4065,7 @@ BEGIN;
 END;
 $function$;
 "
-public,ticket_has_mission,p_ticket_id uuid,CREATE OR REPLACE FUNCTION public.ticket_has_mission(p_ticket_id uuid)";
+public,ticket_has_mission,p_ticket_id uuid,boolean,sql,true,s,CREATE OR REPLACE FUNCTION public.ticket_has_mission(p_ticket_id uuid)";
  RETURNS boolean;
  LANGUAGE sql;
  STABLE SECURITY DEFINER;
@@ -3497,25 +4077,61 @@ AS $function$;
   );
 $function$;
 "
-public,time_dist,time without time zone, time without time zone"",""CREATE OR REPLACE FUNCTION public.time_dist(time without time zone, time without time zone)";
+public,time_dist,time without time zone, time without time zone"",interval,c,false,i,""CREATE OR REPLACE FUNCTION public.time_dist(time without time zone, time without time zone)";
  RETURNS interval;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$time_dist$function$;
 "
-public,ts_dist,timestamp without time zone, timestamp without time zone"",""CREATE OR REPLACE FUNCTION public.ts_dist(timestamp without time zone, timestamp without time zone)";
+public,toggle_entreprise_mode,p_entreprise_id uuid, p_mode_diffusion text"",void,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.toggle_entreprise_mode(p_entreprise_id uuid, p_mode_diffusion text)";
+ RETURNS void;
+ LANGUAGE plpgsql;
+ SECURITY DEFINER;
+ SET search_path TO 'public';
+AS $function$;
+DECLARE;
+  v_regie_id uuid;
+BEGIN;
+  -- Vérifier que l'utilisateur est une régie;
+  SELECT get_user_regie_id() INTO v_regie_id;
+  IF v_regie_id IS NULL THEN;
+    RAISE EXCEPTION 'Utilisateur non autorisé (pas une régie)';
+  END IF;
+;
+  -- Valider mode_diffusion (CORRECTION: general ou restreint);
+  IF p_mode_diffusion NOT IN ('general', 'restreint') THEN;
+    RAISE EXCEPTION 'mode_diffusion doit être general ou restreint (reçu: %)', p_mode_diffusion;
+  END IF;
+;
+  -- Log pour debug;
+  RAISE NOTICE '[toggle_entreprise_mode] regie_id=%, entreprise_id=%, mode_diffusion=%', ;
+    v_regie_id, p_entreprise_id, p_mode_diffusion;
+;
+  -- Mettre à jour le mode_diffusion;
+  UPDATE regies_entreprises;
+  SET mode_diffusion = p_mode_diffusion;
+  WHERE regie_id = v_regie_id;
+    AND entreprise_id = p_entreprise_id;
+;
+  IF NOT FOUND THEN;
+    RAISE EXCEPTION 'Lien régie-entreprise non trouvé';
+  END IF;
+END;
+$function$;
+"
+public,ts_dist,timestamp without time zone, timestamp without time zone"",interval,c,false,i,""CREATE OR REPLACE FUNCTION public.ts_dist(timestamp without time zone, timestamp without time zone)";
  RETURNS interval;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$ts_dist$function$;
 "
-public,tstz_dist,timestamp with time zone, timestamp with time zone"",""CREATE OR REPLACE FUNCTION public.tstz_dist(timestamp with time zone, timestamp with time zone)";
+public,tstz_dist,timestamp with time zone, timestamp with time zone"",interval,c,false,i,""CREATE OR REPLACE FUNCTION public.tstz_dist(timestamp with time zone, timestamp with time zone)";
  RETURNS interval;
  LANGUAGE c;
  IMMUTABLE PARALLEL SAFE STRICT;
 AS '$libdir/btree_gist', $function$tstz_dist$function$;
 "
-public,update_abonnement_updated_at,,CREATE OR REPLACE FUNCTION public.update_abonnement_updated_at()";
+public,update_abonnement_updated_at,,trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION public.update_abonnement_updated_at()";
  RETURNS trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -3525,7 +4141,72 @@ BEGIN;
 END;
 $function$;
 "
-public,update_facture_status,p_facture_id uuid, p_nouveau_statut text"",""CREATE OR REPLACE FUNCTION public.update_facture_status(p_facture_id uuid, p_nouveau_statut text)";
+public,update_entreprise_mode_diffusion,p_entreprise_id uuid, p_mode_diffusion text"",jsonb,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.update_entreprise_mode_diffusion(p_entreprise_id uuid, p_mode_diffusion text)";
+ RETURNS jsonb;
+ LANGUAGE plpgsql;
+ SECURITY DEFINER;
+ SET search_path TO 'public';
+AS $function$;
+DECLARE;
+  v_regie_id uuid;
+  v_exists boolean;
+BEGIN;
+  -- STEP 1: Récupérer regie_id de l'utilisateur;
+  SELECT r.id INTO v_regie_id;
+  FROM regies r;
+  WHERE r.profile_id = auth.uid();
+  ;
+  IF v_regie_id IS NULL THEN;
+    RETURN jsonb_build_object(;
+      'success', false,;
+      'error', 'Utilisateur non autorisé - Régie introuvable';
+    );
+  END IF;
+  ;
+  -- STEP 2: Valider mode_diffusion;
+  IF p_mode_diffusion NOT IN ('general', 'restreint') THEN;
+    RETURN jsonb_build_object(;
+      'success', false,;
+      'error', 'mode_diffusion invalide (attendu: general ou restreint, reçu: ' || p_mode_diffusion || ')';
+    );
+  END IF;
+  ;
+  -- STEP 3: Vérifier que l'entreprise est liée à cette régie;
+  SELECT EXISTS (;
+    SELECT 1 FROM regies_entreprises;
+    WHERE regie_id = v_regie_id;
+      AND entreprise_id = p_entreprise_id;
+  ) INTO v_exists;
+  ;
+  IF NOT v_exists THEN;
+    RETURN jsonb_build_object(;
+      'success', false,;
+      'error', 'Entreprise non liée à cette régie';
+    );
+  END IF;
+  ;
+  -- STEP 4: UPDATE mode_diffusion;
+  UPDATE regies_entreprises;
+  SET ;
+    mode_diffusion = p_mode_diffusion,;
+    updated_at = NOW();
+  WHERE regie_id = v_regie_id;
+    AND entreprise_id = p_entreprise_id;
+  ;
+  -- STEP 5: Retour succès;
+  RETURN jsonb_build_object(;
+    'success', true,;
+    'entreprise_id', p_entreprise_id,;
+    'mode_diffusion', p_mode_diffusion,;
+    'message', CASE ;
+      WHEN p_mode_diffusion = 'general' THEN 'Entreprise autorisée pour diffusion générale (marketplace)';
+      ELSE 'Entreprise limitée à diffusion restreinte (assignation uniquement)';
+    END;
+  );
+END;
+$function$;
+"
+public,update_facture_status,p_facture_id uuid, p_nouveau_statut text"",factures,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.update_facture_status(p_facture_id uuid, p_nouveau_statut text)";
  RETURNS factures;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -3574,7 +4255,7 @@ begin;
 end;
 $function$;
 "
-public,update_mission_status,p_mission_id uuid, p_new_status mission_status, p_role user_role"",""CREATE OR REPLACE FUNCTION public.update_mission_status(p_mission_id uuid, p_new_status mission_status, p_role user_role)";
+public,update_mission_status,p_mission_id uuid, p_new_status mission_status, p_role user_role"",jsonb,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.update_mission_status(p_mission_id uuid, p_new_status mission_status, p_role user_role)";
  RETURNS jsonb;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -3608,7 +4289,7 @@ begin;
 end;
 $function$;
 "
-public,update_missions_updated_at,,CREATE OR REPLACE FUNCTION public.update_missions_updated_at()";
+public,update_missions_updated_at,,trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION public.update_missions_updated_at()";
  RETURNS trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -3618,7 +4299,7 @@ begin;
 end;
 $function$;
 "
-public,update_plan_updated_at,,CREATE OR REPLACE FUNCTION public.update_plan_updated_at()";
+public,update_plan_updated_at,,trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION public.update_plan_updated_at()";
  RETURNS trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -3628,7 +4309,7 @@ BEGIN;
 END;
 $function$;
 "
-public,update_techniciens_updated_at,,CREATE OR REPLACE FUNCTION public.update_techniciens_updated_at()";
+public,update_techniciens_updated_at,,trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION public.update_techniciens_updated_at()";
  RETURNS trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -3638,7 +4319,52 @@ begin;
 end;
 $function$;
 "
-public,update_ticket_status,p_ticket_id uuid, p_new_status ticket_status, p_role user_role"",""CREATE OR REPLACE FUNCTION public.update_ticket_status(p_ticket_id uuid, p_new_status ticket_status, p_role user_role)";
+public,update_ticket_regie,p_ticket_id uuid, p_priorite text, p_plafond_intervention_chf numeric"",json,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.update_ticket_regie(p_ticket_id uuid, p_priorite text, p_plafond_intervention_chf numeric)";
+ RETURNS json;
+ LANGUAGE plpgsql;
+ SECURITY DEFINER;
+ SET search_path TO 'public';
+AS $function$;
+DECLARE;
+  v_regie_id uuid;
+  v_result json;
+BEGIN;
+  SELECT r.id INTO v_regie_id;
+  FROM public.regies r;
+  WHERE r.profile_id = auth.uid();
+;
+  -- ✅ PATCH DEBUG: RETURN JSON au lieu de RAISE EXCEPTION;
+  IF v_regie_id IS NULL THEN;
+    -- AVANT: RAISE EXCEPTION 'Utilisateur non associé à une régie';
+    RETURN json_build_object(;
+      'success', false,;
+      'error', 'Utilisateur non associé à une régie';
+    );
+  END IF;
+;
+  UPDATE public.tickets;
+  SET;
+    priorite = p_priorite,;
+    plafond_intervention_chf = p_plafond_intervention_chf,;
+    updated_at = NOW();
+  WHERE id = p_ticket_id;
+    AND regie_id = v_regie_id;
+;
+  IF NOT FOUND THEN;
+    RETURN json_build_object(;
+      'success', false,;
+      'error', 'Ticket non trouvé ou accès refusé';
+    );
+  END IF;
+;
+  RETURN json_build_object(;
+    'success', true,;
+    'ticket_id', p_ticket_id;
+  );
+END;
+$function$;
+"
+public,update_ticket_status,p_ticket_id uuid, p_new_status ticket_status, p_role user_role"",jsonb,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.update_ticket_status(p_ticket_id uuid, p_new_status ticket_status, p_role user_role)";
  RETURNS jsonb;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -3711,7 +4437,7 @@ begin;
 end;
 $function$;
 "
-public,update_ticket_statut,p_ticket_id uuid, p_nouveau_statut ticket_status"",""CREATE OR REPLACE FUNCTION public.update_ticket_statut(p_ticket_id uuid, p_nouveau_statut ticket_status)";
+public,update_ticket_statut,p_ticket_id uuid, p_nouveau_statut ticket_status"",void,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.update_ticket_statut(p_ticket_id uuid, p_nouveau_statut ticket_status)";
  RETURNS void;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -3793,7 +4519,7 @@ BEGIN;
 END;
 $function$;
 "
-public,validate_mission,p_mission_id uuid,CREATE OR REPLACE FUNCTION public.validate_mission(p_mission_id uuid)";
+public,validate_mission,p_mission_id uuid,jsonb,plpgsql,true,v,CREATE OR REPLACE FUNCTION public.validate_mission(p_mission_id uuid)";
  RETURNS jsonb;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -3847,7 +4573,7 @@ begin;
 end;
 $function$;
 "
-public,valider_agence,p_regie_id uuid, p_admin_id uuid"",""CREATE OR REPLACE FUNCTION public.valider_agence(p_regie_id uuid, p_admin_id uuid)";
+public,valider_agence,p_regie_id uuid, p_admin_id uuid"",jsonb,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.valider_agence(p_regie_id uuid, p_admin_id uuid)";
  RETURNS jsonb;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -3920,7 +4646,123 @@ begin;
 end;
 $function$;
 "
-realtime,apply_rls,wal jsonb, max_record_bytes integer"",""CREATE OR REPLACE FUNCTION realtime.apply_rls(wal jsonb, max_record_bytes integer DEFAULT (1024 * 1024))";
+public,valider_ticket_regie,p_ticket_id uuid, p_plafond_chf numeric, p_mode_diffusion text, p_entreprise_id uuid"",jsonb,plpgsql,true,v,""CREATE OR REPLACE FUNCTION public.valider_ticket_regie(p_ticket_id uuid, p_plafond_chf numeric, p_mode_diffusion text, p_entreprise_id uuid DEFAULT NULL::uuid)";
+ RETURNS jsonb;
+ LANGUAGE plpgsql;
+ SECURITY DEFINER;
+ SET search_path TO 'public';
+AS $function$;
+DECLARE;
+  v_regie_id uuid;
+  v_ticket_regie_id uuid;
+  v_ticket_statut text;
+BEGIN;
+  -- STEP 1: Récupérer regie_id de l'utilisateur authentifié;
+  SELECT r.id INTO v_regie_id;
+  FROM regies r;
+  WHERE r.profile_id = auth.uid();
+  ;
+  IF v_regie_id IS NULL THEN;
+    RETURN jsonb_build_object(;
+      'success', false,;
+      'error', 'Utilisateur non associé à une régie';
+    );
+  END IF;
+  ;
+  -- STEP 2: Vérifier que le ticket appartient à cette régie;
+  SELECT regie_id, statut INTO v_ticket_regie_id, v_ticket_statut;
+  FROM tickets;
+  WHERE id = p_ticket_id;
+  ;
+  IF v_ticket_regie_id IS NULL THEN;
+    RETURN jsonb_build_object(;
+      'success', false,;
+      'error', 'Ticket introuvable';
+    );
+  END IF;
+  ;
+  IF v_ticket_regie_id != v_regie_id THEN;
+    RETURN jsonb_build_object(;
+      'success', false,;
+      'error', 'Ticket n''appartient pas à votre régie';
+    );
+  END IF;
+  ;
+  -- STEP 3: Vérifier statut du ticket (doit être 'nouveau');
+  IF v_ticket_statut != 'nouveau' THEN;
+    RETURN jsonb_build_object(;
+      'success', false,;
+      'error', 'Ticket déjà validé (statut: ' || v_ticket_statut || ')';
+    );
+  END IF;
+  ;
+  -- STEP 4: Valider mode_diffusion;
+  IF p_mode_diffusion NOT IN ('general', 'restreint') THEN;
+    RETURN jsonb_build_object(;
+      'success', false,;
+      'error', 'Mode de diffusion invalide (general ou restreint)';
+    );
+  END IF;
+  ;
+  -- STEP 5: Si mode restreint, vérifier entreprise_id et autorisation;
+  IF p_mode_diffusion = 'restreint' THEN;
+    IF p_entreprise_id IS NULL THEN;
+      RETURN jsonb_build_object(;
+        'success', false,;
+        'error', 'entreprise_id obligatoire en mode restreint';
+      );
+    END IF;
+    ;
+    IF NOT EXISTS (;
+      SELECT 1 FROM regies_entreprises;
+      WHERE regie_id = v_regie_id;
+        AND entreprise_id = p_entreprise_id;
+    ) THEN;
+      RETURN jsonb_build_object(;
+        'success', false,;
+        'error', 'Entreprise non autorisée pour cette régie';
+      );
+    END IF;
+  END IF;
+  ;
+  -- STEP 6: Valider plafond (doit être positif);
+  IF p_plafond_chf IS NULL OR p_plafond_chf <= 0 THEN;
+    RETURN jsonb_build_object(;
+      'success', false,;
+      'error', 'Plafond invalide (doit être > 0)';
+    );
+  END IF;
+  ;
+  -- STEP 7: UPDATE ticket avec validation;
+  UPDATE tickets SET;
+    statut = 'en_attente',;
+    plafond_intervention_chf = p_plafond_chf,;
+    mode_diffusion = p_mode_diffusion,;
+    entreprise_id = CASE ;
+      WHEN p_mode_diffusion = 'restreint' THEN p_entreprise_id ;
+      ELSE NULL ;
+    END,;
+    plafond_valide_par = auth.uid(),;
+    plafond_valide_at = NOW(),;
+    diffuse_par = auth.uid(),;
+    diffuse_at = NOW(),;
+    updated_at = NOW();
+  WHERE id = p_ticket_id;
+  ;
+  -- STEP 8: Retourner succès avec détails;
+  RETURN jsonb_build_object(;
+    'success', true,;
+    'ticket_id', p_ticket_id,;
+    'statut', 'en_attente',;
+    'mode_diffusion', p_mode_diffusion,;
+    'entreprise_id', p_entreprise_id,;
+    'plafond_chf', p_plafond_chf,;
+    'message', 'Ticket validé avec succès';
+  );
+END;
+$function$;
+"
+realtime,apply_rls,wal jsonb, max_record_bytes integer"",SETOF realtime.wal_rls,plpgsql,false,v,""CREATE OR REPLACE FUNCTION realtime.apply_rls(wal jsonb, max_record_bytes integer DEFAULT (1024 * 1024))";
  RETURNS SETOF realtime.wal_rls;
  LANGUAGE plpgsql;
 AS $function$;
@@ -4221,7 +5063,7 @@ perform set_config('role', null, true);
 end;
 $function$;
 "
-realtime,broadcast_changes,topic_name text, event_name text, operation text, table_name text, table_schema text, new record, old record, level text"",""CREATE OR REPLACE FUNCTION realtime.broadcast_changes(topic_name text, event_name text, operation text, table_name text, table_schema text, new record, old record, level text DEFAULT 'ROW'::text)";
+realtime,broadcast_changes,topic_name text, event_name text, operation text, table_name text, table_schema text, new record, old record, level text"",void,plpgsql,false,v,""CREATE OR REPLACE FUNCTION realtime.broadcast_changes(topic_name text, event_name text, operation text, table_name text, table_schema text, new record, old record, level text DEFAULT 'ROW'::text)";
  RETURNS void;
  LANGUAGE plpgsql;
 AS $function$;
@@ -4246,7 +5088,7 @@ END;
 ;
 $function$;
 "
-realtime,build_prepared_statement_sql,prepared_statement_name text, entity regclass, columns realtime.wal_column[]"",""CREATE OR REPLACE FUNCTION realtime.build_prepared_statement_sql(prepared_statement_name text, entity regclass, columns realtime.wal_column[])";
+realtime,build_prepared_statement_sql,prepared_statement_name text, entity regclass, columns realtime.wal_column[]"",text,sql,false,v,""CREATE OR REPLACE FUNCTION realtime.build_prepared_statement_sql(prepared_statement_name text, entity regclass, columns realtime.wal_column[])";
  RETURNS text;
  LANGUAGE sql;
 AS $function$;
@@ -4275,7 +5117,7 @@ AS $function$;
               entity;
       $function$;
 "
-realtime,cast,val text, type_ regtype"",""CREATE OR REPLACE FUNCTION realtime.""""cast""""(val text, type_ regtype)";
+realtime,cast,val text, type_ regtype"",jsonb,plpgsql,false,i,""CREATE OR REPLACE FUNCTION realtime.""""cast""""(val text, type_ regtype)";
  RETURNS jsonb;
  LANGUAGE plpgsql;
  IMMUTABLE;
@@ -4288,7 +5130,7 @@ AS $function$;
     end;
     $function$;
 "
-realtime,check_equality_op,op realtime.equality_op, type_ regtype, val_1 text, val_2 text"",""CREATE OR REPLACE FUNCTION realtime.check_equality_op(op realtime.equality_op, type_ regtype, val_1 text, val_2 text)";
+realtime,check_equality_op,op realtime.equality_op, type_ regtype, val_1 text, val_2 text"",boolean,plpgsql,false,i,""CREATE OR REPLACE FUNCTION realtime.check_equality_op(op realtime.equality_op, type_ regtype, val_1 text, val_2 text)";
  RETURNS boolean;
  LANGUAGE plpgsql;
  IMMUTABLE;
@@ -4324,7 +5166,7 @@ AS $function$;
       end;
       $function$;
 "
-realtime,is_visible_through_filters,columns realtime.wal_column[], filters realtime.user_defined_filter[]"",""CREATE OR REPLACE FUNCTION realtime.is_visible_through_filters(columns realtime.wal_column[], filters realtime.user_defined_filter[])";
+realtime,is_visible_through_filters,columns realtime.wal_column[], filters realtime.user_defined_filter[]"",boolean,sql,false,i,""CREATE OR REPLACE FUNCTION realtime.is_visible_through_filters(columns realtime.wal_column[], filters realtime.user_defined_filter[])";
  RETURNS boolean;
  LANGUAGE sql;
  IMMUTABLE;
@@ -4357,7 +5199,7 @@ AS $function$;
                 on f.column_name = col.name;
     $function$;
 "
-realtime,list_changes,publication name, slot_name name, max_changes integer, max_record_bytes integer"",""CREATE OR REPLACE FUNCTION realtime.list_changes(publication name, slot_name name, max_changes integer, max_record_bytes integer)";
+realtime,list_changes,publication name, slot_name name, max_changes integer, max_record_bytes integer"",SETOF realtime.wal_rls,sql,false,v,""CREATE OR REPLACE FUNCTION realtime.list_changes(publication name, slot_name name, max_changes integer, max_record_bytes integer)";
  RETURNS SETOF realtime.wal_rls;
  LANGUAGE sql;
  SET log_min_messages TO 'fatal';
@@ -4419,7 +5261,7 @@ AS $function$;
         and xyz.subscription_ids[1] is not null;
     $function$;
 "
-realtime,quote_wal2json,entity regclass,CREATE OR REPLACE FUNCTION realtime.quote_wal2json(entity regclass)";
+realtime,quote_wal2json,entity regclass,text,sql,false,i,CREATE OR REPLACE FUNCTION realtime.quote_wal2json(entity regclass)";
  RETURNS text;
  LANGUAGE sql;
  IMMUTABLE STRICT;
@@ -4454,7 +5296,7 @@ AS $function$;
         pc.oid = entity;
     $function$;
 "
-realtime,send,payload jsonb, event text, topic text, private boolean"",""CREATE OR REPLACE FUNCTION realtime.send(payload jsonb, event text, topic text, private boolean DEFAULT true)";
+realtime,send,payload jsonb, event text, topic text, private boolean"",void,plpgsql,false,v,""CREATE OR REPLACE FUNCTION realtime.send(payload jsonb, event text, topic text, private boolean DEFAULT true)";
  RETURNS void;
  LANGUAGE plpgsql;
 AS $function$;
@@ -4487,7 +5329,7 @@ BEGIN;
 END;
 $function$;
 "
-realtime,subscription_check_filters,,CREATE OR REPLACE FUNCTION realtime.subscription_check_filters()";
+realtime,subscription_check_filters,,trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION realtime.subscription_check_filters()";
  RETURNS trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -4557,13 +5399,13 @@ AS $function$;
     end;
     $function$;
 "
-realtime,to_regrole,role_name text,CREATE OR REPLACE FUNCTION realtime.to_regrole(role_name text)";
+realtime,to_regrole,role_name text,regrole,sql,false,i,CREATE OR REPLACE FUNCTION realtime.to_regrole(role_name text)";
  RETURNS regrole;
  LANGUAGE sql;
  IMMUTABLE;
 AS $function$ select role_name::regrole $function$;
 "
-realtime,topic,,CREATE OR REPLACE FUNCTION realtime.topic()";
+realtime,topic,,text,sql,false,s,CREATE OR REPLACE FUNCTION realtime.topic()";
  RETURNS text;
  LANGUAGE sql;
  STABLE;
@@ -4571,7 +5413,7 @@ AS $function$;
 select nullif(current_setting('realtime.topic', true), '')::text;
 $function$;
 "
-storage,add_prefixes,_bucket_id text, _name text"",""CREATE OR REPLACE FUNCTION storage.add_prefixes(_bucket_id text, _name text)";
+storage,add_prefixes,_bucket_id text, _name text"",void,plpgsql,true,v,""CREATE OR REPLACE FUNCTION storage.add_prefixes(_bucket_id text, _name text)";
  RETURNS void;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -4588,7 +5430,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,can_insert_object,bucketid text, name text, owner uuid, metadata jsonb"",""CREATE OR REPLACE FUNCTION storage.can_insert_object(bucketid text, name text, owner uuid, metadata jsonb)";
+storage,can_insert_object,bucketid text, name text, owner uuid, metadata jsonb"",void,plpgsql,false,v,""CREATE OR REPLACE FUNCTION storage.can_insert_object(bucketid text, name text, owner uuid, metadata jsonb)";
  RETURNS void;
  LANGUAGE plpgsql;
 AS $function$;
@@ -4601,7 +5443,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,delete_leaf_prefixes,bucket_ids text[], names text[]"",""CREATE OR REPLACE FUNCTION storage.delete_leaf_prefixes(bucket_ids text[], names text[])";
+storage,delete_leaf_prefixes,bucket_ids text[], names text[]"",void,plpgsql,true,v,""CREATE OR REPLACE FUNCTION storage.delete_leaf_prefixes(bucket_ids text[], names text[])";
  RETURNS void;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -4663,7 +5505,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,delete_prefix,_bucket_id text, _name text"",""CREATE OR REPLACE FUNCTION storage.delete_prefix(_bucket_id text, _name text)";
+storage,delete_prefix,_bucket_id text, _name text"",boolean,plpgsql,true,v,""CREATE OR REPLACE FUNCTION storage.delete_prefix(_bucket_id text, _name text)";
  RETURNS boolean;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -4696,7 +5538,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,delete_prefix_hierarchy_trigger,,CREATE OR REPLACE FUNCTION storage.delete_prefix_hierarchy_trigger()";
+storage,delete_prefix_hierarchy_trigger,,trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION storage.delete_prefix_hierarchy_trigger()";
  RETURNS trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -4713,7 +5555,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,enforce_bucket_name_length,,CREATE OR REPLACE FUNCTION storage.enforce_bucket_name_length()";
+storage,enforce_bucket_name_length,,trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION storage.enforce_bucket_name_length()";
  RETURNS trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -4725,7 +5567,7 @@ begin;
 end;
 $function$;
 "
-storage,extension,name text,CREATE OR REPLACE FUNCTION storage.extension(name text)";
+storage,extension,name text,text,plpgsql,false,i,CREATE OR REPLACE FUNCTION storage.extension(name text)";
  RETURNS text;
  LANGUAGE plpgsql;
  IMMUTABLE;
@@ -4740,7 +5582,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,filename,name text,CREATE OR REPLACE FUNCTION storage.filename(name text)";
+storage,filename,name text,text,plpgsql,false,v,CREATE OR REPLACE FUNCTION storage.filename(name text)";
  RETURNS text;
  LANGUAGE plpgsql;
 AS $function$;
@@ -4752,7 +5594,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,foldername,name text,CREATE OR REPLACE FUNCTION storage.foldername(name text)";
+storage,foldername,name text,text[],plpgsql,false,i,CREATE OR REPLACE FUNCTION storage.foldername(name text)";
  RETURNS text[];
  LANGUAGE plpgsql;
  IMMUTABLE;
@@ -4767,7 +5609,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,get_level,name text,CREATE OR REPLACE FUNCTION storage.get_level(name text)";
+storage,get_level,name text,integer,sql,false,i,CREATE OR REPLACE FUNCTION storage.get_level(name text)";
  RETURNS integer;
  LANGUAGE sql;
  IMMUTABLE STRICT;
@@ -4775,7 +5617,7 @@ AS $function$;
 "SELECT array_length(string_to_array(""""name"""", '/'), 1)";
 $function$;
 "
-storage,get_prefix,name text,CREATE OR REPLACE FUNCTION storage.get_prefix(name text)";
+storage,get_prefix,name text,text,sql,false,i,CREATE OR REPLACE FUNCTION storage.get_prefix(name text)";
  RETURNS text;
  LANGUAGE sql;
  IMMUTABLE STRICT;
@@ -4788,7 +5630,7 @@ SELECT;
         END;
 $function$;
 "
-storage,get_prefixes,name text,CREATE OR REPLACE FUNCTION storage.get_prefixes(name text)";
+storage,get_prefixes,name text,text[],plpgsql,false,i,CREATE OR REPLACE FUNCTION storage.get_prefixes(name text)";
  RETURNS text[];
  LANGUAGE plpgsql;
  IMMUTABLE STRICT;
@@ -4812,7 +5654,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,get_size_by_bucket,,CREATE OR REPLACE FUNCTION storage.get_size_by_bucket()";
+storage,get_size_by_bucket,,TABLE(size bigint, bucket_id text)"",plpgsql,false,s,""CREATE OR REPLACE FUNCTION storage.get_size_by_bucket()";
  RETURNS TABLE(size bigint, bucket_id text);
  LANGUAGE plpgsql;
  STABLE;
@@ -4825,7 +5667,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,list_multipart_uploads_with_delimiter,bucket_id text, prefix_param text, delimiter_param text, max_keys integer, next_key_token text, next_upload_token text"",""CREATE OR REPLACE FUNCTION storage.list_multipart_uploads_with_delimiter(bucket_id text, prefix_param text, delimiter_param text, max_keys integer DEFAULT 100, next_key_token text DEFAULT ''::text, next_upload_token text DEFAULT ''::text)";
+storage,list_multipart_uploads_with_delimiter,bucket_id text, prefix_param text, delimiter_param text, max_keys integer, next_key_token text, next_upload_token text"",""TABLE(key text, id text, created_at timestamp with time zone)"",plpgsql,false,v,""CREATE OR REPLACE FUNCTION storage.list_multipart_uploads_with_delimiter(bucket_id text, prefix_param text, delimiter_param text, max_keys integer DEFAULT 100, next_key_token text DEFAULT ''::text, next_upload_token text DEFAULT ''::text)";
  RETURNS TABLE(key text, id text, created_at timestamp with time zone);
  LANGUAGE plpgsql;
 AS $function$;
@@ -4867,7 +5709,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,list_objects_with_delimiter,bucket_id text, prefix_param text, delimiter_param text, max_keys integer, start_after text, next_token text"",""CREATE OR REPLACE FUNCTION storage.list_objects_with_delimiter(bucket_id text, prefix_param text, delimiter_param text, max_keys integer DEFAULT 100, start_after text DEFAULT ''::text, next_token text DEFAULT ''::text)";
+storage,list_objects_with_delimiter,bucket_id text, prefix_param text, delimiter_param text, max_keys integer, start_after text, next_token text"",""TABLE(name text, id uuid, metadata jsonb, updated_at timestamp with time zone)"",plpgsql,false,v,""CREATE OR REPLACE FUNCTION storage.list_objects_with_delimiter(bucket_id text, prefix_param text, delimiter_param text, max_keys integer DEFAULT 100, start_after text DEFAULT ''::text, next_token text DEFAULT ''::text)";
  RETURNS TABLE(name text, id uuid, metadata jsonb, updated_at timestamp with time zone);
  LANGUAGE plpgsql;
 AS $function$;
@@ -4907,7 +5749,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,lock_top_prefixes,bucket_ids text[], names text[]"",""CREATE OR REPLACE FUNCTION storage.lock_top_prefixes(bucket_ids text[], names text[])";
+storage,lock_top_prefixes,bucket_ids text[], names text[]"",void,plpgsql,true,v,""CREATE OR REPLACE FUNCTION storage.lock_top_prefixes(bucket_ids text[], names text[])";
  RETURNS void;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -4928,7 +5770,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,objects_delete_cleanup,,CREATE OR REPLACE FUNCTION storage.objects_delete_cleanup()";
+storage,objects_delete_cleanup,,trigger,plpgsql,true,v,CREATE OR REPLACE FUNCTION storage.objects_delete_cleanup()";
  RETURNS trigger;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -4956,7 +5798,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,objects_insert_prefix_trigger,,CREATE OR REPLACE FUNCTION storage.objects_insert_prefix_trigger()";
+storage,objects_insert_prefix_trigger,,trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION storage.objects_insert_prefix_trigger()";
  RETURNS trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -4968,7 +5810,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,objects_update_cleanup,,CREATE OR REPLACE FUNCTION storage.objects_update_cleanup()";
+storage,objects_update_cleanup,,trigger,plpgsql,true,v,CREATE OR REPLACE FUNCTION storage.objects_update_cleanup()";
  RETURNS trigger;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -5057,7 +5899,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,objects_update_level_trigger,,CREATE OR REPLACE FUNCTION storage.objects_update_level_trigger()";
+storage,objects_update_level_trigger,,trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION storage.objects_update_level_trigger()";
  RETURNS trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -5071,7 +5913,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,objects_update_prefix_trigger,,CREATE OR REPLACE FUNCTION storage.objects_update_prefix_trigger()";
+storage,objects_update_prefix_trigger,,trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION storage.objects_update_prefix_trigger()";
  RETURNS trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -5109,7 +5951,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,operation,,CREATE OR REPLACE FUNCTION storage.operation()";
+storage,operation,,text,plpgsql,false,s,CREATE OR REPLACE FUNCTION storage.operation()";
  RETURNS text;
  LANGUAGE plpgsql;
  STABLE;
@@ -5119,7 +5961,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,prefixes_delete_cleanup,,CREATE OR REPLACE FUNCTION storage.prefixes_delete_cleanup()";
+storage,prefixes_delete_cleanup,,trigger,plpgsql,true,v,CREATE OR REPLACE FUNCTION storage.prefixes_delete_cleanup()";
  RETURNS trigger;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -5147,7 +5989,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,prefixes_insert_trigger,,CREATE OR REPLACE FUNCTION storage.prefixes_insert_trigger()";
+storage,prefixes_insert_trigger,,trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION storage.prefixes_insert_trigger()";
  RETURNS trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -5157,7 +5999,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,search,prefix text, bucketname text, limits integer, levels integer, offsets integer, search text, sortcolumn text, sortorder text"",""CREATE OR REPLACE FUNCTION storage.search(prefix text, bucketname text, limits integer DEFAULT 100, levels integer DEFAULT 1, offsets integer DEFAULT 0, search text DEFAULT ''::text, sortcolumn text DEFAULT 'name'::text, sortorder text DEFAULT 'asc'::text)";
+storage,search,prefix text, bucketname text, limits integer, levels integer, offsets integer, search text, sortcolumn text, sortorder text"",""TABLE(name text, id uuid, updated_at timestamp with time zone, created_at timestamp with time zone, last_accessed_at timestamp with time zone, metadata jsonb)"",plpgsql,false,v,""CREATE OR REPLACE FUNCTION storage.search(prefix text, bucketname text, limits integer DEFAULT 100, levels integer DEFAULT 1, offsets integer DEFAULT 0, search text DEFAULT ''::text, sortcolumn text DEFAULT 'name'::text, sortorder text DEFAULT 'asc'::text)";
  RETURNS TABLE(name text, id uuid, updated_at timestamp with time zone, created_at timestamp with time zone, last_accessed_at timestamp with time zone, metadata jsonb);
  LANGUAGE plpgsql;
 AS $function$;
@@ -5177,7 +6019,7 @@ begin;
 end;
 $function$;
 "
-storage,search_legacy_v1,prefix text, bucketname text, limits integer, levels integer, offsets integer, search text, sortcolumn text, sortorder text"",""CREATE OR REPLACE FUNCTION storage.search_legacy_v1(prefix text, bucketname text, limits integer DEFAULT 100, levels integer DEFAULT 1, offsets integer DEFAULT 0, search text DEFAULT ''::text, sortcolumn text DEFAULT 'name'::text, sortorder text DEFAULT 'asc'::text)";
+storage,search_legacy_v1,prefix text, bucketname text, limits integer, levels integer, offsets integer, search text, sortcolumn text, sortorder text"",""TABLE(name text, id uuid, updated_at timestamp with time zone, created_at timestamp with time zone, last_accessed_at timestamp with time zone, metadata jsonb)"",plpgsql,false,s,""CREATE OR REPLACE FUNCTION storage.search_legacy_v1(prefix text, bucketname text, limits integer DEFAULT 100, levels integer DEFAULT 1, offsets integer DEFAULT 0, search text DEFAULT ''::text, sortcolumn text DEFAULT 'name'::text, sortorder text DEFAULT 'asc'::text)";
  RETURNS TABLE(name text, id uuid, updated_at timestamp with time zone, created_at timestamp with time zone, last_accessed_at timestamp with time zone, metadata jsonb);
  LANGUAGE plpgsql;
  STABLE;
@@ -5243,7 +6085,7 @@ begin;
 end;
 $function$;
 "
-storage,search_v1_optimised,prefix text, bucketname text, limits integer, levels integer, offsets integer, search text, sortcolumn text, sortorder text"",""CREATE OR REPLACE FUNCTION storage.search_v1_optimised(prefix text, bucketname text, limits integer DEFAULT 100, levels integer DEFAULT 1, offsets integer DEFAULT 0, search text DEFAULT ''::text, sortcolumn text DEFAULT 'name'::text, sortorder text DEFAULT 'asc'::text)";
+storage,search_v1_optimised,prefix text, bucketname text, limits integer, levels integer, offsets integer, search text, sortcolumn text, sortorder text"",""TABLE(name text, id uuid, updated_at timestamp with time zone, created_at timestamp with time zone, last_accessed_at timestamp with time zone, metadata jsonb)"",plpgsql,false,s,""CREATE OR REPLACE FUNCTION storage.search_v1_optimised(prefix text, bucketname text, limits integer DEFAULT 100, levels integer DEFAULT 1, offsets integer DEFAULT 0, search text DEFAULT ''::text, sortcolumn text DEFAULT 'name'::text, sortorder text DEFAULT 'asc'::text)";
  RETURNS TABLE(name text, id uuid, updated_at timestamp with time zone, created_at timestamp with time zone, last_accessed_at timestamp with time zone, metadata jsonb);
  LANGUAGE plpgsql;
  STABLE;
@@ -5308,7 +6150,7 @@ begin;
 end;
 $function$;
 "
-storage,search_v2,prefix text, bucket_name text, limits integer, levels integer, start_after text, sort_order text, sort_column text, sort_column_after text"",""CREATE OR REPLACE FUNCTION storage.search_v2(prefix text, bucket_name text, limits integer DEFAULT 100, levels integer DEFAULT 1, start_after text DEFAULT ''::text, sort_order text DEFAULT 'asc'::text, sort_column text DEFAULT 'name'::text, sort_column_after text DEFAULT ''::text)";
+storage,search_v2,prefix text, bucket_name text, limits integer, levels integer, start_after text, sort_order text, sort_column text, sort_column_after text"",""TABLE(key text, name text, id uuid, updated_at timestamp with time zone, created_at timestamp with time zone, last_accessed_at timestamp with time zone, metadata jsonb)"",plpgsql,false,s,""CREATE OR REPLACE FUNCTION storage.search_v2(prefix text, bucket_name text, limits integer DEFAULT 100, levels integer DEFAULT 1, start_after text DEFAULT ''::text, sort_order text DEFAULT 'asc'::text, sort_column text DEFAULT 'name'::text, sort_column_after text DEFAULT ''::text)";
  RETURNS TABLE(key text, name text, id uuid, updated_at timestamp with time zone, created_at timestamp with time zone, last_accessed_at timestamp with time zone, metadata jsonb);
  LANGUAGE plpgsql;
  STABLE;
@@ -5401,7 +6243,7 @@ BEGIN;
 END;
 $function$;
 "
-storage,update_updated_at_column,,CREATE OR REPLACE FUNCTION storage.update_updated_at_column()";
+storage,update_updated_at_column,,trigger,plpgsql,false,v,CREATE OR REPLACE FUNCTION storage.update_updated_at_column()";
  RETURNS trigger;
  LANGUAGE plpgsql;
 AS $function$;
@@ -5411,25 +6253,25 @@ BEGIN;
 END;
 $function$;
 "
-vault,_crypto_aead_det_decrypt,message bytea, additional bytea, key_id bigint, context bytea, nonce bytea"",""CREATE OR REPLACE FUNCTION vault._crypto_aead_det_decrypt(message bytea, additional bytea, key_id bigint, context bytea DEFAULT '\x7067736f6469756d'::bytea, nonce bytea DEFAULT NULL::bytea)";
+vault,_crypto_aead_det_decrypt,message bytea, additional bytea, key_id bigint, context bytea, nonce bytea"",bytea,c,false,i,""CREATE OR REPLACE FUNCTION vault._crypto_aead_det_decrypt(message bytea, additional bytea, key_id bigint, context bytea DEFAULT '\x7067736f6469756d'::bytea, nonce bytea DEFAULT NULL::bytea)";
  RETURNS bytea;
  LANGUAGE c;
  IMMUTABLE;
 AS '$libdir/supabase_vault', $function$pgsodium_crypto_aead_det_decrypt_by_id$function$;
 "
-vault,_crypto_aead_det_encrypt,message bytea, additional bytea, key_id bigint, context bytea, nonce bytea"",""CREATE OR REPLACE FUNCTION vault._crypto_aead_det_encrypt(message bytea, additional bytea, key_id bigint, context bytea DEFAULT '\x7067736f6469756d'::bytea, nonce bytea DEFAULT NULL::bytea)";
+vault,_crypto_aead_det_encrypt,message bytea, additional bytea, key_id bigint, context bytea, nonce bytea"",bytea,c,false,i,""CREATE OR REPLACE FUNCTION vault._crypto_aead_det_encrypt(message bytea, additional bytea, key_id bigint, context bytea DEFAULT '\x7067736f6469756d'::bytea, nonce bytea DEFAULT NULL::bytea)";
  RETURNS bytea;
  LANGUAGE c;
  IMMUTABLE;
 AS '$libdir/supabase_vault', $function$pgsodium_crypto_aead_det_encrypt_by_id$function$;
 "
-vault,_crypto_aead_det_noncegen,,CREATE OR REPLACE FUNCTION vault._crypto_aead_det_noncegen()";
+vault,_crypto_aead_det_noncegen,,bytea,c,false,i,CREATE OR REPLACE FUNCTION vault._crypto_aead_det_noncegen()";
  RETURNS bytea;
  LANGUAGE c;
  IMMUTABLE;
 AS '$libdir/supabase_vault', $function$pgsodium_crypto_aead_det_noncegen$function$;
 "
-vault,create_secret,new_secret text, new_name text, new_description text, new_key_id uuid"",""CREATE OR REPLACE FUNCTION vault.create_secret(new_secret text, new_name text DEFAULT NULL::text, new_description text DEFAULT ''::text, new_key_id uuid DEFAULT NULL::uuid)";
+vault,create_secret,new_secret text, new_name text, new_description text, new_key_id uuid"",uuid,plpgsql,true,v,""CREATE OR REPLACE FUNCTION vault.create_secret(new_secret text, new_name text DEFAULT NULL::text, new_description text DEFAULT ''::text, new_key_id uuid DEFAULT NULL::uuid)";
  RETURNS uuid;
  LANGUAGE plpgsql;
  SECURITY DEFINER;
@@ -5458,7 +6300,7 @@ BEGIN;
 END;
 $function$;
 "
-vault,update_secret,secret_id uuid, new_secret text, new_name text, new_description text, new_key_id uuid"",""CREATE OR REPLACE FUNCTION vault.update_secret(secret_id uuid, new_secret text DEFAULT NULL::text, new_name text DEFAULT NULL::text, new_description text DEFAULT NULL::text, new_key_id uuid DEFAULT NULL::uuid)";
+vault,update_secret,secret_id uuid, new_secret text, new_name text, new_description text, new_key_id uuid"",void,plpgsql,true,v,""CREATE OR REPLACE FUNCTION vault.update_secret(secret_id uuid, new_secret text DEFAULT NULL::text, new_name text DEFAULT NULL::text, new_description text DEFAULT NULL::text, new_key_id uuid DEFAULT NULL::uuid)";
  RETURNS void;
  LANGUAGE plpgsql;
  SECURITY DEFINER;

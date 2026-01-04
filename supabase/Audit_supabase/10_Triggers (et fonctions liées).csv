@@ -1,0 +1,32 @@
+schema_name,table_name,trigger_name,trigger_def,function_name
+public,abonnements,trigger_abonnement_updated_at,CREATE TRIGGER trigger_abonnement_updated_at BEFORE UPDATE ON abonnements FOR EACH ROW EXECUTE FUNCTION update_abonnement_updated_at(),update_abonnement_updated_at
+public,entreprises,set_updated_at_entreprises,CREATE TRIGGER set_updated_at_entreprises BEFORE UPDATE ON entreprises FOR EACH ROW EXECUTE FUNCTION handle_updated_at(),handle_updated_at
+public,factures,facture_status_change_trigger,CREATE TRIGGER facture_status_change_trigger AFTER UPDATE ON factures FOR EACH ROW EXECUTE FUNCTION notify_facture_status_change(),notify_facture_status_change
+public,factures,factures_updated_at,CREATE TRIGGER factures_updated_at BEFORE UPDATE ON factures FOR EACH ROW EXECUTE FUNCTION handle_updated_at(),handle_updated_at
+public,immeubles,set_updated_at_immeubles,CREATE TRIGGER set_updated_at_immeubles BEFORE UPDATE ON immeubles FOR EACH ROW EXECUTE FUNCTION handle_updated_at(),handle_updated_at
+public,locataires,set_updated_at_locataires,CREATE TRIGGER set_updated_at_locataires BEFORE UPDATE ON locataires FOR EACH ROW EXECUTE FUNCTION handle_updated_at(),handle_updated_at
+public,logements,set_updated_at_logements,CREATE TRIGGER set_updated_at_logements BEFORE UPDATE ON logements FOR EACH ROW EXECUTE FUNCTION handle_updated_at(),handle_updated_at
+public,missions,mission_status_change,CREATE TRIGGER mission_status_change AFTER UPDATE ON missions FOR EACH ROW WHEN (old.statut IS DISTINCT FROM new.statut) EXECUTE FUNCTION notify_mission_status_change(),notify_mission_status_change
+public,missions,mission_status_change_notification,CREATE TRIGGER mission_status_change_notification AFTER UPDATE ON missions FOR EACH ROW EXECUTE FUNCTION notify_mission_status_change_extended(),notify_mission_status_change_extended
+public,missions,missions_updated_at,CREATE TRIGGER missions_updated_at BEFORE UPDATE ON missions FOR EACH ROW EXECUTE FUNCTION update_missions_updated_at(),update_missions_updated_at
+public,missions,technicien_assignment_notification,CREATE TRIGGER technicien_assignment_notification AFTER UPDATE ON missions FOR EACH ROW EXECUTE FUNCTION notify_technicien_assignment(),notify_technicien_assignment
+public,missions,trigger_sync_ticket_statut_from_mission,CREATE TRIGGER trigger_sync_ticket_statut_from_mission AFTER UPDATE OF statut ON missions FOR EACH ROW EXECUTE FUNCTION sync_ticket_statut_from_mission(),sync_ticket_statut_from_mission
+public,plans,trigger_plan_updated_at,CREATE TRIGGER trigger_plan_updated_at BEFORE UPDATE ON plans FOR EACH ROW EXECUTE FUNCTION update_plan_updated_at(),update_plan_updated_at
+public,profiles,on_profile_updated,CREATE TRIGGER on_profile_updated BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION handle_updated_at(),handle_updated_at
+public,profiles,trigger_prevent_role_self_escalation,CREATE TRIGGER trigger_prevent_role_self_escalation BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION prevent_role_self_escalation(),prevent_role_self_escalation
+public,regies,set_updated_at_regies,CREATE TRIGGER set_updated_at_regies BEFORE UPDATE ON regies FOR EACH ROW EXECUTE FUNCTION handle_updated_at(),handle_updated_at
+public,regies_entreprises,set_updated_at_regies_entreprises,CREATE TRIGGER set_updated_at_regies_entreprises BEFORE UPDATE ON regies_entreprises FOR EACH ROW EXECUTE FUNCTION handle_updated_at(),handle_updated_at
+public,techniciens,techniciens_updated_at,CREATE TRIGGER techniciens_updated_at BEFORE UPDATE ON techniciens FOR EACH ROW EXECUTE FUNCTION update_techniciens_updated_at(),update_techniciens_updated_at
+public,tickets,ensure_locataire_has_logement_before_ticket,CREATE TRIGGER ensure_locataire_has_logement_before_ticket BEFORE INSERT ON tickets FOR EACH ROW EXECUTE FUNCTION check_locataire_has_logement_for_ticket(),check_locataire_has_logement_for_ticket
+public,tickets,new_ticket_notification,CREATE TRIGGER new_ticket_notification AFTER INSERT ON tickets FOR EACH ROW EXECUTE FUNCTION notify_new_ticket(),notify_new_ticket
+public,tickets,set_ticket_regie_id_trigger,CREATE TRIGGER set_ticket_regie_id_trigger BEFORE INSERT ON tickets FOR EACH ROW EXECUTE FUNCTION set_ticket_regie_id(),set_ticket_regie_id
+public,tickets,set_updated_at_tickets,CREATE TRIGGER set_updated_at_tickets BEFORE UPDATE ON tickets FOR EACH ROW EXECUTE FUNCTION handle_updated_at(),handle_updated_at
+public,tickets,trigger_check_disponibilites_before_diffusion,CREATE TRIGGER trigger_check_disponibilites_before_diffusion BEFORE UPDATE OF statut ON tickets FOR EACH ROW EXECUTE FUNCTION check_disponibilites_before_diffusion(),check_disponibilites_before_diffusion
+realtime,subscription,tr_check_filters,CREATE TRIGGER tr_check_filters BEFORE INSERT OR UPDATE ON realtime.subscription FOR EACH ROW EXECUTE FUNCTION realtime.subscription_check_filters(),subscription_check_filters
+storage,buckets,enforce_bucket_name_length_trigger,CREATE TRIGGER enforce_bucket_name_length_trigger BEFORE INSERT OR UPDATE OF name ON storage.buckets FOR EACH ROW EXECUTE FUNCTION storage.enforce_bucket_name_length(),enforce_bucket_name_length
+storage,objects,objects_delete_delete_prefix,CREATE TRIGGER objects_delete_delete_prefix AFTER DELETE ON storage.objects FOR EACH ROW EXECUTE FUNCTION storage.delete_prefix_hierarchy_trigger(),delete_prefix_hierarchy_trigger
+storage,objects,objects_insert_create_prefix,CREATE TRIGGER objects_insert_create_prefix BEFORE INSERT ON storage.objects FOR EACH ROW EXECUTE FUNCTION storage.objects_insert_prefix_trigger(),objects_insert_prefix_trigger
+storage,objects,objects_update_create_prefix,CREATE TRIGGER objects_update_create_prefix BEFORE UPDATE ON storage.objects FOR EACH ROW WHEN (new.name <> old.name OR new.bucket_id <> old.bucket_id) EXECUTE FUNCTION storage.objects_update_prefix_trigger(),objects_update_prefix_trigger
+storage,objects,update_objects_updated_at,CREATE TRIGGER update_objects_updated_at BEFORE UPDATE ON storage.objects FOR EACH ROW EXECUTE FUNCTION storage.update_updated_at_column(),update_updated_at_column
+storage,prefixes,prefixes_create_hierarchy,CREATE TRIGGER prefixes_create_hierarchy BEFORE INSERT ON storage.prefixes FOR EACH ROW WHEN (pg_trigger_depth() < 1) EXECUTE FUNCTION storage.prefixes_insert_trigger(),prefixes_insert_trigger
+storage,prefixes,prefixes_delete_hierarchy,CREATE TRIGGER prefixes_delete_hierarchy AFTER DELETE ON storage.prefixes FOR EACH ROW EXECUTE FUNCTION storage.delete_prefix_hierarchy_trigger(),delete_prefix_hierarchy_trigger

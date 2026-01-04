@@ -1,4 +1,4 @@
-schemaname,tablename,policyname,permissive,roles,cmd,qual,with_check
+schemaname,tablename,policyname,permissive,roles,cmd,using_expression,with_check_expression
 "public,abonnements,abonnements_admin_all,PERMISSIVE,{public},ALL,""(EXISTS ( SELECT 1"
    FROM profiles
 "  WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin_jtec'::user_role))))"",null"
@@ -16,6 +16,13 @@ public,entreprises,Entreprise can insert own profile,PERMISSIVE,{public},INSERT,
 public,entreprises,Entreprise can manage own profile,PERMISSIVE,{public},ALL,(profile_id = auth.uid()),null
 public,entreprises,Entreprise can update own profile,PERMISSIVE,{public},UPDATE,(profile_id = auth.uid()),null
 public,entreprises,Entreprise can view own profile,PERMISSIVE,{public},SELECT,(profile_id = auth.uid()),null
+"public,entreprises,Regie can delete authorized entreprises,PERMISSIVE,{authenticated},DELETE,""(EXISTS ( SELECT 1"
+   FROM regies_entreprises
+"  WHERE ((regies_entreprises.entreprise_id = entreprises.id) AND (regies_entreprises.regie_id = get_user_regie_id()))))"",null"
+public,entreprises,Regie can insert entreprise,PERMISSIVE,{authenticated},INSERT,null,(get_user_regie_id() IS NOT NULL)
+"public,entreprises,Regie can update authorized entreprises,PERMISSIVE,{authenticated},UPDATE,""(EXISTS ( SELECT 1"
+   FROM regies_entreprises
+"  WHERE ((regies_entreprises.entreprise_id = entreprises.id) AND (regies_entreprises.regie_id = get_user_regie_id()))))"",null"
 "public,entreprises,Regie can view authorized entreprises,PERMISSIVE,{public},SELECT,""(EXISTS ( SELECT 1"
    FROM regies_entreprises
 "  WHERE ((regies_entreprises.entreprise_id = entreprises.id) AND (regies_entreprises.regie_id = get_user_regie_id()))))"",null"
@@ -131,6 +138,7 @@ public,notifications,notifications_own,PERMISSIVE,{authenticated},ALL,(user_id =
 "  WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin_jtec'::user_role))))"",null"
 public,plans,plans_select_all,PERMISSIVE,{public},SELECT,true,null
 public,profiles,Admin JTEC can manage all profiles,PERMISSIVE,{public},ALL,is_admin_jtec(),null
+public,profiles,System can insert entreprise profiles,PERMISSIVE,{authenticated},INSERT,null,(role = 'entreprise'::user_role)
 public,profiles,Users can update own profile,PERMISSIVE,{public},UPDATE,(auth.uid() = id),null
 public,profiles,Users can view own profile,PERMISSIVE,{public},SELECT,(auth.uid() = id),null
 public,regies,Admin JTEC can manage all regies,PERMISSIVE,{public},ALL,is_admin_jtec(),null
@@ -139,9 +147,7 @@ public,regies,Regie can manage own regie,PERMISSIVE,{public},ALL,(profile_id = a
 public,regies,Regie can update own regie,PERMISSIVE,{public},UPDATE,(profile_id = auth.uid()),null
 public,regies,Regie can view own regie,PERMISSIVE,{public},SELECT,(profile_id = auth.uid()),null
 public,regies_entreprises,Admin JTEC can view all authorizations,PERMISSIVE,{public},SELECT,is_admin_jtec(),null
-"public,regies_entreprises,Entreprise can view own authorizations,PERMISSIVE,{public},SELECT,""(EXISTS ( SELECT 1"
-   FROM entreprises
-"  WHERE ((entreprises.id = regies_entreprises.entreprise_id) AND (entreprises.profile_id = auth.uid()))))"",null"
+public,regies_entreprises,Entreprise can view own authorizations,PERMISSIVE,{authenticated},SELECT,is_user_entreprise_owner(entreprise_id),null
 public,regies_entreprises,Regie can create authorizations,PERMISSIVE,{public},INSERT,null,(regie_id = get_user_regie_id())
 public,regies_entreprises,Regie can delete authorizations,PERMISSIVE,{public},DELETE,(regie_id = get_user_regie_id()),null
 public,regies_entreprises,Regie can manage authorizations,PERMISSIVE,{public},ALL,(regie_id = get_user_regie_id()),null
@@ -165,6 +171,9 @@ public,regies_entreprises,Regie can view own authorizations,PERMISSIVE,{public},
 public,techniciens,Technicien can update own profile,PERMISSIVE,{public},UPDATE,(profile_id = auth.uid()),null
 public,techniciens,Technicien can view own profile,PERMISSIVE,{public},SELECT,(profile_id = auth.uid()),null
 public,tickets,Admin JTEC can view all tickets,PERMISSIVE,{public},SELECT,is_admin_jtec(),null
+"public,tickets,Entreprise can view assigned tickets,PERMISSIVE,{authenticated},SELECT,""((mode_diffusion = 'restreint'::text) AND (entreprise_id = ( SELECT entreprises.id"
+   FROM entreprises
+"  WHERE (entreprises.profile_id = auth.uid()))) AND (statut = ANY (ARRAY['en_attente'::ticket_status, 'en_cours'::ticket_status, 'termine'::ticket_status])))"",null"
 "public,tickets,Entreprise can view authorized tickets,PERMISSIVE,{authenticated},SELECT,""((( SELECT profiles.role"
    FROM profiles
   WHERE (profiles.id = auth.uid())) = 'entreprise'::user_role) AND (((mode_diffusion = 'public'::text) AND (statut = 'en_attente'::ticket_status) AND (locked_at IS NULL) AND (EXISTS ( SELECT 1
@@ -175,9 +184,13 @@ public,tickets,Admin JTEC can view all tickets,PERMISSIVE,{public},SELECT,is_adm
   WHERE (entreprises.profile_id = auth.uid()))) AND (statut = ANY (ARRAY['en_attente'::ticket_status, 'en_cours'::ticket_status, 'termine'::ticket_status]))) OR ((entreprise_id = ( SELECT entreprises.id
    FROM entreprises
 "  WHERE (entreprises.profile_id = auth.uid()))) AND (statut = ANY (ARRAY['en_cours'::ticket_status, 'termine'::ticket_status, 'clos'::ticket_status])))))"",null"
-"public,tickets,Locataire can create own tickets,PERMISSIVE,{public},INSERT,null,""(EXISTS ( SELECT 1"
-   FROM locataires
-"  WHERE ((locataires.id = tickets.locataire_id) AND (locataires.profile_id = auth.uid()))))"""
+"public,tickets,Entreprise can view general tickets,PERMISSIVE,{authenticated},SELECT,""((mode_diffusion = 'general'::text) AND (statut = 'en_attente'::ticket_status) AND (locked_at IS NULL) AND (EXISTS ( SELECT 1"
+   FROM (regies_entreprises re
+     JOIN entreprises e ON ((e.id = re.entreprise_id)))
+"  WHERE ((re.regie_id = tickets.regie_id) AND (e.profile_id = auth.uid()) AND (re.mode_diffusion = 'general'::text)))))"",null"
+"public,tickets,Locataire can create own tickets,PERMISSIVE,{authenticated},INSERT,null,""(EXISTS ( SELECT 1"
+   FROM profiles p
+"  WHERE ((p.id = auth.uid()) AND (p.role = 'locataire'::user_role))))"""
 "public,tickets,Locataire can manage own tickets,PERMISSIVE,{public},ALL,""(EXISTS ( SELECT 1"
    FROM locataires
 "  WHERE ((locataires.id = tickets.locataire_id) AND (locataires.profile_id = auth.uid()))))"",null"
@@ -193,15 +206,17 @@ public,tickets,Admin JTEC can view all tickets,PERMISSIVE,{public},SELECT,is_adm
   WHERE (profiles.id = auth.uid())))) OR (( SELECT profiles.role
    FROM profiles
 "  WHERE (profiles.id = auth.uid())) = 'admin_jtec'::user_role)) AND (NOT ticket_has_mission(id)))"",null"
-public,tickets,Regie can manage own tickets,PERMISSIVE,{public},ALL,(regie_id = get_user_regie_id()),null
-public,tickets,Regie can view own tickets,PERMISSIVE,{public},SELECT,(regie_id = get_user_regie_id()),null
-"public,tickets_disponibilites,Entreprise can view disponibilites for visible tickets,PERMISSIVE,{authenticated},SELECT,""((( SELECT profiles.role"
-   FROM profiles
-  WHERE (profiles.id = auth.uid())) = 'entreprise'::user_role) AND (ticket_id IN ( SELECT tickets_visibles_entreprise.id
-   FROM tickets_visibles_entreprise
-  WHERE (tickets_visibles_entreprise.visible_par_entreprise_id = ( SELECT entreprises.id
-           FROM entreprises
-"          WHERE (entreprises.profile_id = auth.uid()))))))"",null"
+"public,tickets,Regie can update own tickets,PERMISSIVE,{authenticated},UPDATE,""(EXISTS ( SELECT 1"
+   FROM regies r
+"  WHERE ((r.id = tickets.regie_id) AND (r.profile_id = auth.uid()))))"",null"
+"public,tickets,Regie can view own tickets,PERMISSIVE,{authenticated},SELECT,""(EXISTS ( SELECT 1"
+   FROM regies r
+"  WHERE ((r.id = tickets.regie_id) AND (r.profile_id = auth.uid()))))"",null"
+"public,tickets_disponibilites,Entreprise can view disponibilites for visible tickets,PERMISSIVE,{authenticated},SELECT,""(EXISTS ( SELECT 1"
+   FROM ((tickets t
+     JOIN regies_entreprises re ON ((re.regie_id = t.regie_id)))
+     JOIN entreprises e ON ((e.id = re.entreprise_id)))
+"  WHERE ((t.id = tickets_disponibilites.ticket_id) AND (e.profile_id = auth.uid()) AND (((t.mode_diffusion = 'general'::text) AND (t.statut = 'en_attente'::ticket_status) AND (t.locked_at IS NULL) AND (re.mode_diffusion = 'general'::text)) OR ((t.mode_diffusion = 'restreint'::text) AND (t.entreprise_id = e.id) AND (t.statut = ANY (ARRAY['en_attente'::ticket_status, 'en_cours'::ticket_status, 'termine'::ticket_status]))) OR ((t.entreprise_id = e.id) AND (t.statut = ANY (ARRAY['en_cours'::ticket_status, 'termine'::ticket_status, 'clos'::ticket_status])))))))"",null"
 "public,tickets_disponibilites,Locataire can delete disponibilites,PERMISSIVE,{authenticated},DELETE,""((( SELECT profiles.role"
    FROM profiles
   WHERE (profiles.id = auth.uid())) = 'locataire'::user_role) AND (ticket_id IN ( SELECT tickets.id

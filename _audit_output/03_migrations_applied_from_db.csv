@@ -1,0 +1,8 @@
+migration_name,executed_at,description
+"20251224000002_immeubles_npa_suisse_caracteristiques,2025-12-24 14:37:41.346176+00,""Adaptation format NPA suisse + ajout colonnes type_immeuble, description, pays, proprietaire_id"""
+20251224000001_logements_adresse_caracteristiques,2025-12-24 14:35:06.250174+00,Ajout colonnes adresse + caractéristiques + propriétaire pour logements
+20251224000000_fix_logement_id_nullable,2025-12-24 12:03:44.020022+00,Correctif : DROP NOT NULL sur locataires.logement_id (erreur migration 2025-12-20)
+2025-12-20_rpc_creer_locataire,2025-12-23 12:42:04.71986+00,Création RPC creer_locataire_complet() et liberer_logement_locataire() avec transaction atomique
+2025-12-20_rpc_creer_locataire,2025-12-20 06:32:14.976718+00,Création RPC creer_locataire_complet() et liberer_logement_locataire() avec transaction atomique
+2025-12-20_rls_locataires_policies,2025-12-20 06:31:57.1975+00,Refonte policies locataires : séparation SELECT/INSERT/UPDATE/DELETE + policies restrictives locataire sur logements/immeubles
+"2025-12-20_migration_locataires_contraintes,2025-12-20 06:31:33.614956+00,""Application NOT NULL sur profile_id, logement_id, date_entree + ON DELETE RESTRICT"""

@@ -1,0 +1,796 @@
+table_schema,table_name,ordinal_position,column_name,data_type,udt_name,is_nullable,column_default,is_identity,identity_generation
+auth,audit_log_entries,1,instance_id,uuid,uuid,YES,null,NO,null
+auth,audit_log_entries,2,id,uuid,uuid,NO,null,NO,null
+auth,audit_log_entries,3,payload,json,json,YES,null,NO,null
+auth,audit_log_entries,4,created_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,audit_log_entries,5,ip_address,character varying,varchar,NO,''::character varying,NO,null
+auth,flow_state,1,id,uuid,uuid,NO,null,NO,null
+auth,flow_state,2,user_id,uuid,uuid,YES,null,NO,null
+auth,flow_state,3,auth_code,text,text,NO,null,NO,null
+auth,flow_state,4,code_challenge_method,USER-DEFINED,code_challenge_method,NO,null,NO,null
+auth,flow_state,5,code_challenge,text,text,NO,null,NO,null
+auth,flow_state,6,provider_type,text,text,NO,null,NO,null
+auth,flow_state,7,provider_access_token,text,text,YES,null,NO,null
+auth,flow_state,8,provider_refresh_token,text,text,YES,null,NO,null
+auth,flow_state,9,created_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,flow_state,10,updated_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,flow_state,11,authentication_method,text,text,NO,null,NO,null
+auth,flow_state,12,auth_code_issued_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,identities,1,provider_id,text,text,NO,null,NO,null
+auth,identities,2,user_id,uuid,uuid,NO,null,NO,null
+auth,identities,3,identity_data,jsonb,jsonb,NO,null,NO,null
+auth,identities,4,provider,text,text,NO,null,NO,null
+auth,identities,5,last_sign_in_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,identities,6,created_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,identities,7,updated_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,identities,8,email,text,text,YES,null,NO,null
+auth,identities,9,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+auth,instances,1,id,uuid,uuid,NO,null,NO,null
+auth,instances,2,uuid,uuid,uuid,YES,null,NO,null
+auth,instances,3,raw_base_config,text,text,YES,null,NO,null
+auth,instances,4,created_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,instances,5,updated_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,mfa_amr_claims,1,session_id,uuid,uuid,NO,null,NO,null
+auth,mfa_amr_claims,2,created_at,timestamp with time zone,timestamptz,NO,null,NO,null
+auth,mfa_amr_claims,3,updated_at,timestamp with time zone,timestamptz,NO,null,NO,null
+auth,mfa_amr_claims,4,authentication_method,text,text,NO,null,NO,null
+auth,mfa_amr_claims,5,id,uuid,uuid,NO,null,NO,null
+auth,mfa_challenges,1,id,uuid,uuid,NO,null,NO,null
+auth,mfa_challenges,2,factor_id,uuid,uuid,NO,null,NO,null
+auth,mfa_challenges,3,created_at,timestamp with time zone,timestamptz,NO,null,NO,null
+auth,mfa_challenges,4,verified_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,mfa_challenges,5,ip_address,inet,inet,NO,null,NO,null
+auth,mfa_challenges,6,otp_code,text,text,YES,null,NO,null
+auth,mfa_challenges,7,web_authn_session_data,jsonb,jsonb,YES,null,NO,null
+auth,mfa_factors,1,id,uuid,uuid,NO,null,NO,null
+auth,mfa_factors,2,user_id,uuid,uuid,NO,null,NO,null
+auth,mfa_factors,3,friendly_name,text,text,YES,null,NO,null
+auth,mfa_factors,4,factor_type,USER-DEFINED,factor_type,NO,null,NO,null
+auth,mfa_factors,5,status,USER-DEFINED,factor_status,NO,null,NO,null
+auth,mfa_factors,6,created_at,timestamp with time zone,timestamptz,NO,null,NO,null
+auth,mfa_factors,7,updated_at,timestamp with time zone,timestamptz,NO,null,NO,null
+auth,mfa_factors,8,secret,text,text,YES,null,NO,null
+auth,mfa_factors,9,phone,text,text,YES,null,NO,null
+auth,mfa_factors,10,last_challenged_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,mfa_factors,11,web_authn_credential,jsonb,jsonb,YES,null,NO,null
+auth,mfa_factors,12,web_authn_aaguid,uuid,uuid,YES,null,NO,null
+auth,mfa_factors,13,last_webauthn_challenge_data,jsonb,jsonb,YES,null,NO,null
+auth,oauth_authorizations,1,id,uuid,uuid,NO,null,NO,null
+auth,oauth_authorizations,2,authorization_id,text,text,NO,null,NO,null
+auth,oauth_authorizations,3,client_id,uuid,uuid,NO,null,NO,null
+auth,oauth_authorizations,4,user_id,uuid,uuid,YES,null,NO,null
+auth,oauth_authorizations,5,redirect_uri,text,text,NO,null,NO,null
+auth,oauth_authorizations,6,scope,text,text,NO,null,NO,null
+auth,oauth_authorizations,7,state,text,text,YES,null,NO,null
+auth,oauth_authorizations,8,resource,text,text,YES,null,NO,null
+auth,oauth_authorizations,9,code_challenge,text,text,YES,null,NO,null
+auth,oauth_authorizations,10,code_challenge_method,USER-DEFINED,code_challenge_method,YES,null,NO,null
+auth,oauth_authorizations,11,response_type,USER-DEFINED,oauth_response_type,NO,'code'::auth.oauth_response_type,NO,null
+auth,oauth_authorizations,12,status,USER-DEFINED,oauth_authorization_status,NO,'pending'::auth.oauth_authorization_status,NO,null
+auth,oauth_authorizations,13,authorization_code,text,text,YES,null,NO,null
+auth,oauth_authorizations,14,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+auth,oauth_authorizations,15,expires_at,timestamp with time zone,timestamptz,NO,(now() + '00:03:00'::interval),NO,null
+auth,oauth_authorizations,16,approved_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,oauth_authorizations,17,nonce,text,text,YES,null,NO,null
+auth,oauth_client_states,1,id,uuid,uuid,NO,null,NO,null
+auth,oauth_client_states,2,provider_type,text,text,NO,null,NO,null
+auth,oauth_client_states,3,code_verifier,text,text,YES,null,NO,null
+auth,oauth_client_states,4,created_at,timestamp with time zone,timestamptz,NO,null,NO,null
+auth,oauth_clients,1,id,uuid,uuid,NO,null,NO,null
+auth,oauth_clients,3,client_secret_hash,text,text,YES,null,NO,null
+auth,oauth_clients,4,registration_type,USER-DEFINED,oauth_registration_type,NO,null,NO,null
+auth,oauth_clients,5,redirect_uris,text,text,NO,null,NO,null
+auth,oauth_clients,6,grant_types,text,text,NO,null,NO,null
+auth,oauth_clients,7,client_name,text,text,YES,null,NO,null
+auth,oauth_clients,8,client_uri,text,text,YES,null,NO,null
+auth,oauth_clients,9,logo_uri,text,text,YES,null,NO,null
+auth,oauth_clients,10,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+auth,oauth_clients,11,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+auth,oauth_clients,12,deleted_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,oauth_clients,13,client_type,USER-DEFINED,oauth_client_type,NO,'confidential'::auth.oauth_client_type,NO,null
+auth,oauth_consents,1,id,uuid,uuid,NO,null,NO,null
+auth,oauth_consents,2,user_id,uuid,uuid,NO,null,NO,null
+auth,oauth_consents,3,client_id,uuid,uuid,NO,null,NO,null
+auth,oauth_consents,4,scopes,text,text,NO,null,NO,null
+auth,oauth_consents,5,granted_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+auth,oauth_consents,6,revoked_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,one_time_tokens,1,id,uuid,uuid,NO,null,NO,null
+auth,one_time_tokens,2,user_id,uuid,uuid,NO,null,NO,null
+auth,one_time_tokens,3,token_type,USER-DEFINED,one_time_token_type,NO,null,NO,null
+auth,one_time_tokens,4,token_hash,text,text,NO,null,NO,null
+auth,one_time_tokens,5,relates_to,text,text,NO,null,NO,null
+auth,one_time_tokens,6,created_at,timestamp without time zone,timestamp,NO,now(),NO,null
+auth,one_time_tokens,7,updated_at,timestamp without time zone,timestamp,NO,now(),NO,null
+auth,refresh_tokens,1,instance_id,uuid,uuid,YES,null,NO,null
+auth,refresh_tokens,2,id,bigint,int8,NO,nextval('auth.refresh_tokens_id_seq'::regclass),NO,null
+auth,refresh_tokens,3,token,character varying,varchar,YES,null,NO,null
+auth,refresh_tokens,4,user_id,character varying,varchar,YES,null,NO,null
+auth,refresh_tokens,5,revoked,boolean,bool,YES,null,NO,null
+auth,refresh_tokens,6,created_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,refresh_tokens,7,updated_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,refresh_tokens,8,parent,character varying,varchar,YES,null,NO,null
+auth,refresh_tokens,9,session_id,uuid,uuid,YES,null,NO,null
+auth,saml_providers,1,id,uuid,uuid,NO,null,NO,null
+auth,saml_providers,2,sso_provider_id,uuid,uuid,NO,null,NO,null
+auth,saml_providers,3,entity_id,text,text,NO,null,NO,null
+auth,saml_providers,4,metadata_xml,text,text,NO,null,NO,null
+auth,saml_providers,5,metadata_url,text,text,YES,null,NO,null
+auth,saml_providers,6,attribute_mapping,jsonb,jsonb,YES,null,NO,null
+auth,saml_providers,7,created_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,saml_providers,8,updated_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,saml_providers,9,name_id_format,text,text,YES,null,NO,null
+auth,saml_relay_states,1,id,uuid,uuid,NO,null,NO,null
+auth,saml_relay_states,2,sso_provider_id,uuid,uuid,NO,null,NO,null
+auth,saml_relay_states,3,request_id,text,text,NO,null,NO,null
+auth,saml_relay_states,4,for_email,text,text,YES,null,NO,null
+auth,saml_relay_states,5,redirect_to,text,text,YES,null,NO,null
+auth,saml_relay_states,7,created_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,saml_relay_states,8,updated_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,saml_relay_states,9,flow_state_id,uuid,uuid,YES,null,NO,null
+auth,schema_migrations,1,version,character varying,varchar,NO,null,NO,null
+auth,sessions,1,id,uuid,uuid,NO,null,NO,null
+auth,sessions,2,user_id,uuid,uuid,NO,null,NO,null
+auth,sessions,3,created_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,sessions,4,updated_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,sessions,5,factor_id,uuid,uuid,YES,null,NO,null
+auth,sessions,6,aal,USER-DEFINED,aal_level,YES,null,NO,null
+auth,sessions,7,not_after,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,sessions,8,refreshed_at,timestamp without time zone,timestamp,YES,null,NO,null
+auth,sessions,9,user_agent,text,text,YES,null,NO,null
+auth,sessions,10,ip,inet,inet,YES,null,NO,null
+auth,sessions,11,tag,text,text,YES,null,NO,null
+auth,sessions,12,oauth_client_id,uuid,uuid,YES,null,NO,null
+auth,sessions,13,refresh_token_hmac_key,text,text,YES,null,NO,null
+auth,sessions,14,refresh_token_counter,bigint,int8,YES,null,NO,null
+auth,sessions,15,scopes,text,text,YES,null,NO,null
+auth,sso_domains,1,id,uuid,uuid,NO,null,NO,null
+auth,sso_domains,2,sso_provider_id,uuid,uuid,NO,null,NO,null
+auth,sso_domains,3,domain,text,text,NO,null,NO,null
+auth,sso_domains,4,created_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,sso_domains,5,updated_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,sso_providers,1,id,uuid,uuid,NO,null,NO,null
+auth,sso_providers,2,resource_id,text,text,YES,null,NO,null
+auth,sso_providers,3,created_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,sso_providers,4,updated_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,sso_providers,5,disabled,boolean,bool,YES,null,NO,null
+auth,users,1,instance_id,uuid,uuid,YES,null,NO,null
+auth,users,2,id,uuid,uuid,NO,null,NO,null
+auth,users,3,aud,character varying,varchar,YES,null,NO,null
+auth,users,4,role,character varying,varchar,YES,null,NO,null
+auth,users,5,email,character varying,varchar,YES,null,NO,null
+auth,users,6,encrypted_password,character varying,varchar,YES,null,NO,null
+auth,users,7,email_confirmed_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,users,8,invited_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,users,9,confirmation_token,character varying,varchar,YES,null,NO,null
+auth,users,10,confirmation_sent_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,users,11,recovery_token,character varying,varchar,YES,null,NO,null
+auth,users,12,recovery_sent_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,users,13,email_change_token_new,character varying,varchar,YES,null,NO,null
+auth,users,14,email_change,character varying,varchar,YES,null,NO,null
+auth,users,15,email_change_sent_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,users,16,last_sign_in_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,users,17,raw_app_meta_data,jsonb,jsonb,YES,null,NO,null
+auth,users,18,raw_user_meta_data,jsonb,jsonb,YES,null,NO,null
+auth,users,19,is_super_admin,boolean,bool,YES,null,NO,null
+auth,users,20,created_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,users,21,updated_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,users,22,phone,text,text,YES,NULL::character varying,NO,null
+auth,users,23,phone_confirmed_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,users,24,phone_change,text,text,YES,''::character varying,NO,null
+auth,users,25,phone_change_token,character varying,varchar,YES,''::character varying,NO,null
+auth,users,26,phone_change_sent_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,users,27,confirmed_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,users,28,email_change_token_current,character varying,varchar,YES,''::character varying,NO,null
+auth,users,29,email_change_confirm_status,smallint,int2,YES,0,NO,null
+auth,users,30,banned_until,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,users,31,reauthentication_token,character varying,varchar,YES,''::character varying,NO,null
+auth,users,32,reauthentication_sent_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,users,33,is_sso_user,boolean,bool,NO,false,NO,null
+auth,users,34,deleted_at,timestamp with time zone,timestamptz,YES,null,NO,null
+auth,users,35,is_anonymous,boolean,bool,NO,false,NO,null
+extensions,pg_stat_statements,1,userid,oid,oid,YES,null,NO,null
+extensions,pg_stat_statements,2,dbid,oid,oid,YES,null,NO,null
+extensions,pg_stat_statements,3,toplevel,boolean,bool,YES,null,NO,null
+extensions,pg_stat_statements,4,queryid,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements,5,query,text,text,YES,null,NO,null
+extensions,pg_stat_statements,6,plans,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements,7,total_plan_time,double precision,float8,YES,null,NO,null
+extensions,pg_stat_statements,8,min_plan_time,double precision,float8,YES,null,NO,null
+extensions,pg_stat_statements,9,max_plan_time,double precision,float8,YES,null,NO,null
+extensions,pg_stat_statements,10,mean_plan_time,double precision,float8,YES,null,NO,null
+extensions,pg_stat_statements,11,stddev_plan_time,double precision,float8,YES,null,NO,null
+extensions,pg_stat_statements,12,calls,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements,13,total_exec_time,double precision,float8,YES,null,NO,null
+extensions,pg_stat_statements,14,min_exec_time,double precision,float8,YES,null,NO,null
+extensions,pg_stat_statements,15,max_exec_time,double precision,float8,YES,null,NO,null
+extensions,pg_stat_statements,16,mean_exec_time,double precision,float8,YES,null,NO,null
+extensions,pg_stat_statements,17,stddev_exec_time,double precision,float8,YES,null,NO,null
+extensions,pg_stat_statements,18,rows,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements,19,shared_blks_hit,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements,20,shared_blks_read,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements,21,shared_blks_dirtied,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements,22,shared_blks_written,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements,23,local_blks_hit,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements,24,local_blks_read,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements,25,local_blks_dirtied,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements,26,local_blks_written,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements,27,temp_blks_read,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements,28,temp_blks_written,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements,29,shared_blk_read_time,double precision,float8,YES,null,NO,null
+extensions,pg_stat_statements,30,shared_blk_write_time,double precision,float8,YES,null,NO,null
+extensions,pg_stat_statements,31,local_blk_read_time,double precision,float8,YES,null,NO,null
+extensions,pg_stat_statements,32,local_blk_write_time,double precision,float8,YES,null,NO,null
+extensions,pg_stat_statements,33,temp_blk_read_time,double precision,float8,YES,null,NO,null
+extensions,pg_stat_statements,34,temp_blk_write_time,double precision,float8,YES,null,NO,null
+extensions,pg_stat_statements,35,wal_records,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements,36,wal_fpi,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements,37,wal_bytes,numeric,numeric,YES,null,NO,null
+extensions,pg_stat_statements,38,jit_functions,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements,39,jit_generation_time,double precision,float8,YES,null,NO,null
+extensions,pg_stat_statements,40,jit_inlining_count,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements,41,jit_inlining_time,double precision,float8,YES,null,NO,null
+extensions,pg_stat_statements,42,jit_optimization_count,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements,43,jit_optimization_time,double precision,float8,YES,null,NO,null
+extensions,pg_stat_statements,44,jit_emission_count,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements,45,jit_emission_time,double precision,float8,YES,null,NO,null
+extensions,pg_stat_statements,46,jit_deform_count,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements,47,jit_deform_time,double precision,float8,YES,null,NO,null
+extensions,pg_stat_statements,48,stats_since,timestamp with time zone,timestamptz,YES,null,NO,null
+extensions,pg_stat_statements,49,minmax_stats_since,timestamp with time zone,timestamptz,YES,null,NO,null
+extensions,pg_stat_statements_info,1,dealloc,bigint,int8,YES,null,NO,null
+extensions,pg_stat_statements_info,2,stats_reset,timestamp with time zone,timestamptz,YES,null,NO,null
+public,abonnements,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,abonnements,2,entreprise_id,uuid,uuid,YES,null,NO,null
+public,abonnements,3,regie_id,uuid,uuid,YES,null,NO,null
+public,abonnements,4,plan_id,uuid,uuid,NO,null,NO,null
+public,abonnements,5,type_periode,character varying,varchar,NO,'mensuel'::character varying,NO,null
+public,abonnements,6,date_debut,date,date,NO,CURRENT_DATE,NO,null
+public,abonnements,7,date_fin,date,date,NO,null,NO,null
+public,abonnements,8,statut,character varying,varchar,NO,'actif'::character varying,NO,null
+public,abonnements,9,montant_paye,numeric,numeric,NO,null,NO,null
+public,abonnements,10,date_prochain_paiement,date,date,YES,null,NO,null
+public,abonnements,11,missions_ce_mois,integer,int4,YES,0,NO,null
+public,abonnements,12,dernier_reset_quota,date,date,YES,CURRENT_DATE,NO,null
+public,abonnements,13,created_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,abonnements,14,updated_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,abonnements_stats,1,plan_nom,character varying,varchar,YES,null,NO,null
+public,abonnements_stats,2,nom_affichage,character varying,varchar,YES,null,NO,null
+public,abonnements_stats,3,nombre_abonnements,bigint,int8,YES,null,NO,null
+public,abonnements_stats,4,abonnements_actifs,bigint,int8,YES,null,NO,null
+public,abonnements_stats,5,abonnements_mensuels,bigint,int8,YES,null,NO,null
+public,abonnements_stats,6,abonnements_annuels,bigint,int8,YES,null,NO,null
+public,abonnements_stats,7,mrr_mensuel,numeric,numeric,YES,null,NO,null
+public,abonnements_stats,8,mrr_annuel,numeric,numeric,YES,null,NO,null
+public,abonnements_stats,9,mrr_total,numeric,numeric,YES,null,NO,null
+public,admin_agences_en_attente,1,id,uuid,uuid,YES,null,NO,null
+public,admin_agences_en_attente,2,nom_agence,text,text,YES,null,NO,null
+public,admin_agences_en_attente,3,email,text,text,YES,null,NO,null
+public,admin_agences_en_attente,4,siret,text,text,YES,null,NO,null
+public,admin_agences_en_attente,5,nb_collaborateurs,integer,int4,YES,null,NO,null
+public,admin_agences_en_attente,6,nb_logements_geres,integer,int4,YES,null,NO,null
+public,admin_agences_en_attente,7,statut_validation,text,text,YES,null,NO,null
+public,admin_agences_en_attente,8,date_inscription,timestamp with time zone,timestamptz,YES,null,NO,null
+public,admin_agences_en_attente,9,email_contact,text,text,YES,null,NO,null
+public,admin_agences_en_attente,10,language,text,text,YES,null,NO,null
+public,admin_dashboard,1,total_regies,bigint,int8,YES,null,NO,null
+public,admin_dashboard,2,regies_30_jours,bigint,int8,YES,null,NO,null
+public,admin_dashboard,3,total_immeubles,bigint,int8,YES,null,NO,null
+public,admin_dashboard,4,immeubles_30_jours,bigint,int8,YES,null,NO,null
+public,admin_dashboard,5,total_logements,bigint,int8,YES,null,NO,null
+public,admin_dashboard,6,logements_30_jours,bigint,int8,YES,null,NO,null
+public,admin_dashboard,7,total_locataires,bigint,int8,YES,null,NO,null
+public,admin_dashboard,8,locataires_30_jours,bigint,int8,YES,null,NO,null
+public,admin_dashboard,9,total_tickets,bigint,int8,YES,null,NO,null
+public,admin_dashboard,10,tickets_30_jours,bigint,int8,YES,null,NO,null
+public,admin_dashboard,11,tickets_ouverts,bigint,int8,YES,null,NO,null
+public,admin_dashboard,12,tickets_en_cours,bigint,int8,YES,null,NO,null
+public,admin_dashboard,13,tickets_termines,bigint,int8,YES,null,NO,null
+public,admin_dashboard,14,total_entreprises,bigint,int8,YES,null,NO,null
+public,admin_dashboard,15,entreprises_30_jours,bigint,int8,YES,null,NO,null
+public,admin_stats_entreprises,1,total_entreprises,bigint,int8,YES,null,NO,null
+public,admin_stats_entreprises,2,entreprises_30_jours,bigint,int8,YES,null,NO,null
+public,admin_stats_entreprises,3,entreprises_7_jours,bigint,int8,YES,null,NO,null
+public,admin_stats_entreprises,4,regies_avec_entreprises,bigint,int8,YES,null,NO,null
+public,admin_stats_entreprises,5,entreprises_autorisees,bigint,int8,YES,null,NO,null
+public,admin_stats_evolution,1,jour,timestamp with time zone,timestamptz,YES,null,NO,null
+public,admin_stats_evolution,2,type,text,text,YES,null,NO,null
+public,admin_stats_evolution,3,nombre,bigint,int8,YES,null,NO,null
+public,admin_stats_immeubles,1,total_immeubles,bigint,int8,YES,null,NO,null
+public,admin_stats_immeubles,2,immeubles_30_jours,bigint,int8,YES,null,NO,null
+public,admin_stats_immeubles,3,immeubles_7_jours,bigint,int8,YES,null,NO,null
+public,admin_stats_immeubles,4,regies_avec_immeubles,bigint,int8,YES,null,NO,null
+public,admin_stats_immeubles,5,moyenne_par_regie,numeric,numeric,YES,null,NO,null
+public,admin_stats_locataires,1,total_locataires,bigint,int8,YES,null,NO,null
+public,admin_stats_locataires,2,locataires_30_jours,bigint,int8,YES,null,NO,null
+public,admin_stats_locataires,3,locataires_7_jours,bigint,int8,YES,null,NO,null
+public,admin_stats_locataires,4,logements_occupes,bigint,int8,YES,null,NO,null
+public,admin_stats_logements,1,total_logements,bigint,int8,YES,null,NO,null
+public,admin_stats_logements,2,logements_30_jours,bigint,int8,YES,null,NO,null
+public,admin_stats_logements,3,logements_7_jours,bigint,int8,YES,null,NO,null
+public,admin_stats_logements,4,immeubles_avec_logements,bigint,int8,YES,null,NO,null
+public,admin_stats_logements,5,moyenne_par_immeuble,numeric,numeric,YES,null,NO,null
+public,admin_stats_regies,1,total_regies,bigint,int8,YES,null,NO,null
+public,admin_stats_regies,2,regies_30_jours,bigint,int8,YES,null,NO,null
+public,admin_stats_regies,3,regies_7_jours,bigint,int8,YES,null,NO,null
+public,admin_stats_regies,4,regies_aujourd_hui,bigint,int8,YES,null,NO,null
+public,admin_stats_tickets,1,total_tickets,bigint,int8,YES,null,NO,null
+public,admin_stats_tickets,2,tickets_30_jours,bigint,int8,YES,null,NO,null
+public,admin_stats_tickets,3,tickets_7_jours,bigint,int8,YES,null,NO,null
+public,admin_stats_tickets,4,tickets_aujourd_hui,bigint,int8,YES,null,NO,null
+public,admin_stats_tickets,5,tickets_ouverts,bigint,int8,YES,null,NO,null
+public,admin_stats_tickets,6,tickets_en_cours,bigint,int8,YES,null,NO,null
+public,admin_stats_tickets,7,tickets_termines,bigint,int8,YES,null,NO,null
+public,admin_stats_tickets,8,tickets_annules,bigint,int8,YES,null,NO,null
+public,admin_stats_tickets,9,tickets_priorite_haute,bigint,int8,YES,null,NO,null
+public,admin_stats_tickets,10,tickets_priorite_moyenne,bigint,int8,YES,null,NO,null
+public,admin_stats_tickets,11,tickets_priorite_basse,bigint,int8,YES,null,NO,null
+public,admin_stats_tickets,12,regies_avec_tickets,bigint,int8,YES,null,NO,null
+public,admin_stats_tickets,13,duree_moyenne_heures,numeric,numeric,YES,null,NO,null
+public,admin_stats_tickets_categories,1,categorie,text,text,YES,null,NO,null
+public,admin_stats_tickets_categories,2,total,bigint,int8,YES,null,NO,null
+public,admin_stats_tickets_categories,3,ouverts,bigint,int8,YES,null,NO,null
+public,admin_stats_tickets_categories,4,en_cours,bigint,int8,YES,null,NO,null
+public,admin_stats_tickets_categories,5,termines,bigint,int8,YES,null,NO,null
+public,admin_stats_tickets_priorites,1,priorite,text,text,YES,null,NO,null
+public,admin_stats_tickets_priorites,2,total,bigint,int8,YES,null,NO,null
+public,admin_stats_tickets_priorites,3,ouverts,bigint,int8,YES,null,NO,null
+public,admin_stats_tickets_priorites,4,en_cours,bigint,int8,YES,null,NO,null
+public,admin_stats_tickets_priorites,5,termines,bigint,int8,YES,null,NO,null
+public,entreprises,1,id,uuid,uuid,NO,uuid_generate_v4(),NO,null
+public,entreprises,2,nom,text,text,NO,null,NO,null
+public,entreprises,3,siret,text,text,YES,null,NO,null
+public,entreprises,4,adresse,text,text,YES,null,NO,null
+public,entreprises,5,code_postal,text,text,YES,null,NO,null
+public,entreprises,6,ville,text,text,YES,null,NO,null
+public,entreprises,7,telephone,text,text,YES,null,NO,null
+public,entreprises,8,email,text,text,NO,null,NO,null
+public,entreprises,9,specialites,ARRAY,_text,YES,null,NO,null
+public,entreprises,10,profile_id,uuid,uuid,YES,null,NO,null
+public,entreprises,11,description,text,text,YES,null,NO,null
+public,entreprises,12,site_web,text,text,YES,null,NO,null
+public,entreprises,13,created_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,entreprises,14,updated_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,entreprises,15,signature_url,text,text,YES,null,NO,null
+public,factures,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,factures,2,mission_id,uuid,uuid,NO,null,NO,null
+public,factures,3,entreprise_id,uuid,uuid,NO,null,NO,null
+public,factures,4,regie_id,uuid,uuid,NO,null,NO,null
+public,factures,5,numero,text,text,NO,null,NO,null
+public,factures,6,montant_ht,numeric,numeric,NO,null,NO,null
+public,factures,7,taux_tva,numeric,numeric,NO,20.00,NO,null
+public,factures,8,montant_tva,numeric,numeric,YES,null,NO,null
+public,factures,9,montant_ttc,numeric,numeric,YES,null,NO,null
+public,factures,10,taux_commission,numeric,numeric,NO,10.00,NO,null
+public,factures,11,montant_commission,numeric,numeric,YES,null,NO,null
+public,factures,12,statut,text,text,NO,'brouillon'::text,NO,null
+public,factures,13,date_emission,date,date,NO,CURRENT_DATE,NO,null
+public,factures,14,date_echeance,date,date,NO,null,NO,null
+public,factures,15,date_envoi,timestamp with time zone,timestamptz,YES,null,NO,null
+public,factures,16,date_paiement,timestamp with time zone,timestamptz,YES,null,NO,null
+public,factures,17,notes,text,text,YES,null,NO,null
+public,factures,18,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,factures,19,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,factures_commissions_jtec,1,facture_id,uuid,uuid,YES,null,NO,null
+public,factures_commissions_jtec,2,numero,text,text,YES,null,NO,null
+public,factures_commissions_jtec,3,date_emission,date,date,YES,null,NO,null
+public,factures_commissions_jtec,4,statut,text,text,YES,null,NO,null
+public,factures_commissions_jtec,5,entreprise_nom,text,text,YES,null,NO,null
+public,factures_commissions_jtec,6,regie_nom,text,text,YES,null,NO,null
+public,factures_commissions_jtec,7,montant_ht,numeric,numeric,YES,null,NO,null
+public,factures_commissions_jtec,8,montant_ttc,numeric,numeric,YES,null,NO,null
+public,factures_commissions_jtec,9,taux_commission,numeric,numeric,YES,null,NO,null
+public,factures_commissions_jtec,10,montant_commission,numeric,numeric,YES,null,NO,null
+public,factures_commissions_jtec,11,statut_commission,text,text,YES,null,NO,null
+public,factures_stats,1,entreprise_id,uuid,uuid,YES,null,NO,null
+public,factures_stats,2,entreprise_nom,text,text,YES,null,NO,null
+public,factures_stats,3,total_factures,bigint,int8,YES,null,NO,null
+public,factures_stats,4,factures_brouillon,bigint,int8,YES,null,NO,null
+public,factures_stats,5,factures_envoyees,bigint,int8,YES,null,NO,null
+public,factures_stats,6,factures_payees,bigint,int8,YES,null,NO,null
+public,factures_stats,7,factures_annulees,bigint,int8,YES,null,NO,null
+public,factures_stats,8,ca_ht_total,numeric,numeric,YES,null,NO,null
+public,factures_stats,9,ca_ttc_total,numeric,numeric,YES,null,NO,null
+public,factures_stats,10,commissions_jtec_total,numeric,numeric,YES,null,NO,null
+public,factures_stats,11,ca_ht_paye,numeric,numeric,YES,null,NO,null
+public,factures_stats,12,ca_ttc_paye,numeric,numeric,YES,null,NO,null
+public,factures_stats,13,commissions_jtec_payees,numeric,numeric,YES,null,NO,null
+public,factures_stats,14,ca_en_attente,numeric,numeric,YES,null,NO,null
+public,factures_stats,15,taux_paiement,numeric,numeric,YES,null,NO,null
+public,factures_stats,16,delai_moyen_paiement_jours,numeric,numeric,YES,null,NO,null
+public,immeubles,1,id,uuid,uuid,NO,uuid_generate_v4(),NO,null
+public,immeubles,2,nom,text,text,NO,null,NO,null
+public,immeubles,3,adresse,text,text,NO,null,NO,null
+public,immeubles,4,npa,text,text,NO,null,NO,null
+public,immeubles,5,ville,text,text,NO,null,NO,null
+public,immeubles,6,nombre_etages,integer,int4,YES,0,NO,null
+public,immeubles,7,annee_construction,integer,int4,YES,null,NO,null
+public,immeubles,8,regie_id,uuid,uuid,NO,null,NO,null
+public,immeubles,9,type_chauffage,text,text,YES,null,NO,null
+public,immeubles,10,ascenseur,boolean,bool,YES,false,NO,null
+public,immeubles,11,digicode,text,text,YES,null,NO,null
+public,immeubles,12,interphone,boolean,bool,YES,false,NO,null
+public,immeubles,13,created_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,immeubles,14,updated_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,immeubles,15,photo_url,text,text,YES,null,NO,null
+public,immeubles,16,pays,text,text,YES,'Suisse'::text,NO,null
+public,immeubles,17,type_immeuble,text,text,YES,null,NO,null
+public,immeubles,18,description,text,text,YES,null,NO,null
+public,immeubles,19,proprietaire_id,uuid,uuid,YES,null,NO,null
+public,locataires,1,id,uuid,uuid,NO,uuid_generate_v4(),NO,null
+public,locataires,2,nom,text,text,NO,null,NO,null
+public,locataires,3,prenom,text,text,NO,null,NO,null
+public,locataires,4,telephone,text,text,YES,null,NO,null
+public,locataires,5,email,text,text,NO,null,NO,null
+public,locataires,6,date_naissance,date,date,YES,null,NO,null
+public,locataires,7,profile_id,uuid,uuid,NO,null,NO,null
+public,locataires,8,logement_id,uuid,uuid,YES,null,NO,null
+public,locataires,9,date_entree,date,date,NO,null,NO,null
+public,locataires,10,date_sortie,date,date,YES,null,NO,null
+public,locataires,11,contact_urgence_nom,text,text,YES,null,NO,null
+public,locataires,12,contact_urgence_telephone,text,text,YES,null,NO,null
+public,locataires,13,created_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,locataires,14,updated_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,locataires,15,signature_url,text,text,YES,null,NO,null
+public,locataires,16,regie_id,uuid,uuid,NO,null,NO,null
+public,logements,1,id,uuid,uuid,NO,uuid_generate_v4(),NO,null
+public,logements,2,numero,text,text,NO,null,NO,null
+public,logements,3,etage,integer,int4,YES,null,NO,null
+public,logements,4,superficie,numeric,numeric,YES,null,NO,null
+public,logements,5,nombre_pieces,integer,int4,YES,null,NO,null
+public,logements,6,type_logement,text,text,YES,null,NO,null
+public,logements,7,immeuble_id,uuid,uuid,YES,null,NO,null
+public,logements,8,statut,text,text,YES,'vacant'::text,NO,null
+public,logements,9,loyer_mensuel,numeric,numeric,YES,null,NO,null
+public,logements,10,charges_mensuelles,numeric,numeric,YES,null,NO,null
+public,logements,11,depot_garantie,numeric,numeric,YES,null,NO,null
+public,logements,12,balcon,boolean,bool,YES,false,NO,null
+public,logements,13,parking,boolean,bool,YES,false,NO,null
+public,logements,14,cave,boolean,bool,YES,false,NO,null
+public,logements,15,meuble,boolean,bool,YES,false,NO,null
+public,logements,16,created_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,logements,17,updated_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,logements,18,photo_url,text,text,YES,null,NO,null
+public,logements,19,regie_id,uuid,uuid,NO,null,NO,null
+public,logements,20,adresse,text,text,YES,null,NO,null
+public,logements,21,npa,text,text,YES,null,NO,null
+public,logements,22,ville,text,text,YES,null,NO,null
+public,logements,23,pays,text,text,YES,'Suisse'::text,NO,null
+public,logements,24,orientation,text,text,YES,null,NO,null
+public,logements,25,annee_construction,integer,int4,YES,null,NO,null
+public,logements,26,annee_renovation,integer,int4,YES,null,NO,null
+public,logements,27,type_chauffage,text,text,YES,null,NO,null
+public,logements,28,description,text,text,YES,null,NO,null
+public,logements,29,proprietaire_id,uuid,uuid,YES,null,NO,null
+public,messages,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,messages,2,mission_id,uuid,uuid,NO,null,NO,null
+public,messages,3,sender_user_id,uuid,uuid,NO,null,NO,null
+public,messages,4,sender_name,text,text,NO,null,NO,null
+public,messages,5,sender_role,text,text,NO,null,NO,null
+public,messages,6,content,text,text,NO,null,NO,null
+public,messages,7,type,text,text,NO,'message'::text,NO,null
+public,messages,8,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,migration_logs,1,id,uuid,uuid,NO,uuid_generate_v4(),NO,null
+public,migration_logs,2,migration_name,text,text,NO,null,NO,null
+public,migration_logs,3,executed_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,migration_logs,4,description,text,text,YES,null,NO,null
+public,missions,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,missions,2,ticket_id,uuid,uuid,NO,null,NO,null
+public,missions,3,entreprise_id,uuid,uuid,NO,null,NO,null
+public,missions,4,technicien_id,uuid,uuid,YES,null,NO,null
+public,missions,5,date_intervention_prevue,timestamp with time zone,timestamptz,YES,null,NO,null
+public,missions,6,date_intervention_realisee,timestamp with time zone,timestamptz,YES,null,NO,null
+public,missions,7,statut,USER-DEFINED,mission_status,NO,'en_attente'::mission_status,NO,null
+public,missions,8,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,missions,9,started_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,missions,10,completed_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,missions,11,validated_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,missions,12,notes,text,text,YES,null,NO,null
+public,missions,13,devis_url,text,text,YES,null,NO,null
+public,missions,14,facture_url,text,text,YES,null,NO,null
+public,missions,15,montant_reel_chf,numeric,numeric,YES,null,NO,null
+public,missions,16,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,missions,17,rapport_url,text,text,YES,null,NO,null
+public,missions,18,signature_locataire_url,text,text,YES,null,NO,null
+public,missions,19,signature_technicien_url,text,text,YES,null,NO,null
+public,missions,20,devise,text,text,NO,'CHF'::text,NO,null
+public,notifications,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,notifications,2,user_id,uuid,uuid,NO,null,NO,null
+public,notifications,3,type,text,text,NO,null,NO,null
+public,notifications,4,title,text,text,NO,null,NO,null
+public,notifications,5,message,text,text,NO,null,NO,null
+public,notifications,6,related_mission_id,uuid,uuid,YES,null,NO,null
+public,notifications,7,related_ticket_id,uuid,uuid,YES,null,NO,null
+public,notifications,8,related_facture_id,uuid,uuid,YES,null,NO,null
+public,notifications,9,related_message_id,uuid,uuid,YES,null,NO,null
+public,notifications,10,read,boolean,bool,NO,false,NO,null
+public,notifications,11,read_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,notifications,12,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,plans,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,plans,2,nom,character varying,varchar,NO,null,NO,null
+public,plans,3,nom_affichage,character varying,varchar,NO,null,NO,null
+public,plans,4,description,text,text,YES,null,NO,null
+public,plans,5,prix_mensuel,numeric,numeric,NO,null,NO,null
+public,plans,6,prix_annuel,numeric,numeric,NO,null,NO,null
+public,plans,7,limite_missions_mois,integer,int4,YES,null,NO,null
+public,plans,8,limite_techniciens,integer,int4,YES,null,NO,null
+public,plans,9,limite_utilisateurs,integer,int4,YES,null,NO,null
+public,plans,10,modules_actifs,jsonb,jsonb,YES,'[]'::jsonb,NO,null
+public,plans,11,actif,boolean,bool,YES,true,NO,null
+public,plans,12,ordre_affichage,integer,int4,YES,0,NO,null
+public,plans,13,created_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,plans,14,updated_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,profiles,1,id,uuid,uuid,NO,null,NO,null
+public,profiles,2,email,text,text,NO,null,NO,null
+public,profiles,3,role,USER-DEFINED,user_role,NO,'regie'::user_role,NO,null
+public,profiles,4,language,text,text,NO,'fr'::text,NO,null
+public,profiles,5,is_demo,boolean,bool,NO,false,NO,null
+public,profiles,6,regie_id,uuid,uuid,YES,null,NO,null
+public,profiles,7,entreprise_id,uuid,uuid,YES,null,NO,null
+public,profiles,8,logement_id,uuid,uuid,YES,null,NO,null
+public,profiles,9,created_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,profiles,10,updated_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,profiles_backup_20241220,1,id,uuid,uuid,YES,null,NO,null
+public,profiles_backup_20241220,2,email,text,text,YES,null,NO,null
+public,profiles_backup_20241220,3,role,USER-DEFINED,user_role,YES,null,NO,null
+public,profiles_backup_20241220,4,language,text,text,YES,null,NO,null
+public,profiles_backup_20241220,5,is_demo,boolean,bool,YES,null,NO,null
+public,profiles_backup_20241220,6,regie_id,uuid,uuid,YES,null,NO,null
+public,profiles_backup_20241220,7,entreprise_id,uuid,uuid,YES,null,NO,null
+public,profiles_backup_20241220,8,logement_id,uuid,uuid,YES,null,NO,null
+public,profiles_backup_20241220,9,created_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,profiles_backup_20241220,10,updated_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,quotas_usage,1,client_nom,text,text,YES,null,NO,null
+public,quotas_usage,2,client_type,text,text,YES,null,NO,null
+public,quotas_usage,3,plan_nom,character varying,varchar,YES,null,NO,null
+public,quotas_usage,4,statut,character varying,varchar,YES,null,NO,null
+public,quotas_usage,5,missions_utilisees,integer,int4,YES,null,NO,null
+public,quotas_usage,6,missions_limite,integer,int4,YES,null,NO,null
+public,quotas_usage,7,missions_pourcentage,numeric,numeric,YES,null,NO,null
+public,quotas_usage,8,techniciens_utilises,bigint,int8,YES,null,NO,null
+public,quotas_usage,9,techniciens_limite,integer,int4,YES,null,NO,null
+public,quotas_usage,10,utilisateurs_utilises,bigint,int8,YES,null,NO,null
+public,quotas_usage,11,utilisateurs_limite,integer,int4,YES,null,NO,null
+public,quotas_usage,12,date_fin,date,date,YES,null,NO,null
+public,quotas_usage,13,jours_restants,integer,int4,YES,null,NO,null
+public,regies,1,id,uuid,uuid,NO,uuid_generate_v4(),NO,null
+public,regies,2,nom,text,text,NO,null,NO,null
+public,regies,3,adresse,text,text,YES,null,NO,null
+public,regies,4,code_postal,text,text,YES,null,NO,null
+public,regies,5,ville,text,text,YES,null,NO,null
+public,regies,6,telephone,text,text,YES,null,NO,null
+public,regies,7,email,text,text,YES,null,NO,null
+public,regies,8,siret,text,text,YES,null,NO,null
+public,regies,9,nb_collaborateurs,integer,int4,NO,1,NO,null
+public,regies,10,nb_logements_geres,integer,int4,NO,0,NO,null
+public,regies,11,statut_validation,text,text,NO,'en_attente'::text,NO,null
+public,regies,12,date_validation,timestamp with time zone,timestamptz,YES,null,NO,null
+public,regies,13,admin_validateur_id,uuid,uuid,YES,null,NO,null
+public,regies,14,commentaire_refus,text,text,YES,null,NO,null
+public,regies,15,profile_id,uuid,uuid,YES,null,NO,null
+public,regies,16,created_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,regies,17,updated_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,regies_backup_20241220,1,id,uuid,uuid,YES,null,NO,null
+public,regies_backup_20241220,2,nom,text,text,YES,null,NO,null
+public,regies_backup_20241220,3,adresse,text,text,YES,null,NO,null
+public,regies_backup_20241220,4,code_postal,text,text,YES,null,NO,null
+public,regies_backup_20241220,5,ville,text,text,YES,null,NO,null
+public,regies_backup_20241220,6,telephone,text,text,YES,null,NO,null
+public,regies_backup_20241220,7,email,text,text,YES,null,NO,null
+public,regies_backup_20241220,8,siret,text,text,YES,null,NO,null
+public,regies_backup_20241220,9,nb_collaborateurs,integer,int4,YES,null,NO,null
+public,regies_backup_20241220,10,nb_logements_geres,integer,int4,YES,null,NO,null
+public,regies_backup_20241220,11,statut_validation,text,text,YES,null,NO,null
+public,regies_backup_20241220,12,date_validation,timestamp with time zone,timestamptz,YES,null,NO,null
+public,regies_backup_20241220,13,admin_validateur_id,uuid,uuid,YES,null,NO,null
+public,regies_backup_20241220,14,commentaire_refus,text,text,YES,null,NO,null
+public,regies_backup_20241220,15,profile_id,uuid,uuid,YES,null,NO,null
+public,regies_backup_20241220,16,created_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,regies_backup_20241220,17,updated_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,regies_entreprises,1,id,uuid,uuid,NO,uuid_generate_v4(),NO,null
+public,regies_entreprises,2,regie_id,uuid,uuid,NO,null,NO,null
+public,regies_entreprises,3,entreprise_id,uuid,uuid,NO,null,NO,null
+public,regies_entreprises,4,mode_diffusion,text,text,NO,'restreint'::text,NO,null
+public,regies_entreprises,5,date_autorisation,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,regies_entreprises,6,created_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,regies_entreprises,7,updated_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,techniciens,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,techniciens,2,profile_id,uuid,uuid,NO,null,NO,null
+public,techniciens,3,entreprise_id,uuid,uuid,NO,null,NO,null
+public,techniciens,4,nom,text,text,NO,null,NO,null
+public,techniciens,5,prenom,text,text,NO,null,NO,null
+public,techniciens,6,telephone,text,text,YES,null,NO,null
+public,techniciens,7,email,text,text,YES,null,NO,null
+public,techniciens,8,specialites,ARRAY,_text,YES,ARRAY[]::text[],NO,null
+public,techniciens,9,actif,boolean,bool,NO,true,NO,null
+public,techniciens,10,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,techniciens,11,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,tickets,1,id,uuid,uuid,NO,uuid_generate_v4(),NO,null
+public,tickets,2,titre,text,text,NO,null,NO,null
+public,tickets,3,description,text,text,NO,null,NO,null
+public,tickets,4,categorie,text,text,NO,null,NO,null
+public,tickets,5,priorite,text,text,YES,'normale'::text,NO,null
+public,tickets,6,statut,USER-DEFINED,ticket_status,NO,'nouveau'::ticket_status,NO,null
+public,tickets,7,logement_id,uuid,uuid,NO,null,NO,null
+public,tickets,8,locataire_id,uuid,uuid,NO,null,NO,null
+public,tickets,9,regie_id,uuid,uuid,NO,null,NO,null
+public,tickets,10,entreprise_id,uuid,uuid,YES,null,NO,null
+public,tickets,11,technicien_id,uuid,uuid,YES,null,NO,null
+public,tickets,12,date_creation,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,tickets,13,date_cloture,timestamp with time zone,timestamptz,YES,null,NO,null
+public,tickets,14,date_limite,timestamp with time zone,timestamptz,YES,null,NO,null
+public,tickets,15,photos,ARRAY,_text,YES,null,NO,null
+public,tickets,16,urgence,boolean,bool,YES,false,NO,null
+public,tickets,17,created_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,tickets,18,updated_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+public,tickets,19,locked_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,tickets,20,plafond_intervention_chf,numeric,numeric,YES,0,NO,null
+public,tickets,21,devise,text,text,NO,'CHF'::text,NO,null
+public,tickets,22,mode_diffusion,text,text,YES,null,NO,null
+public,tickets,23,sous_categorie,text,text,YES,null,NO,null
+public,tickets,24,piece,text,text,YES,null,NO,null
+public,tickets,29,plafond_valide_par,uuid,uuid,YES,null,NO,null
+public,tickets,30,plafond_valide_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,tickets,31,diffuse_par,uuid,uuid,YES,null,NO,null
+public,tickets,32,diffuse_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,tickets_complets,1,ticket_id,uuid,uuid,YES,null,NO,null
+public,tickets_complets,2,titre,text,text,YES,null,NO,null
+public,tickets_complets,3,description,text,text,YES,null,NO,null
+public,tickets_complets,4,categorie,text,text,YES,null,NO,null
+public,tickets_complets,5,priorite,text,text,YES,null,NO,null
+public,tickets_complets,6,statut,USER-DEFINED,ticket_status,YES,null,NO,null
+public,tickets_complets,7,created_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,tickets_complets,8,updated_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,tickets_complets,9,locataire_id,uuid,uuid,YES,null,NO,null
+public,tickets_complets,10,logement_id,uuid,uuid,YES,null,NO,null
+public,tickets_complets,11,regie_id,uuid,uuid,YES,null,NO,null
+public,tickets_complets,12,entreprise_id,uuid,uuid,YES,null,NO,null
+public,tickets_complets,13,locataire_nom,text,text,YES,null,NO,null
+public,tickets_complets,14,locataire_prenom,text,text,YES,null,NO,null
+public,tickets_complets,15,locataire_email,text,text,YES,null,NO,null
+public,tickets_complets,16,locataire_telephone,text,text,YES,null,NO,null
+public,tickets_complets,17,logement_numero,text,text,YES,null,NO,null
+public,tickets_complets,18,logement_etage,integer,int4,YES,null,NO,null
+public,tickets_complets,19,immeuble_nom,text,text,YES,null,NO,null
+public,tickets_complets,20,immeuble_adresse,text,text,YES,null,NO,null
+public,tickets_complets,21,immeuble_code_postal,text,text,YES,null,NO,null
+public,tickets_complets,22,immeuble_ville,text,text,YES,null,NO,null
+public,tickets_complets,23,regie_nom,text,text,YES,null,NO,null
+public,tickets_disponibilites,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+public,tickets_disponibilites,2,ticket_id,uuid,uuid,NO,null,NO,null
+public,tickets_disponibilites,3,date_debut,timestamp with time zone,timestamptz,NO,null,NO,null
+public,tickets_disponibilites,4,date_fin,timestamp with time zone,timestamptz,NO,null,NO,null
+public,tickets_disponibilites,5,preference,integer,int4,NO,null,NO,null
+public,tickets_disponibilites,6,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+public,tickets_visibles_entreprise,1,id,uuid,uuid,YES,null,NO,null
+public,tickets_visibles_entreprise,2,regie_id,uuid,uuid,YES,null,NO,null
+public,tickets_visibles_entreprise,3,entreprise_id,uuid,uuid,YES,null,NO,null
+public,tickets_visibles_entreprise,4,technicien_id,uuid,uuid,YES,null,NO,null
+public,tickets_visibles_entreprise,5,locataire_id,uuid,uuid,YES,null,NO,null
+public,tickets_visibles_entreprise,6,logement_id,uuid,uuid,YES,null,NO,null
+public,tickets_visibles_entreprise,7,titre,text,text,YES,null,NO,null
+public,tickets_visibles_entreprise,8,description,text,text,YES,null,NO,null
+public,tickets_visibles_entreprise,9,categorie,text,text,YES,null,NO,null
+public,tickets_visibles_entreprise,10,sous_categorie,text,text,YES,null,NO,null
+public,tickets_visibles_entreprise,11,piece,text,text,YES,null,NO,null
+public,tickets_visibles_entreprise,12,priorite,text,text,YES,null,NO,null
+public,tickets_visibles_entreprise,13,statut,USER-DEFINED,ticket_status,YES,null,NO,null
+public,tickets_visibles_entreprise,14,urgence,boolean,bool,YES,null,NO,null
+public,tickets_visibles_entreprise,15,mode_diffusion,text,text,YES,null,NO,null
+public,tickets_visibles_entreprise,16,locked_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,tickets_visibles_entreprise,17,plafond_intervention_chf,numeric,numeric,YES,null,NO,null
+public,tickets_visibles_entreprise,18,devise,text,text,YES,null,NO,null
+public,tickets_visibles_entreprise,19,date_creation,timestamp with time zone,timestamptz,YES,null,NO,null
+public,tickets_visibles_entreprise,20,date_cloture,timestamp with time zone,timestamptz,YES,null,NO,null
+public,tickets_visibles_entreprise,21,date_limite,timestamp with time zone,timestamptz,YES,null,NO,null
+public,tickets_visibles_entreprise,22,created_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,tickets_visibles_entreprise,23,updated_at,timestamp with time zone,timestamptz,YES,null,NO,null
+public,tickets_visibles_entreprise,24,photos,ARRAY,_text,YES,null,NO,null
+public,tickets_visibles_entreprise,25,ville,text,text,YES,null,NO,null
+public,tickets_visibles_entreprise,26,visible_par_entreprise_id,uuid,uuid,YES,null,NO,null
+public,tickets_visibles_entreprise,27,autorisation_mode,text,text,YES,null,NO,null
+realtime,messages,3,topic,text,text,NO,null,NO,null
+realtime,messages,4,extension,text,text,NO,null,NO,null
+realtime,messages,5,payload,jsonb,jsonb,YES,null,NO,null
+realtime,messages,6,event,text,text,YES,null,NO,null
+realtime,messages,7,private,boolean,bool,YES,false,NO,null
+realtime,messages,8,updated_at,timestamp without time zone,timestamp,NO,now(),NO,null
+realtime,messages,9,inserted_at,timestamp without time zone,timestamp,NO,now(),NO,null
+realtime,messages,10,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+realtime,schema_migrations,1,version,bigint,int8,NO,null,NO,null
+realtime,schema_migrations,2,inserted_at,timestamp without time zone,timestamp,YES,null,NO,null
+realtime,subscription,1,id,bigint,int8,NO,null,YES,ALWAYS
+realtime,subscription,2,subscription_id,uuid,uuid,NO,null,NO,null
+realtime,subscription,4,entity,regclass,regclass,NO,null,NO,null
+realtime,subscription,5,filters,ARRAY,_user_defined_filter,NO,'{}'::realtime.user_defined_filter[],NO,null
+realtime,subscription,7,claims,jsonb,jsonb,NO,null,NO,null
+realtime,subscription,8,claims_role,regrole,regrole,NO,null,NO,null
+"realtime,subscription,9,created_at,timestamp without time zone,timestamp,NO,""timezone('utc'::text, now())"",NO,null"
+storage,buckets,1,id,text,text,NO,null,NO,null
+storage,buckets,2,name,text,text,NO,null,NO,null
+storage,buckets,3,owner,uuid,uuid,YES,null,NO,null
+storage,buckets,4,created_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+storage,buckets,5,updated_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+storage,buckets,6,public,boolean,bool,YES,false,NO,null
+storage,buckets,7,avif_autodetection,boolean,bool,YES,false,NO,null
+storage,buckets,8,file_size_limit,bigint,int8,YES,null,NO,null
+storage,buckets,9,allowed_mime_types,ARRAY,_text,YES,null,NO,null
+storage,buckets,10,owner_id,text,text,YES,null,NO,null
+storage,buckets,11,type,USER-DEFINED,buckettype,NO,'STANDARD'::storage.buckettype,NO,null
+storage,buckets_analytics,1,name,text,text,NO,null,NO,null
+storage,buckets_analytics,2,type,USER-DEFINED,buckettype,NO,'ANALYTICS'::storage.buckettype,NO,null
+storage,buckets_analytics,3,format,text,text,NO,'ICEBERG'::text,NO,null
+storage,buckets_analytics,4,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+storage,buckets_analytics,5,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+storage,buckets_analytics,6,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+storage,buckets_analytics,7,deleted_at,timestamp with time zone,timestamptz,YES,null,NO,null
+storage,buckets_vectors,1,id,text,text,NO,null,NO,null
+storage,buckets_vectors,2,type,USER-DEFINED,buckettype,NO,'VECTOR'::storage.buckettype,NO,null
+storage,buckets_vectors,3,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+storage,buckets_vectors,4,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+storage,migrations,1,id,integer,int4,NO,null,NO,null
+storage,migrations,2,name,character varying,varchar,NO,null,NO,null
+storage,migrations,3,hash,character varying,varchar,NO,null,NO,null
+storage,migrations,4,executed_at,timestamp without time zone,timestamp,YES,CURRENT_TIMESTAMP,NO,null
+storage,objects,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+storage,objects,2,bucket_id,text,text,YES,null,NO,null
+storage,objects,3,name,text,text,YES,null,NO,null
+storage,objects,4,owner,uuid,uuid,YES,null,NO,null
+storage,objects,5,created_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+storage,objects,6,updated_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+storage,objects,7,last_accessed_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+storage,objects,8,metadata,jsonb,jsonb,YES,null,NO,null
+storage,objects,9,path_tokens,ARRAY,_text,YES,null,NO,null
+storage,objects,10,version,text,text,YES,null,NO,null
+storage,objects,11,owner_id,text,text,YES,null,NO,null
+storage,objects,12,user_metadata,jsonb,jsonb,YES,null,NO,null
+storage,objects,13,level,integer,int4,YES,null,NO,null
+storage,prefixes,1,bucket_id,text,text,NO,null,NO,null
+storage,prefixes,2,name,text,text,NO,null,NO,null
+storage,prefixes,3,level,integer,int4,NO,null,NO,null
+storage,prefixes,4,created_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+storage,prefixes,5,updated_at,timestamp with time zone,timestamptz,YES,now(),NO,null
+storage,s3_multipart_uploads,1,id,text,text,NO,null,NO,null
+storage,s3_multipart_uploads,2,in_progress_size,bigint,int8,NO,0,NO,null
+storage,s3_multipart_uploads,3,upload_signature,text,text,NO,null,NO,null
+storage,s3_multipart_uploads,4,bucket_id,text,text,NO,null,NO,null
+storage,s3_multipart_uploads,5,key,text,text,NO,null,NO,null
+storage,s3_multipart_uploads,6,version,text,text,NO,null,NO,null
+storage,s3_multipart_uploads,7,owner_id,text,text,YES,null,NO,null
+storage,s3_multipart_uploads,8,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+storage,s3_multipart_uploads,9,user_metadata,jsonb,jsonb,YES,null,NO,null
+storage,s3_multipart_uploads_parts,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+storage,s3_multipart_uploads_parts,2,upload_id,text,text,NO,null,NO,null
+storage,s3_multipart_uploads_parts,3,size,bigint,int8,NO,0,NO,null
+storage,s3_multipart_uploads_parts,4,part_number,integer,int4,NO,null,NO,null
+storage,s3_multipart_uploads_parts,5,bucket_id,text,text,NO,null,NO,null
+storage,s3_multipart_uploads_parts,6,key,text,text,NO,null,NO,null
+storage,s3_multipart_uploads_parts,7,etag,text,text,NO,null,NO,null
+storage,s3_multipart_uploads_parts,8,owner_id,text,text,YES,null,NO,null
+storage,s3_multipart_uploads_parts,9,version,text,text,NO,null,NO,null
+storage,s3_multipart_uploads_parts,10,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+storage,vector_indexes,1,id,text,text,NO,gen_random_uuid(),NO,null
+storage,vector_indexes,2,name,text,text,NO,null,NO,null
+storage,vector_indexes,3,bucket_id,text,text,NO,null,NO,null
+storage,vector_indexes,4,data_type,text,text,NO,null,NO,null
+storage,vector_indexes,5,dimension,integer,int4,NO,null,NO,null
+storage,vector_indexes,6,distance_metric,text,text,NO,null,NO,null
+storage,vector_indexes,7,metadata_configuration,jsonb,jsonb,YES,null,NO,null
+storage,vector_indexes,8,created_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+storage,vector_indexes,9,updated_at,timestamp with time zone,timestamptz,NO,now(),NO,null
+vault,decrypted_secrets,1,id,uuid,uuid,YES,null,NO,null
+vault,decrypted_secrets,2,name,text,text,YES,null,NO,null
+vault,decrypted_secrets,3,description,text,text,YES,null,NO,null
+vault,decrypted_secrets,4,secret,text,text,YES,null,NO,null
+vault,decrypted_secrets,5,decrypted_secret,text,text,YES,null,NO,null
+vault,decrypted_secrets,6,key_id,uuid,uuid,YES,null,NO,null
+vault,decrypted_secrets,7,nonce,bytea,bytea,YES,null,NO,null
+vault,decrypted_secrets,8,created_at,timestamp with time zone,timestamptz,YES,null,NO,null
+vault,decrypted_secrets,9,updated_at,timestamp with time zone,timestamptz,YES,null,NO,null
+vault,secrets,1,id,uuid,uuid,NO,gen_random_uuid(),NO,null
+vault,secrets,2,name,text,text,YES,null,NO,null
+vault,secrets,3,description,text,text,NO,''::text,NO,null
+vault,secrets,4,secret,text,text,NO,null,NO,null
+vault,secrets,5,key_id,uuid,uuid,YES,null,NO,null
+vault,secrets,6,nonce,bytea,bytea,YES,vault._crypto_aead_det_noncegen(),NO,null
+vault,secrets,7,created_at,timestamp with time zone,timestamptz,NO,CURRENT_TIMESTAMP,NO,null
+vault,secrets,8,updated_at,timestamp with time zone,timestamptz,NO,CURRENT_TIMESTAMP,NO,null

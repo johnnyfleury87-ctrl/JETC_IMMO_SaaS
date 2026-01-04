@@ -1,0 +1,9 @@
+schema
+auth
+extensions
+graphql
+graphql_public
+public
+realtime
+storage
+vault

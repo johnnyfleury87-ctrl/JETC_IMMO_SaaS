@@ -1,0 +1,98 @@
+{
+  "results": {
+    "step": "ÉTAPE 2 - Application M42",
+    "timestamp_start": "2026-01-04T16:26:31.672Z",
+    "checks": {
+      "before_disponibilite_id": {
+        "exists": "unknown",
+        "error": ""
+      },
+      "tickets_disponibilites_exists": true,
+      "after_disponibilite_id": {
+        "exists": "unknown",
+        "error": ""
+      }
+    },
+    "status": "PENDING_MANUAL",
+    "instructions": "\n╔═══════════════════════════════════════════════════════════════╗\n║  INSTRUCTIONS APPLICATION MANUELLE MIGRATION M42               ║\n╚═══════════════════════════════════════════════════════════════╝\n\nIMPOSSIBLE D'APPLIQUER VIA SUPABASE JS SDK (limitation DDL)\n\nMÉTHODE 1 (RECOMMANDÉE): Supabase Studio SQL Editor\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n1. Ouvrir: https://bwzyajsrmfhrxdmfpyqy.supabase.co/project/_/sql\n2. Copier contenu: supabase/migrations/20260104001800_m42_add_disponibilite_id_missions.sql\n3. Exécuter (RUN)\n4. Vérifier logs: \"✅ M42: Colonne disponibilite_id ajoutée à missions\"\n\nMÉTHODE 2 (FALLBACK): psql CLI\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\npsql \"$DATABASE_URL\" -f supabase/migrations/20260104001800_m42_add_disponibilite_id_missions.sql\n\nMÉTHODE 3 (ALTERNATIVE): Supabase CLI\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nsupabase link --project-ref bwzyajsrmfhrxdmfpyqy\nsupabase db push\n\nAPRÈS APPLICATION:\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nRelancer ce script pour vérifier application:\nnode _fix_step2_apply_m42.js\n",
+    "migration_file": "supabase/migrations/20260104001800_m42_add_disponibilite_id_missions.sql",
+    "message": "Migration prête, application manuelle requise",
+    "timestamp_end": "2026-01-04T16:26:32.352Z"
+  },
+  "log": [
+    {
+      "timestamp": "2026-01-04T16:26:31.672Z",
+      "message": "📋 PHASE 1: VÉRIFICATIONS AVANT APPLICATION",
+      "data": null
+    },
+    {
+      "timestamp": "2026-01-04T16:26:31.673Z",
+      "message": "🔍 Vérification colonne missions.disponibilite_id...",
+      "data": null
+    },
+    {
+      "timestamp": "2026-01-04T16:26:32.063Z",
+      "message": "   ⚠️ Erreur: ",
+      "data": null
+    },
+    {
+      "timestamp": "2026-01-04T16:26:32.063Z",
+      "message": "🔍 Vérification table tickets_disponibilites...",
+      "data": null
+    },
+    {
+      "timestamp": "2026-01-04T16:26:32.238Z",
+      "message": "   ✅ Table tickets_disponibilites accessible",
+      "data": null
+    },
+    {
+      "timestamp": "2026-01-04T16:26:32.238Z",
+      "message": "\n📋 PHASE 2: APPLICATION MIGRATION M42",
+      "data": null
+    },
+    {
+      "timestamp": "2026-01-04T16:26:32.238Z",
+      "message": "⚠️ LIMITATION: Supabase JS SDK ne peut pas exécuter DDL (ALTER TABLE)",
+      "data": null
+    },
+    {
+      "timestamp": "2026-01-04T16:26:32.238Z",
+      "message": "ℹ️ MÉTHODE REQUISE: Application manuelle via Supabase Studio SQL Editor",
+      "data": null
+    },
+    {
+      "timestamp": "2026-01-04T16:26:32.238Z",
+      "message": "\n📄 CONTENU MIGRATION M42:",
+      "data": {
+        "file": "20260104001800_m42_add_disponibilite_id_missions.sql",
+        "lines": 47,
+        "preview": "-- ============================================================\n-- MIGRATION M42: Ajouter colonne disponibilite_id à missions\n-- ============================================================\n-- Date: 2026-01-04\n-- Auteur: Ajout créneau sélectionné dans missions\n-- Objectif: Enregistrer quel créneau a..."
+      }
+    },
+    {
+      "timestamp": "2026-01-04T16:26:32.239Z",
+      "message": "\n💾 Migration SQL copiée dans: _fix_output/02_migration_m42_to_apply.sql",
+      "data": null
+    },
+    {
+      "timestamp": "2026-01-04T16:26:32.240Z",
+      "message": "\n📋 PHASE 3: VÉRIFICATION POST-APPLICATION (test)",
+      "data": null
+    },
+    {
+      "timestamp": "2026-01-04T16:26:32.240Z",
+      "message": "🔍 Vérification colonne missions.disponibilite_id...",
+      "data": null
+    },
+    {
+      "timestamp": "2026-01-04T16:26:32.352Z",
+      "message": "   ⚠️ Erreur: ",
+      "data": null
+    },
+    {
+      "timestamp": "2026-01-04T16:26:32.352Z",
+      "message": "⏳ Migration M42 EN ATTENTE D'APPLICATION MANUELLE",
+      "data": null
+    }
+  ]
+}

@@ -1,0 +1,197 @@
+{
+  "timestamp": "2026-01-04T16:14:50.320Z",
+  "queries": {
+    "missions_accessible": {
+      "description": "Vérifier accès table missions",
+      "success": true,
+      "accessible": true
+    }
+  },
+  "disponibilite_id_check": {
+    "exists": "unknown",
+    "error": "",
+    "proof": "SELECT failed with other error"
+  },
+  "missions_columns": {
+    "accessible": true
+  },
+  "enum_check": {
+    "accessible": true,
+    "sample": []
+  },
+  "rpc_analysis": {
+    "method": "manual",
+    "source": "CSV 9_Fonctions_RPC (définitions complètes).csv",
+    "note": "Extraction définition nécessite accès pg_proc"
+  },
+  "missions_columns_from_csv": [
+    {
+      "position": "1",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()"
+    },
+    {
+      "position": "2",
+      "column_name": "ticket_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "null"
+    },
+    {
+      "position": "3",
+      "column_name": "entreprise_id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "column_default": "null"
+    },
+    {
+      "position": "4",
+      "column_name": "technicien_id",
+      "data_type": "uuid",
+      "is_nullable": "YES",
+      "column_default": "null"
+    },
+    {
+      "position": "5",
+      "column_name": "date_intervention_prevue",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": "null"
+    },
+    {
+      "position": "6",
+      "column_name": "date_intervention_realisee",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": "null"
+    },
+    {
+      "position": "7",
+      "column_name": "statut",
+      "data_type": "USER-DEFINED",
+      "is_nullable": "NO",
+      "column_default": "'en_attente'::mission_status"
+    },
+    {
+      "position": "8",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "position": "9",
+      "column_name": "started_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": "null"
+    },
+    {
+      "position": "10",
+      "column_name": "completed_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": "null"
+    },
+    {
+      "position": "11",
+      "column_name": "validated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES",
+      "column_default": "null"
+    },
+    {
+      "position": "12",
+      "column_name": "notes",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": "null"
+    },
+    {
+      "position": "13",
+      "column_name": "devis_url",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": "null"
+    },
+    {
+      "position": "14",
+      "column_name": "facture_url",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": "null"
+    },
+    {
+      "position": "15",
+      "column_name": "montant_reel_chf",
+      "data_type": "numeric",
+      "is_nullable": "YES",
+      "column_default": "null"
+    },
+    {
+      "position": "16",
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "position": "17",
+      "column_name": "rapport_url",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": "null"
+    },
+    {
+      "position": "18",
+      "column_name": "signature_locataire_url",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": "null"
+    },
+    {
+      "position": "19",
+      "column_name": "signature_technicien_url",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "column_default": "null"
+    },
+    {
+      "position": "20",
+      "column_name": "devise",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "column_default": "'CHF'::text"
+    }
+  ],
+  "tickets_statut_column": [
+    "public",
+    "tickets",
+    "6",
+    "statut",
+    "USER-DEFINED",
+    "ticket_status",
+    "NO",
+    "'nouveau'::ticket_status",
+    "NO",
+    "null\r"
+  ],
+  "rpc_from_csv": {
+    "found": true,
+    "sample": [
+      "public,accept_ticket_and_create_mission,p_ticket_id uuid, p_entreprise_id uuid\"\",uuid,plpgsql,true,v,\"\"CREATE OR REPLACE FUNCTION public.accept_ticket_and_create_mission(p_ticket_id uuid, p_entreprise_id uuid)\";\r"
+    ]
+  },
+  "rpc_terminology": {
+    "obsolete": {
+      "public": false,
+      "assigne": false
+    },
+    "current": {
+      "general": false,
+      "restreint": false
+    }
+  }
+}

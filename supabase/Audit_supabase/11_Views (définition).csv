@@ -1,4 +1,4 @@
-table_schema,table_name,view_definition;
+schemaname,viewname,definition;
 "extensions,pg_stat_statements,"" SELECT userid,";
     dbid,;
     toplevel,;
@@ -327,30 +327,50 @@ public,tickets_complets, SELECT t.id AS ticket_id,"
      JOIN immeubles imm ON ((log.immeuble_id = imm.id)));
      JOIN regies reg ON ((t.regie_id = reg.id)));"
 public,tickets_visibles_entreprise, SELECT t.id,"
-    t.titre,;
-    t.description,;
-    t.categorie,;
-    t.priorite,;
-    t.statut,;
-    t.logement_id,;
-    t.locataire_id,;
     t.regie_id,;
     t.entreprise_id,;
     t.technicien_id,;
-    t.date_creation,;
-    t.date_cloture,;
-    t.date_limite,;
-    t.photos,;
+        CASE;
+            WHEN ((t.mode_diffusion = 'general'::text) AND (t.locked_at IS NULL)) THEN NULL::uuid;
+            ELSE t.locataire_id;
+        END AS locataire_id,;
+        CASE;
+            WHEN ((t.mode_diffusion = 'general'::text) AND (t.locked_at IS NULL)) THEN NULL::uuid;
+            ELSE t.logement_id;
+        END AS logement_id,;
+    t.titre,;
+    t.description,;
+    t.categorie,;
+    t.sous_categorie,;
+    t.piece,;
+    t.priorite,;
+    t.statut,;
     t.urgence,;
-    t.created_at,;
-    t.updated_at,;
+    t.mode_diffusion,;
     t.locked_at,;
     t.plafond_intervention_chf,;
     t.devise,;
-    t.mode_diffusion,;
+    t.date_creation,;
+    t.date_cloture,;
+    t.date_limite,;
+    t.created_at,;
+    t.updated_at,;
+    t.photos,;
+    i.ville,;
     re.entreprise_id AS visible_par_entreprise_id,;
     re.mode_diffusion AS autorisation_mode;
-   FROM (tickets t;
+   FROM (((tickets t;
      JOIN regies_entreprises re ON ((re.regie_id = t.regie_id)));
-  WHERE (((re.mode_diffusion = 'general'::text) AND (t.mode_diffusion = 'public'::text) AND (t.statut = 'en_attente'::ticket_status) AND (t.locked_at IS NULL)) OR ((t.mode_diffusion = 'assigné'::text) AND (t.entreprise_id = re.entreprise_id) AND (t.statut = ANY (ARRAY['en_attente'::ticket_status, 'en_cours'::ticket_status, 'termine'::ticket_status]))) OR ((t.entreprise_id = re.entreprise_id) AND (t.statut = ANY (ARRAY['en_cours'::ticket_status, 'termine'::ticket_status, 'clos'::ticket_status]))));"
-vault,decrypted_secrets,null"
+     LEFT JOIN logements lg ON ((lg.id = t.logement_id)));
+     LEFT JOIN immeubles i ON ((i.id = lg.immeuble_id)));
+  WHERE (((re.mode_diffusion = 'general'::text) AND (t.mode_diffusion = 'general'::text) AND (t.statut = 'en_attente'::ticket_status) AND (t.locked_at IS NULL)) OR ((t.mode_diffusion = 'restreint'::text) AND (t.entreprise_id = re.entreprise_id) AND (t.statut = ANY (ARRAY['en_attente'::ticket_status, 'en_cours'::ticket_status, 'termine'::ticket_status]))) OR ((t.entreprise_id = re.entreprise_id) AND (t.statut = ANY (ARRAY['en_cours'::ticket_status, 'termine'::ticket_status, 'clos'::ticket_status]))));"
+vault,decrypted_secrets, SELECT id,"
+    name,;
+    description,;
+    secret,;
+    convert_from(vault._crypto_aead_det_decrypt(message => decode(secret, 'base64'::text), additional => convert_to((id)::text, 'utf8'::name), key_id => (0)::bigint, context => '\x7067736f6469756d'::bytea, nonce => nonce), 'utf8'::name) AS decrypted_secret,;
+    key_id,;
+    nonce,;
+    created_at,;
+    updated_at;
+   FROM vault.secrets s;
