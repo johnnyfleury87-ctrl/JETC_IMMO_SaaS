@@ -483,6 +483,27 @@
       background: var(--gray-50);
       border-radius: var(--radius-md);
       border: 1px solid var(--gray-200);
+      margin-bottom: 12px;
+    }
+    
+    .disponibilite-radio-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      cursor: pointer;
+      width: 100%;
+    }
+    
+    .disponibilite-radio-label input[type="radio"] {
+      margin-top: 4px;
+      cursor: pointer;
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary-blue);
+    }
+    
+    .disponibilite-content {
+      flex: 1;
     }
 
     .disponibilite-item h5 {
@@ -495,6 +516,14 @@
       font-size: 13px;
       color: var(--gray-600);
       margin: 3px 0;
+    }
+    
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 20px;
+      border-top: 1px solid var(--gray-200);
     }
 
     @media (max-width: 768px) {
@@ -622,8 +651,17 @@
             
             <div class="modal-section" id="modalDisponibilitesSection" style="display: none;">
               <h4>📅 Créneaux de disponibilité</h4>
+              <p style="font-size: 13px; color: var(--gray-600); margin-bottom: 15px;">
+                Sélectionnez le créneau qui vous convient avant d'accepter le ticket.
+              </p>
               <div id="modalDisponibilites"></div>
             </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeTicketDetailsModal()">Fermer</button>
+            <button id="modalAccepterBtn" class="btn btn-primary" style="display: none;">
+              ✅ Accepter ce ticket
+            </button>
           </div>
         </div>
       </div>
@@ -903,8 +941,8 @@
     }
 
     // ========== ACCEPTER TICKET ==========
-    async function accepterTicket(ticketId, titre) {
-      console.log('[ACTION] Acceptation ticket:', ticketId);
+    async function accepterTicket(ticketId, titre, disponibiliteId = null) {
+      console.log('[ACTION] Acceptation ticket:', ticketId, 'disponibilite:', disponibiliteId);
       
       if (!confirm(`Accepter le ticket "${titre}" ?\n\nCela créera une mission et le ticket ne sera plus visible par les autres entreprises.`)) {
         return;
@@ -916,11 +954,19 @@
           return;
         }
         
-        // Appel RPC accept_ticket_and_create_mission (M05)
-        const { data, error } = await supabase.rpc('accept_ticket_and_create_mission', {
+        // Paramètres RPC
+        const rpcParams = {
           p_ticket_id: ticketId,
           p_entreprise_id: window.currentEntreprise.id
-        });
+        };
+        
+        // Ajouter disponibilite_id si fourni (M41)
+        if (disponibiliteId) {
+          rpcParams.p_disponibilite_id = disponibiliteId;
+        }
+        
+        // Appel RPC accept_ticket_and_create_mission (M05 + M41)
+        const { data, error } = await supabase.rpc('accept_ticket_and_create_mission', rpcParams);
         
         if (error) {
           console.error('[ACCEPTER] Erreur RPC:', error);
@@ -950,6 +996,28 @@
         console.error('[ACCEPTER] Exception:', error);
         alert('Erreur: ' + error.message);
       }
+    }
+    
+    // ========== ACCEPTER DEPUIS MODAL ==========
+    async function accepterTicketFromModal(ticketId, titre) {
+      console.log('[MODAL] Acceptation ticket:', ticketId);
+      
+      // Récupérer créneau sélectionné
+      const selectedRadio = document.querySelector('input[name="disponibilite"]:checked');
+      
+      if (!selectedRadio) {
+        alert('⚠️ Veuillez sélectionner un créneau avant d\'accepter.');
+        return;
+      }
+      
+      const disponibiliteId = selectedRadio.value;
+      console.log('[MODAL] Créneau sélectionné:', disponibiliteId);
+      
+      // Fermer modal
+      closeTicketDetailsModal();
+      
+      // Appeler fonction acceptation avec créneau
+      await accepterTicket(ticketId, titre, disponibiliteId);
     }
 
     // ========== MODAL DÉTAILS TICKET ==========
@@ -1014,9 +1082,9 @@
         // Ville provient DIRECTEMENT de la vue M24 (immeubles.ville JOIN)
         document.getElementById('modalTicketVille').textContent = ticket.ville || 'N/A';
         
-        // Disponibilités
+        // Disponibilités avec sélection
         if (disponibilites && disponibilites.length > 0) {
-          const dispoHtml = disponibilites.map(d => {
+          const dispoHtml = disponibilites.map((d, index) => {
             const debut = new Date(d.date_debut).toLocaleString('fr-FR', {
               day: '2-digit',
               month: '2-digit',
@@ -1032,19 +1100,33 @@
               minute: '2-digit'
             });
             
+            // Auto-sélectionner le premier (ou le seul créneau)
+            const checked = index === 0 ? 'checked' : '';
+            
             return `
               <div class="disponibilite-item">
-                <h5>Créneau ${d.preference}</h5>
-                <p><strong>Début:</strong> ${debut}</p>
-                <p><strong>Fin:</strong> ${fin}</p>
+                <label class="disponibilite-radio-label">
+                  <input type="radio" name="disponibilite" value="${d.id}" ${checked} />
+                  <div class="disponibilite-content">
+                    <h5>Créneau ${d.preference}</h5>
+                    <p><strong>Début:</strong> ${debut}</p>
+                    <p><strong>Fin:</strong> ${fin}</p>
+                  </div>
+                </label>
               </div>
             `;
           }).join('');
           
           document.getElementById('modalDisponibilites').innerHTML = dispoHtml;
           document.getElementById('modalDisponibilitesSection').style.display = 'block';
+          
+          // Afficher bouton accepter dans modal
+          const acceptBtn = document.getElementById('modalAccepterBtn');
+          acceptBtn.style.display = 'block';
+          acceptBtn.onclick = () => accepterTicketFromModal(ticket.id, ticket.titre);
         } else {
           document.getElementById('modalDisponibilitesSection').style.display = 'none';
+          document.getElementById('modalAccepterBtn').style.display = 'none';
         }
         
         // Afficher modal
