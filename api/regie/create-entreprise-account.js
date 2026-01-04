@@ -15,9 +15,6 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // ADMIN KEY (server-side only)
-
 export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -33,6 +30,24 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // =======================================================
+  // FAIL FAST - Variables d'environnement requises
+  // =======================================================
+  
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
+    console.error('[CREATE-ENTREPRISE] Missing Supabase env', {
+      hasUrl: !!supabaseUrl,
+      hasServiceRole: !!supabaseServiceKey,
+      hasAnonKey: !!supabaseAnonKey,
+      envKeys: Object.keys(process.env).filter(k => k.includes('SUPABASE'))
+    });
+    return res.status(500).json({ error: 'Supabase env missing' });
+  }
+
   try {
     // =======================================================
     // 1. AUTHENTIFICATION & VALIDATION
@@ -46,7 +61,7 @@ export default async function handler(req, res) {
     const token = authHeader.replace('Bearer ', '');
 
     // Créer client Supabase avec token utilisateur
-    const supabaseUser = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
+    const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
       global: {
         headers: { Authorization: `Bearer ${token}` }
       }
