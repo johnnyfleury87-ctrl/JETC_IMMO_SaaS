@@ -617,6 +617,17 @@
             <textarea id="inputDescription" placeholder="Spécialités, informations de contact supplémentaires..."></textarea>
             <div class="form-help">Vous pouvez inclure ici les informations de contact (nom, prénom, fonction...)</div>
           </div>
+
+          <div class="form-group" style="padding: 15px; background: var(--blue-50); border-radius: 8px; border-left: 4px solid var(--primary-blue);">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+              <input type="checkbox" id="inputCreateAccount" style="width: auto; height: 18px;">
+              <span style="font-weight: 600;">Créer un compte de connexion pour cette entreprise</span>
+            </label>
+            <div class="form-help" style="margin-top: 8px; margin-left: 28px;">
+              ✅ <strong>Avec compte</strong> : L'entreprise pourra se connecter et voir les tickets qui lui sont diffusés<br>
+              ⚠️ <strong>Sans compte</strong> : L'entreprise n'aura pas accès à la plateforme (partenaire référencé uniquement)
+            </div>
+          </div>
         </div>
 
         <div class="modal-footer">
@@ -854,6 +865,9 @@
       const ville = document.getElementById('inputVille').value.trim() || null;
       const siret = document.getElementById('inputSiret').value.trim() || null;
       const description = document.getElementById('inputDescription').value.trim() || null;
+      
+      // Mode création : avec ou sans compte
+      const createWithAccount = document.getElementById('inputCreateAccount')?.checked || false;
 
       // Validation basique
       if (!nom || !email) {
@@ -862,63 +876,73 @@
       }
 
       try {
-        // ÉTAPE 1: Créer entreprise (RLS M26 autorise régie)
-        console.log('[CREATE] Insertion entreprise...');
-        const { data: newEntreprise, error: entrepriseError } = await supabase
-          .from('entreprises')
-          .insert({
-            nom,
-            email,
-            telephone,
-            adresse,
-            code_postal,
-            ville,
-            siret,
-            description,
-            profile_id: null // Pas de compte auth (workflow régie)
-          })
-          .select()
-          .single();
-
-        if (entrepriseError) {
-          console.error('[CREATE] Erreur INSERT entreprise:', entrepriseError);
-          throw entrepriseError;
-        }
-
-        console.log('[CREATE] Entreprise créée:', newEntreprise.id);
-
-        // ÉTAPE 2: Récupérer regie_id via get_user_regie_id() (cohérence RLS)
-        console.log('[CREATE] Récupération regie_id via RLS...');
-        const { data: regieIdData, error: regieIdError } = await supabase
-          .rpc('get_user_regie_id');
-
-        if (regieIdError) {
-          console.error('[CREATE] Erreur get_user_regie_id:', regieIdError);
-          throw regieIdError;
-        }
-
-        console.log('[CREATE] Regie ID (RLS):', regieIdData, 'vs currentRegie.id:', currentRegie.id);
-
-        // ÉTAPE 3: Créer lien regies_entreprises avec regie_id RLS
-        console.log('[CREATE] Création autorisation régie...');
-        const { error: authError } = await supabase
-          .from('regies_entreprises')
-          .insert({
-            regie_id: regieIdData,  // Utiliser get_user_regie_id() pour cohérence RLS
-            entreprise_id: newEntreprise.id,
-            mode_diffusion: 'restreint' // Par défaut
+        let entrepriseId;
+        
+        if (createWithAccount) {
+          // =======================================================
+          // WORKFLOW 1: Créer avec compte Auth complet
+          // =======================================================
+          console.log('[CREATE] Mode: AVEC compte auth');
+          
+          const { data: session } = await supabase.auth.getSession();
+          const token = session.session.access_token;
+          
+          const response = await fetch('/api/regie/create-entreprise-account', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              nom, email, telephone, adresse, code_postal, ville, siret, description,
+              mode_diffusion: 'actif'
+            })
           });
 
-        if (authError) {
-          console.error('[CREATE] Erreur INSERT regies_entreprises:', authError);
-          throw authError;
-        }
+          const result = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(result.error || 'Erreur création entreprise avec compte');
+          }
 
-        console.log('[CREATE] Autorisation créée avec succès');
+          entrepriseId = result.entreprise_id;
+          
+          console.log('[CREATE] Entreprise créée avec compte:', entrepriseId);
+          console.log('[CREATE] Identifiants temporaires:', result.credentials);
+          
+          // Afficher les identifiants temporaires
+          alert(`Entreprise "${nom}" créée avec succès !\n\nIdentifiants temporaires :\nEmail: ${result.credentials.email}\nMot de passe: ${result.credentials.temp_password}\n\n⚠️ Conservez ces identifiants pour les transmettre à l'entreprise.`);
+          
+        } else {
+          // =======================================================
+          // WORKFLOW 2: Créer SANS compte (simple, workflow M26)
+          // =======================================================
+          console.log('[CREATE] Mode: SANS compte auth (simple)');
+          
+          const { data, error } = await supabase.rpc('create_entreprise_simple', {
+            p_nom: nom,
+            p_email: email,
+            p_telephone: telephone,
+            p_adresse: adresse,
+            p_code_postal: code_postal,
+            p_ville: ville,
+            p_siret: siret,
+            p_description: description,
+            p_mode_diffusion: 'actif'
+          });
+
+          if (error) {
+            console.error('[CREATE] Erreur RPC:', error);
+            throw error;
+          }
+
+          entrepriseId = data;
+          console.log('[CREATE] Entreprise créée (simple):', entrepriseId);
+          alert(`Entreprise "${nom}" créée avec succès !\n\n⚠️ Aucun compte de connexion créé. L'entreprise ne peut pas se connecter pour l'instant.`);
+        }
 
         // Fermer modal et recharger liste
         closeCreateModal();
-        alert(`Entreprise "${nom}" créée avec succès !`);
         await loadEntreprises();
 
       } catch (error) {
