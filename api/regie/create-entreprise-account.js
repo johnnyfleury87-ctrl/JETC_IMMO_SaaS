@@ -13,7 +13,7 @@
  * 5. Retourner entreprise_id + credentials temporaires
  */
 
-import { createClient } from '@supabase/supabase-js';
+const { getAdminClient, getUserClient, verifyToken, getUserProfile } = require('../lib/supabaseServer');
 
 export default async function handler(req, res) {
   // CORS headers
@@ -30,24 +30,6 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // =======================================================
-  // FAIL FAST - Variables d'environnement requises
-  // =======================================================
-  
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
-    console.error('[CREATE-ENTREPRISE] Missing Supabase env', {
-      hasUrl: !!supabaseUrl,
-      hasServiceRole: !!supabaseServiceKey,
-      hasAnonKey: !!supabaseAnonKey,
-      envKeys: Object.keys(process.env).filter(k => k.includes('SUPABASE'))
-    });
-    return res.status(500).json({ error: 'Supabase env missing' });
-  }
-
   try {
     // =======================================================
     // 1. AUTHENTIFICATION & VALIDATION
@@ -60,33 +42,32 @@ export default async function handler(req, res) {
 
     const token = authHeader.replace('Bearer ', '');
 
-    // Créer client Supabase avec token utilisateur
-    const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-    });
-
-    // Vérifier utilisateur
-    const { data: { user }, error: userError } = await supabaseUser.auth.getUser();
+    // Vérifier le token
+    const { user, error: userError } = await verifyToken(token);
     if (userError || !user) {
+      console.error('[CREATE-ENTREPRISE] Auth error:', userError);
       return res.status(401).json({ error: 'Token invalide' });
     }
 
-    // Vérifier que l'utilisateur est une régie
-    const { data: profile, error: profileError } = await supabaseUser
-      .from('profiles')
-      .select('role, regie_id')
-      .eq('id', user.id)
-      .single();
+    console.log('[CREATE-ENTREPRISE] User authenticated:', user.id);
 
+    // Récupérer et vérifier le profil
+    const { profile, error: profileError } = await getUserProfile(user.id);
     if (profileError || !profile) {
+      console.error('[CREATE-ENTREPRISE] Profile error:', profileError);
       return res.status(403).json({ error: 'Profil non trouvé' });
     }
 
     if (profile.role !== 'regie') {
+      console.error('[CREATE-ENTREPRISE] Wrong role:', profile.role);
       return res.status(403).json({ error: 'Accès réservé aux régies' });
     }
+
+    console.log('[CREATE-ENTREPRISE] Regie validated:', profile.regie_id);
+
+    // Obtenir les clients Supabase
+    const supabaseAdmin = getAdminClient();
+    const supabaseUserContext = getUserClient(token);
 
     // =======================================================
     // 2. EXTRACTION DONNÉES ENTREPRISE
@@ -117,7 +98,7 @@ export default async function handler(req, res) {
     // 3. CRÉER USER AUTH SUPABASE (ADMIN API)
     // =======================================================
     
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+    console.log('[CREATE-ENTREPRISE] Creating Auth user...');
 
     // Générer mot de passe temporaire sécurisé
     const tempPassword = generateTempPassword();
@@ -170,11 +151,15 @@ export default async function handler(req, res) {
       });
     }
 
+    console.log('[CREATE-ENTREPRISE] Profile created:', newUserId);
+
     // =======================================================
     // 5. CRÉER ENTREPRISE + LIEN (via RPC M29)
     // =======================================================
     
-    const { data: entrepriseId, error: rpcError } = await supabaseUser.rpc('create_entreprise_with_profile', {
+    console.log('[CREATE-ENTREPRISE] Calling RPC create_entreprise_with_profile...');
+    
+    const { data: entrepriseId, error: rpcError } = await supabaseUserContext.rpc('create_entreprise_with_profile', {
       p_profile_id: newUserId,
       p_nom: nom,
       p_email: email,
@@ -199,6 +184,8 @@ export default async function handler(req, res) {
         details: rpcError.message 
       });
     }
+
+    console.log('[CREATE-ENTREPRISE] SUCCESS! Entreprise ID:', entrepriseId);
 
     // =======================================================
     // 6. RETOUR SUCCÈS
