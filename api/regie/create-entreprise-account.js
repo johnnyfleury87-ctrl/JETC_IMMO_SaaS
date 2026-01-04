@@ -82,7 +82,7 @@ export default async function handler(req, res) {
       ville = null,
       siret = null,
       description = null,
-      mode_diffusion = 'actif'
+      mode_diffusion = 'restreint'
     } = req.body;
 
     // Validation
@@ -90,8 +90,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Nom et email obligatoires' });
     }
 
-    if (mode_diffusion && !['actif', 'silencieux'].includes(mode_diffusion)) {
-      return res.status(400).json({ error: 'mode_diffusion doit être actif ou silencieux' });
+    if (mode_diffusion && !['general', 'restreint'].includes(mode_diffusion)) {
+      return res.status(400).json({ error: 'mode_diffusion doit être general ou restreint' });
     }
 
     // =======================================================

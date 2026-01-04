@@ -895,7 +895,7 @@
             },
             body: JSON.stringify({
               nom, email, telephone, adresse, code_postal, ville, siret, description,
-              mode_diffusion: 'actif'
+              mode_diffusion: 'restreint'
             })
           });
 
@@ -928,7 +928,7 @@
             p_ville: ville,
             p_siret: siret,
             p_description: description,
-            p_mode_diffusion: 'actif'
+            p_mode_diffusion: 'restreint'
           });
 
           if (error) {
