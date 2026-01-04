@@ -319,6 +319,46 @@
       color: var(--orange-700);
     }
 
+    /* Toggle mode diffusion */
+    .mode-diffusion-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background: var(--gray-50);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--gray-200);
+    }
+
+    .mode-toggle-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: white;
+      color: var(--gray-700);
+    }
+
+    .mode-toggle-btn:hover {
+      background: var(--gray-100);
+    }
+
+    .mode-toggle-btn.active {
+      background: var(--primary-blue);
+      color: white;
+    }
+
+    .mode-toggle-btn.active.general {
+      background: var(--green-600);
+    }
+
+    .mode-toggle-btn.active.restreint {
+      background: var(--orange-600);
+    }
+
     /* Modal */
     .modal {
       display: none;
@@ -825,9 +865,23 @@
 
                 <div class="detail-row">
                   <span class="detail-icon">🔐</span>
-                  <span class="badge-mode badge-${entreprise.mode_diffusion}">
-                    ${entreprise.mode_diffusion === 'general' ? 'Diffusion générale' : 'Diffusion restreinte'}
-                  </span>
+                  <div class="mode-diffusion-control">
+                    <span style="font-size: 12px; color: var(--gray-600); font-weight: 600;">Mode diffusion:</span>
+                    <button 
+                      class="mode-toggle-btn ${entreprise.mode_diffusion === 'general' ? 'active general' : ''}" 
+                      onclick="toggleModeDiffusion('${entreprise.id}', 'general')"
+                      title="Autoriser l'entreprise à voir les tickets en diffusion générale (marketplace)"
+                    >
+                      🌐 Général
+                    </button>
+                    <button 
+                      class="mode-toggle-btn ${entreprise.mode_diffusion === 'restreint' ? 'active restreint' : ''}" 
+                      onclick="toggleModeDiffusion('${entreprise.id}', 'restreint')"
+                      title="Limiter l'entreprise aux tickets assignés uniquement"
+                    >
+                      🔒 Restreint
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -957,6 +1011,50 @@
         closeCreateModal();
       }
     });
+
+    // =======================================================
+    // TOGGLE MODE DIFFUSION (M38)
+    // =======================================================
+    async function toggleModeDiffusion(entrepriseId, newMode) {
+      console.log('[MODE] Changement mode diffusion:', { entrepriseId, newMode });
+      
+      try {
+        // Appel RPC M38
+        const { data, error } = await supabase.rpc('update_entreprise_mode_diffusion', {
+          p_entreprise_id: entrepriseId,
+          p_mode_diffusion: newMode
+        });
+        
+        if (error) {
+          console.error('[MODE] Erreur RPC:', error);
+          alert(`❌ Erreur lors du changement de mode:\n${error.message}`);
+          return;
+        }
+        
+        if (!data.success) {
+          console.error('[MODE] Changement refusé:', data.error);
+          alert(`❌ Changement refusé:\n${data.error}`);
+          return;
+        }
+        
+        console.log('[MODE] Succès:', data);
+        
+        // Message de confirmation avec explication
+        const modeLabel = newMode === 'general' ? 'DIFFUSION GÉNÉRALE (Marketplace)' : 'DIFFUSION RESTREINTE';
+        const explication = newMode === 'general' 
+          ? 'Cette entreprise verra tous les tickets diffusés en mode général + les tickets qui lui sont assignés.'
+          : 'Cette entreprise verra uniquement les tickets qui lui sont directement assignés.';
+        
+        alert(`✅ Mode mis à jour: ${modeLabel}\n\n${explication}`);
+        
+        // Recharger liste pour refléter changement
+        await loadEntreprises();
+        
+      } catch (error) {
+        console.error('[MODE] Exception:', error);
+        alert(`❌ Erreur inattendue:\n${error.message}`);
+      }
+    }
   </script>
 </body>
 </html>
