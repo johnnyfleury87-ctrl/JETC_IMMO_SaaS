@@ -222,28 +222,50 @@
       btnLogin.textContent = 'Connexion...';
       
       try {
-        console.log('[LOGIN][SUPABASE] Tentative connexion pour:', email);
+        console.log('[LOGIN][STEP 1] Submitting login for:', email);
         
         // ✅ CORRECTION : Login DIRECT via Supabase (crée session côté client)
+        console.log('[LOGIN][STEP 2] Calling signInWithPassword...');
         const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
           email: email,
           password: password
         });
         
         if (authError) {
-          console.error('[LOGIN][SUPABASE][ERROR]', authError);
-          showError('Email ou mot de passe incorrect');
+          console.error('[LOGIN][STEP 2 FAILED]', {
+            code: authError.code,
+            message: authError.message,
+            status: authError.status,
+            name: authError.name
+          });
+          
+          // Messages d'erreur spécifiques
+          let errorMessage = 'Email ou mot de passe incorrect';
+          
+          if (authError.message?.includes('Email not confirmed')) {
+            errorMessage = '📧 Veuillez confirmer votre email avant de vous connecter.\nConsultez votre boîte mail.';
+          } else if (authError.message?.includes('Invalid login credentials')) {
+            errorMessage = '❌ Email ou mot de passe incorrect.\nVérifiez vos identifiants.';
+          } else if (authError.message?.includes('Email link is invalid')) {
+            errorMessage = '🔗 Le lien de connexion a expiré.\nDemandez un nouveau lien.';
+          } else if (authError.code === 'user_not_found') {
+            errorMessage = '❌ Aucun compte trouvé avec cet email.';
+          }
+          
+          showError(errorMessage);
           btnLogin.disabled = false;
           btnLogin.textContent = 'Se connecter';
           return;
         }
         
-        console.log('[LOGIN][SUPABASE] ✅ Authentification réussie, session créée côté client');
-        console.log('[LOGIN][SESSION]', {
+        console.log('[LOGIN][STEP 2 OK] Auth successful', {
           userId: authData.user.id,
           email: authData.user.email,
+          emailConfirmedAt: authData.user.email_confirmed_at,
           hasSession: !!authData.session
         });
+        
+        console.log('[LOGIN][STEP 3] Fetching user profile...');
         
         // Récupérer le profil pour vérifier le rôle
         const { data: profile, error: profileError } = await supabase
@@ -253,20 +275,25 @@
           .single();
         
         if (profileError || !profile) {
-          console.error('[LOGIN][PROFILE][ERROR]', profileError);
-          showError('Erreur lors de la récupération du profil');
+          console.error('[LOGIN][STEP 3 FAILED] Profile not found', {
+            error: profileError,
+            userId: authData.user.id
+          });
+          showError('❌ Profil introuvable.\nContactez l\'administrateur.');
           await supabase.auth.signOut();
           btnLogin.disabled = false;
           btnLogin.textContent = 'Se connecter';
           return;
         }
         
-        console.log('[LOGIN][PROFILE]', {
+        console.log('[LOGIN][STEP 3 OK] Profile retrieved', {
+          profileId: profile.id,
           role: profile.role,
           email: profile.email
         });
         
         // ✅ VÉRIFICATION SPÉCIFIQUE : Si régie, vérifier statut_validation
+        console.log('[LOGIN][STEP 4] Role-specific validation...');
         if (profile.role === 'regie') {
           const { data: regie, error: regieError } = await supabase
             .from('regies')
@@ -306,8 +333,10 @@
             return;
           }
           
-          console.log('[LOGIN][REGIE] ✅ Statut valide, accès autorisé');
+          console.log('[LOGIN][STEP 4 OK] Regie validation passed, statut:', regie.statut_validation);
         }
+        
+        console.log('[LOGIN][STEP 5] Determining redirect route for role:', profile.role);
         
         // ✅ SESSION CRÉÉE - Redirection selon rôle
         showSuccess('Connexion réussie ! Redirection...');
@@ -323,13 +352,15 @@
         
         const targetRoute = dashboardRoutes[profile.role] || '/locataire/dashboard.html';
         
-        console.log('[LOGIN][REDIRECT]', {
+        console.log('[LOGIN][STEP 6] Redirecting to dashboard', {
           role: profile.role,
-          targetPath: targetRoute
+          targetPath: targetRoute,
+          willRedirectIn: '500ms'
         });
         
         // Redirection immédiate
         setTimeout(() => {
+          console.log('[LOGIN][STEP 6 OK] Executing redirect to:', targetRoute);
           window.location.replace(targetRoute);
         }, 500);
         

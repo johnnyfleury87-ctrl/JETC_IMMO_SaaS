@@ -1,0 +1,234 @@
+```
+┌────────────────────────────────────────────────────────────────┐
+│          🔧 FIX LOGIN ENTREPRISE - RÉSUMÉ VISUEL              │
+└────────────────────────────────────────────────────────────────┘
+
+🔴 PROBLÈME IDENTIFIÉ
+══════════════════════════════════════════════════════════════════
+❌ Login échoue avec "Email ou mot de passe incorrect"
+❌ Compte créé avec email_confirm: false
+❌ email_confirmed_at = NULL dans auth.users
+❌ Supabase bloque signInWithPassword() si email non confirmé
+❌ Identifiants temporaires inutilisables
+
+
+🔍 DIAGNOSTIC DÉTAILLÉ
+══════════════════════════════════════════════════════════════════
+Fichier: api/regie/create-entreprise-account.js (ligne 126)
+
+AVANT (BUG):
+┌──────────────────────────────────────────────────────────────┐
+│  const { data: userData, error: userError } = await admin   │
+│    .auth.admin.createUser({                                  │
+│      email: body.email,                                      │
+│      password: tempPassword,                                 │
+│      email_confirm: false,  // ❌ BLOQUE LE LOGIN           │
+│      user_metadata: {...}                                    │
+│    });                                                       │
+└──────────────────────────────────────────────────────────────┘
+
+CONSÉQUENCE:
+  auth.users.email_confirmed_at = NULL
+       ↓
+  signInWithPassword() → 400 Bad Request
+       ↓
+  "Email ou mot de passe incorrect"
+
+
+✅ CORRECTION APPLIQUÉE
+══════════════════════════════════════════════════════════════════
+Fichier: api/regie/create-entreprise-account.js (ligne 126)
+
+APRÈS (FIX):
+┌──────────────────────────────────────────────────────────────┐
+│  const { data: userData, error: userError } = await admin   │
+│    .auth.admin.createUser({                                  │
+│      email: body.email,                                      │
+│      password: tempPassword,                                 │
+│      email_confirm: true,  // ✅ PERMET LOGIN IMMÉDIAT      │
+│      user_metadata: {...}                                    │
+│    });                                                       │
+│                                                              │
+│  console.log('[CREATE-ENTREPRISE][Step 5 OK] User', {       │
+│    userId: userData.user.id,                                 │
+│    email: userData.user.email,                               │
+│    emailConfirmedAt: userData.user.email_confirmed_at,       │
+│    hasPassword: true                                         │
+│  });                                                         │
+└──────────────────────────────────────────────────────────────┘
+
+RÉSULTAT:
+  auth.users.email_confirmed_at = NOW()
+       ↓
+  signInWithPassword() → 200 OK
+       ↓
+  Connexion réussie + session active
+
+
+📊 LOGS FRONTEND AMÉLIORÉS
+══════════════════════════════════════════════════════════════════
+Fichier: public/login.html
+
+AJOUT: Logs détaillés par étape
+┌──────────────────────────────────────────────────────────────┐
+│  [LOGIN][STEP 1] Submitting login for: entreprise@test.app  │
+│  [LOGIN][STEP 2] Calling signInWithPassword...              │
+│  [LOGIN][STEP 2 OK] Auth successful {                       │
+│    userId: "uuid-...",                                       │
+│    email: "entreprise@test.app",                             │
+│    emailConfirmedAt: "2025-01-27T12:00:00Z",  // ✅         │
+│    hasSession: true                                          │
+│  }                                                           │
+│  [LOGIN][STEP 3] Fetching user profile...                   │
+│  [LOGIN][STEP 3 OK] Profile retrieved {                     │
+│    role: "entreprise", ...                                   │
+│  }                                                           │
+│  [LOGIN][STEP 4] Role-specific validation...                │
+│  [LOGIN][STEP 5] Determining redirect route...              │
+│  [LOGIN][STEP 6] Redirecting to dashboard {                 │
+│    targetPath: "/entreprise/dashboard.html"                 │
+│  }                                                           │
+└──────────────────────────────────────────────────────────────┘
+
+AMÉLIORATION: Messages d'erreur spécifiques
+┌──────────────────────────────────────────────────────────────┐
+│  authError.message = "Email not confirmed"                  │
+│    → "📧 Veuillez confirmer votre email..."                 │
+│                                                              │
+│  authError.message = "Invalid login credentials"            │
+│    → "❌ Email ou mot de passe incorrect..."                │
+│                                                              │
+│  authError.code = "user_not_found"                          │
+│    → "❌ Aucun compte trouvé avec cet email"                │
+│                                                              │
+│  profileError (pas de profil)                               │
+│    → "❌ Profil introuvable. Contactez l'administrateur"    │
+└──────────────────────────────────────────────────────────────┘
+
+
+🧪 VALIDATION SQL
+══════════════════════════════════════════════════════════════════
+Fichier: supabase/migrations/debug_entreprise_login.sql
+
+Script en 7 étapes pour diagnostiquer :
+
+1️⃣ Vérifier auth.users
+   ↓ email_confirmed_at NOT NULL ?
+   
+2️⃣ Vérifier profiles
+   ↓ role = 'entreprise' ?
+   
+3️⃣ Vérifier entreprises
+   ↓ profile_id lié ?
+   
+4️⃣ Vérifier regies_entreprises
+   ↓ mode_diffusion valide ?
+   
+5️⃣ Simulation query JOIN
+   ↓ Toutes les jointures OK ?
+   
+6️⃣ Vérifier RLS policies
+   ↓ Pas de blocage RLS ?
+   
+7️⃣ Cleanup (si besoin)
+
+
+🔄 FLUX COMPLET CORRIGÉ
+══════════════════════════════════════════════════════════════════
+
+  RÉGIE CRÉE ENTREPRISE
+         │
+         ├─► [API] create-entreprise-account.js
+         │    │
+         │    ├─► [STEP 5] auth.admin.createUser({
+         │    │              email_confirm: true  ✅
+         │    │            })
+         │    │    ↓
+         │    │   auth.users.email_confirmed_at = NOW()  ✅
+         │    │
+         │    ├─► [STEP 6] INSERT profiles (role='entreprise')
+         │    ├─► [STEP 7] INSERT entreprises
+         │    └─► [STEP 8] INSERT regies_entreprises
+         │
+         ├─► SUCCÈS: Affiche identifiants temporaires
+         │            email: entreprise@test.app
+         │            pwd: GNzMYSsF#Gn$
+         │
+         └─► ENTREPRISE UTILISE IDENTIFIANTS
+                  │
+                  ├─► [LOGIN PAGE] public/login.html
+                  │    │
+                  │    ├─► [STEP 2] signInWithPassword({
+                  │    │              email, password
+                  │    │            })
+                  │    │    ↓
+                  │    │   ✅ Supabase vérifie:
+                  │    │      - Password hash match
+                  │    │      - email_confirmed_at NOT NULL ✅
+                  │    │    ↓
+                  │    │   200 OK + Session créée
+                  │    │
+                  │    ├─► [STEP 3] Fetch profile (role='entreprise')
+                  │    ├─► [STEP 4] Validation spécifique (skip pour entreprise)
+                  │    ├─► [STEP 5] Déterminer route: /entreprise/dashboard.html
+                  │    └─► [STEP 6] window.location.replace(route)
+                  │
+                  └─► 🎉 SUCCÈS: Dashboard entreprise chargé
+
+
+📁 FICHIERS MODIFIÉS
+══════════════════════════════════════════════════════════════════
+✅ api/regie/create-entreprise-account.js  (ligne 126 + logs)
+✅ public/login.html                        (logs STEP 1-6 + erreurs)
+✅ supabase/migrations/debug_entreprise_login.sql  (NOUVEAU)
+✅ TEST_LOGIN_ENTREPRISE.md                 (NOUVEAU - guide complet)
+
+
+🚀 DÉPLOIEMENT
+══════════════════════════════════════════════════════════════════
+1. git add -A
+2. git commit -m "fix(entreprise): Enable immediate login (email_confirm: true) + detailed logs"
+3. git push origin main
+4. Vercel auto-deploy
+5. Tester avec entreprise@test.app / GNzMYSsF#Gn$
+
+
+📝 CHECKLIST POST-DÉPLOIEMENT
+══════════════════════════════════════════════════════════════════
+[ ] Créer entreprise via régie UI
+[ ] Copier identifiants affichés dans modale
+[ ] Se déconnecter de la session régie
+[ ] Login avec identifiants entreprise
+[ ] Vérifier logs console [LOGIN][STEP 1-6]
+[ ] Vérifier redirection vers /entreprise/dashboard.html
+[ ] Vérifier tickets affichés selon mode_diffusion
+[ ] Vérifier session persistante (F5)
+
+
+🎯 RÉSULTAT ATTENDU
+══════════════════════════════════════════════════════════════════
+✅ Création entreprise avec compte → SUCCÈS
+✅ Identifiants temporaires affichés → SUCCÈS
+✅ Login avec identifiants → SUCCÈS (plus d'erreur)
+✅ Redirection dashboard → /entreprise/dashboard.html
+✅ Session active → Rechargement OK
+✅ Tickets filtrés → Selon mode_diffusion (restreint/general)
+
+
+🔐 SÉCURITÉ
+══════════════════════════════════════════════════════════════════
+⚠️  Mot de passe temporaire affiché UNE SEULE FOIS
+⚠️  Transmettre via canal sécurisé (SMS, appel, email chiffré)
+⚠️  TODO: Forcer changement mot de passe au premier login
+
+Pourquoi email_confirm: true est sécurisé ici ?
+- Création faite par admin (régie validée)
+- Pas d'auto-inscription (pas de spam)
+- Entreprise reçoit identifiants via canal sécurisé
+- Alternative email confirmation serait inutile vu workflow
+
+
+══════════════════════════════════════════════════════════════════
+              🎉 FIX COMPLET - PRÊT À TESTER 🎉
+══════════════════════════════════════════════════════════════════
+```

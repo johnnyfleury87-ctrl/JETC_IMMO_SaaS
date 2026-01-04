@@ -120,10 +120,12 @@ export default async function handler(req, res) {
     // Générer mot de passe temporaire sécurisé
     const tempPassword = generateTempPassword();
 
+    console.log('[CREATE-ENTREPRISE] Step 5.1: Temp password generated (length:', tempPassword.length + ')');
+
     const { data: newUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
       email: email,
       password: tempPassword,
-      email_confirm: false, // Email non confirmé (activation requise)
+      email_confirm: true, // ✅ Confirmé immédiatement pour permettre login avec identifiants temporaires
       user_metadata: {
         role: 'entreprise',
         created_by: 'regie',
@@ -140,7 +142,12 @@ export default async function handler(req, res) {
     }
 
     const newUserId = newUser.user.id;
-    console.log('[CREATE-ENTREPRISE] Step 5 OK: Auth user created:', newUserId);
+    console.log('[CREATE-ENTREPRISE] Step 5 OK: Auth user created', {
+      id: newUserId,
+      email: newUser.user.email,
+      email_confirmed_at: newUser.user.email_confirmed_at,
+      created_at: newUser.user.created_at
+    });
 
     // =======================================================
     // 6. CRÉER PROFILE (via RLS - policy M29 autorise)
