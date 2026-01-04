@@ -887,12 +887,24 @@
 
         console.log('[CREATE] Entreprise créée:', newEntreprise.id);
 
-        // ÉTAPE 2: Créer lien regies_entreprises
+        // ÉTAPE 2: Récupérer regie_id via get_user_regie_id() (cohérence RLS)
+        console.log('[CREATE] Récupération regie_id via RLS...');
+        const { data: regieIdData, error: regieIdError } = await supabase
+          .rpc('get_user_regie_id');
+
+        if (regieIdError) {
+          console.error('[CREATE] Erreur get_user_regie_id:', regieIdError);
+          throw regieIdError;
+        }
+
+        console.log('[CREATE] Regie ID (RLS):', regieIdData, 'vs currentRegie.id:', currentRegie.id);
+
+        // ÉTAPE 3: Créer lien regies_entreprises avec regie_id RLS
         console.log('[CREATE] Création autorisation régie...');
         const { error: authError } = await supabase
           .from('regies_entreprises')
           .insert({
-            regie_id: currentRegie.id,
+            regie_id: regieIdData,  // Utiliser get_user_regie_id() pour cohérence RLS
             entreprise_id: newEntreprise.id,
             mode_diffusion: 'restreint' // Par défaut
           });
