@@ -555,11 +555,11 @@
       </div>
     </main>
 
-    <!-- Modal Validation (nouveau → ouvert) -->
+    <!-- Modal Validation M32: Validation + Diffusion en un seul flux -->
     <div id="modal-validation" class="modal-overlay">
       <div class="modal-content">
-        <h3>✅ Valider le ticket</h3>
-        <p style="color: var(--gray-600); margin-bottom: 20px;">Définir la priorité et le plafond d'intervention</p>
+        <h3>✅ Valider et diffuser le ticket</h3>
+        <p style="color: var(--gray-600); margin-bottom: 20px;">Définir priorité, plafond et mode de diffusion</p>
         
         <div class="form-group">
           <label for="validation-priorite">Priorité *</label>
@@ -572,13 +572,27 @@
         </div>
 
         <div class="form-group">
-          <label for="validation-plafond">Plafond d'intervention (CHF)</label>
-          <input type="number" id="validation-plafond" placeholder="Ex: 500" min="0" step="50">
+          <label for="validation-plafond">Plafond d'intervention (CHF) *</label>
+          <input type="number" id="validation-plafond" placeholder="Ex: 500" min="1" step="50" required>
+        </div>
+
+        <div class="form-group">
+          <label for="validation-mode">Mode de diffusion *</label>
+          <select id="validation-mode" onchange="toggleEntrepriseRestreint()">
+            <option value="general">Général (toutes entreprises autorisées)</option>
+            <option value="restreint">Restreint (une entreprise spécifique)</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="entreprise-restreint-group" style="display: none;">
+          <label for="validation-entreprise">ID Entreprise *</label>
+          <input type="text" id="validation-entreprise" placeholder="UUID de l'entreprise assignée">
+          <small style="color: var(--gray-500);">Utilisez RPC get_entreprises_autorisees() pour lister les entreprises</small>
         </div>
 
         <div class="btn-group">
           <button class="btn-cancel" onclick="closeValidationModal()">Annuler</button>
-          <button class="btn-confirm" onclick="confirmValidation()">Valider le ticket</button>
+          <button class="btn-confirm" onclick="confirmValidation()">✅ Valider et diffuser</button>
         </div>
       </div>
     </div>
@@ -786,14 +800,14 @@
       
       const statutCssClass = statut.replace(/_/g, '_');
       
-      // Actions selon statut
+      // Actions selon statut (utiliser data-attributes pour éviter problèmes échappement)
       let actionButtons = '';
       if (statut === 'nouveau') {
-        actionButtons = `<button class="btn-action btn-valider" onclick="openValidationModal('${ticket.id}', '${escapeHtml(ticket.titre)}')">✅ Valider</button>`;
+        actionButtons = `<button class="btn-action btn-valider" data-ticket-id="${ticket.id}" onclick="openValidationModal(this.dataset.ticketId)">✅ Valider</button>`;
       } else if (statut === 'ouvert') {
-        actionButtons = `<button class="btn-action btn-diffuser" onclick="openDiffuserModal('${ticket.id}', '${escapeHtml(ticket.titre)}')">📢 Diffuser</button>`;
+        actionButtons = `<button class="btn-action btn-diffuser" data-ticket-id="${ticket.id}" onclick="openDiffuserModal(this.dataset.ticketId)">📢 Diffuser</button>`;
       } else if (statut === 'termine') {
-        actionButtons = `<button class="btn-action btn-cloturer" onclick="cloturerTicket('${ticket.id}', '${escapeHtml(ticket.titre)}')">🔒 Clôturer</button>`;
+        actionButtons = `<button class="btn-action btn-cloturer" data-ticket-id="${ticket.id}" onclick="cloturerTicket(this.dataset.ticketId)">🔒 Clôturer</button>`;
       }
       
       const plafondHtml = ticket.plafond_intervention_chf 
@@ -866,8 +880,8 @@
     // ACTIONS RÉGIE
     // ============================================
 
-    // VALIDATION (nouveau → ouvert)
-    function openValidationModal(ticketId, ticketTitre) {
+    // VALIDATION (nouveau → en_attente) - M32 RPC unique
+    function openValidationModal(ticketId) {
       console.log('[MODAL] Ouverture modal validation:', ticketId);
       currentTicketIdForValidation = ticketId;
       document.getElementById('modal-validation').classList.add('active');
@@ -875,6 +889,15 @@
       // Reset formulaire
       document.getElementById('validation-priorite').value = 'normale';
       document.getElementById('validation-plafond').value = '';
+      document.getElementById('validation-mode').value = 'general';
+      document.getElementById('validation-entreprise').value = '';
+      document.getElementById('entreprise-restreint-group').style.display = 'none';
+    }
+
+    function toggleEntrepriseRestreint() {
+      const mode = document.getElementById('validation-mode').value;
+      const groupe = document.getElementById('entreprise-restreint-group');
+      groupe.style.display = mode === 'restreint' ? 'block' : 'none';
     }
 
     function closeValidationModal() {
@@ -891,52 +914,60 @@
       
       const priorite = document.getElementById('validation-priorite').value;
       const plafondStr = document.getElementById('validation-plafond').value.trim();
-      const plafond = plafondStr ? parseFloat(plafondStr) : null;
+      const modeDiffusion = document.getElementById('validation-mode').value;
+      const entrepriseId = document.getElementById('validation-entreprise').value.trim();
       
-      console.log('[REGIE][ACTION] Validation ticket:', {
+      // Validation plafond obligatoire (M32)
+      if (!plafondStr || parseFloat(plafondStr) <= 0) {
+        alert('❌ Le plafond d\'intervention est obligatoire et doit être > 0 CHF');
+        return;
+      }
+      const plafond = parseFloat(plafondStr);
+      
+      // Validation entreprise_id si mode restreint
+      if (modeDiffusion === 'restreint' && !entrepriseId) {
+        alert('❌ L\'ID entreprise est obligatoire en mode restreint');
+        return;
+      }
+      
+      console.log('[REGIE][ACTION] Validation ticket M32:', {
         ticketId: currentTicketIdForValidation,
         priorite,
-        plafond
+        plafond,
+        modeDiffusion,
+        entrepriseId: modeDiffusion === 'restreint' ? entrepriseId : null
       });
       
       try {
-        // ✅ M22.5: 1. Mettre à jour priorité et plafond via RPC
-        // AVANT: .from('tickets').update(...) → Récursion RLS
-        // APRÈS: .rpc('update_ticket_regie', {...}) → Bypass RLS
-        const { data: updateData, error: updateError } = await supabase.rpc('update_ticket_regie', {
+        // ✅ M32: Utiliser RPC valider_ticket_regie (validation + diffusion en 1 appel)
+        const { data, error } = await supabase.rpc('valider_ticket_regie', {
           p_ticket_id: currentTicketIdForValidation,
-          p_priorite: priorite,
-          p_plafond_intervention_chf: plafond
+          p_plafond_chf: plafond,
+          p_mode_diffusion: modeDiffusion,
+          p_entreprise_id: modeDiffusion === 'restreint' ? entrepriseId : null
         });
         
-        if (updateError) {
-          console.error('[REGIE][ACTION] ❌ Erreur RPC update:', updateError);
-          alert(`❌ Erreur mise à jour:\n${updateError.message}`);
+        if (error) {
+          console.error('[REGIE][ACTION] ❌ Erreur RPC valider_ticket_regie:', error);
+          alert(`❌ Erreur validation:\n${error.message}`);
           return;
         }
         
-        console.log('[REGIE][ACTION] ✅ Ticket mis à jour:', updateData);
-        
-        // 2. Changer statut via RPC existante
-        const { error: rpcError } = await supabase.rpc('update_ticket_statut', {
-          p_ticket_id: currentTicketIdForValidation,
-          p_nouveau_statut: 'ouvert'
-        });
-        
-        if (rpcError) {
-          console.error('[REGIE][ACTION] ❌ Erreur RPC statut:', rpcError);
-          alert(`❌ Erreur validation:\n${rpcError.message}`);
+        // Vérifier le résultat (format JSONB)
+        if (data && !data.success) {
+          console.error('[REGIE][ACTION] ❌ RPC retour error:', data.error);
+          alert(`❌ Validation refusée:\n${data.error}`);
           return;
         }
         
-        console.log('[REGIE][ACTION] ✅ Ticket validé avec succès');
-        alert('✅ Ticket validé avec succès !');
+        console.log('[REGIE][ACTION] ✅ Ticket validé et diffusé:', data);
+        alert(`✅ Ticket validé et diffusé avec succès !\nMode: ${modeDiffusion}\nStatut: en_attente`);
         
         closeValidationModal();
         
-        // Recharger sections
+        // Recharger sections concernées
         await loadTicketsByStatut('nouveau', 'tickets-nouveaux-list', 'count-nouveau');
-        await loadTicketsByStatut('ouvert', 'tickets-ouverts-list', 'count-ouvert');
+        await loadTicketsByStatut('en_attente', 'tickets-attente-list', 'count-en_attente');
         
       } catch (error) {
         console.error('[ACTION] Exception validation:', error);
@@ -944,16 +975,12 @@
       }
     }
 
-    // DIFFUSION (ouvert → en_attente)
-    function openDiffuserModal(ticketId, ticketTitre) {
+    // DIFFUSION (ouvert → en_attente) - OBSOLÈTE, fusionné dans validation M32
+    function openDiffuserModal(ticketId) {
       console.log('[MODAL] Ouverture modal diffusion:', ticketId);
-      currentTicketIdForDiffusion = ticketId;
-      document.getElementById('modal-diffusion').classList.add('active');
-      
-      // Reset formulaire
-      document.getElementById('mode-diffusion').value = 'public';
-      document.getElementById('entreprise-id').value = '';
-      document.getElementById('entreprise-group').style.display = 'none';
+      alert('⚠️ Cette action est maintenant intégrée dans la validation du ticket.');
+      // Rediriger vers validation
+      openValidationModal(ticketId);
     }
 
     function closeDiffuserModal() {

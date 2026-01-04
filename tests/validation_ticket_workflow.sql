@@ -1,8 +1,11 @@
 -- ============================================================
--- VALIDATION WORKFLOW TICKETS RÉGIE-ENTREPRISE
+-- VALIDATION WORKFLOW TICKETS RÉGIE-ENTREPRISE (M31-M35)
 -- ============================================================
--- Objectif: Valider la suite logique complète (M31-M34)
+-- Objectif: Valider la suite logique complète (M31-M35)
 -- Création locataire → Validation régie → Diffusion entreprise
+-- ============================================================
+-- IMPORTANT: Exécuter APRÈS application de M31-M35 !
+-- Terminologie standardisée: 'general' et 'restreint' (plus 'public'/'assigné')
 -- ============================================================
 
 -- ========================================
@@ -48,10 +51,10 @@ END $$;
 
 
 -- ========================================
--- TEST 2: Régie valide ticket avec plafond + mode
+-- TEST 2: Régie valide ticket avec plafond + mode (M32 RPC)
 -- ========================================
 SELECT 
-  '--- TEST 2: Validation régie (RPC valider_ticket_regie) ---' AS test_name;
+  '--- TEST 2: Validation régie (RPC valider_ticket_regie M32) ---' AS test_name;
 
 DO $$
 DECLARE
@@ -75,20 +78,20 @@ BEGIN
   JOIN regies_entreprises re ON re.entreprise_id = e.id
   LIMIT 1;
   
-  -- Simuler validation régie avec mode RESTREINT
+  -- Simuler validation régie avec mode RESTREINT (M32)
   RAISE NOTICE '🔍 Appeler RPC: SELECT valider_ticket_regie(ticket_id: %, plafond: 500.00, mode: restreint, entreprise: %)', v_ticket_id, v_entreprise_id;
   
-  -- Vérifier UPDATE attendu (simule résultat)
-  RAISE NOTICE '✅ TEST 2: Attendu → statut=en_attente, plafond=500.00, mode=restreint, entreprise_id=%', v_entreprise_id;
-  RAISE NOTICE '✅ TEST 2: Attendu → plafond_valide_par=% (auth.uid), plafond_valide_at=NOW()', v_regie_profile_id;
+  -- Vérifier UPDATE attendu (simule résultat M32)
+  RAISE NOTICE '✅ TEST 2: Attendu → statut=en_attente (plus ouvert!), plafond=500.00, mode=restreint, entreprise_id=%', v_entreprise_id;
+  RAISE NOTICE '✅ TEST 2: Attendu → plafond_valide_par=% (auth.uid), plafond_valide_at=NOW(), diffuse_par=%, diffuse_at=NOW()', v_regie_profile_id, v_regie_profile_id;
 END $$;
 
 
 -- ========================================
--- TEST 3: Entreprise autorisée voit ticket mode GENERAL
+-- TEST 3: Entreprise autorisée voit ticket mode GENERAL (M34-M35)
 -- ========================================
 SELECT 
-  '--- TEST 3: Entreprise voit ticket mode GENERAL (RLS policy) ---' AS test_name;
+  '--- TEST 3: Entreprise voit ticket mode GENERAL (RLS policy M34-M35) ---' AS test_name;
 
 DO $$
 DECLARE
@@ -96,21 +99,23 @@ DECLARE
   v_regie_id uuid;
   v_entreprise_profile_id uuid;
 BEGIN
-  -- Créer ticket mode GENERAL
+  -- Créer ticket mode GENERAL (terminologie M35)
   SELECT id INTO v_regie_id FROM regies LIMIT 1;
   
   INSERT INTO tickets (titre, description, categorie, priorite, statut, mode_diffusion, plafond_intervention_chf, regie_id, locataire_id, logement_id)
   SELECT 
-    'TEST M34: Ticket mode GENERAL',
+    'TEST M34-M35: Ticket mode GENERAL',
     'Visible par toutes entreprises autorisées',
     'electricite',
     'normale',
     'en_attente',
-    'general',
+    'general',  -- ✅ Terminologie harmonisée M35
     300.00,
     v_regie_id,
     (SELECT id FROM locataires WHERE regie_id = v_regie_id LIMIT 1),
-    (SELECT id FROM logements LIMIT 1)
+    (SELECT l.id FROM logements l
+     JOIN immeubles i ON i.id = l.immeuble_id
+     WHERE i.regie_id = v_regie_id LIMIT 1)
   RETURNING id INTO v_ticket_general;
   
   RAISE NOTICE '✅ TEST 3: Ticket GENERAL créé (id: %)', v_ticket_general;
@@ -124,15 +129,15 @@ BEGIN
   LIMIT 1;
   
   RAISE NOTICE '🔍 Simuler auth context: set_config(''request.jwt.claims'', ''{"sub":"%"}'', true)', v_entreprise_profile_id;
-  RAISE NOTICE '✅ TEST 3: Attendu → Entreprise voit ticket via Policy "Entreprise can view general tickets"';
+  RAISE NOTICE '✅ TEST 3: Attendu → Entreprise voit ticket via Policy "Entreprise can view general tickets" (M34-M35)';
 END $$;
 
 
 -- ========================================
--- TEST 4: Seule entreprise assignée voit ticket mode RESTREINT
+-- TEST 4: Seule entreprise assignée voit ticket mode RESTREINT (M34-M35)
 -- ========================================
 SELECT 
-  '--- TEST 4: Entreprise assignée voit ticket RESTREINT (RLS policy) ---' AS test_name;
+  '--- TEST 4: Entreprise assignée voit ticket RESTREINT (RLS policy M34-M35) ---' AS test_name;
 
 DO $$
 DECLARE
@@ -141,7 +146,7 @@ DECLARE
   v_entreprise_assignee uuid;
   v_entreprise_autre uuid;
 BEGIN
-  -- Créer ticket mode RESTREINT
+  -- Créer ticket mode RESTREINT (terminologie M35)
   SELECT id INTO v_regie_id FROM regies LIMIT 1;
   SELECT id INTO v_entreprise_assignee FROM entreprises WHERE id IN (
     SELECT entreprise_id FROM regies_entreprises WHERE regie_id = v_regie_id LIMIT 1
@@ -150,21 +155,23 @@ BEGIN
   
   INSERT INTO tickets (titre, description, categorie, priorite, statut, mode_diffusion, plafond_intervention_chf, entreprise_id, regie_id, locataire_id, logement_id)
   SELECT 
-    'TEST M34: Ticket mode RESTREINT',
+    'TEST M34-M35: Ticket mode RESTREINT',
     'Visible uniquement par entreprise assignée',
     'menuiserie',
     'normale',
     'en_attente',
-    'restreint',
+    'restreint',  -- ✅ Terminologie harmonisée M35
     500.00,
     v_entreprise_assignee,
     v_regie_id,
     (SELECT id FROM locataires WHERE regie_id = v_regie_id LIMIT 1),
-    (SELECT id FROM logements LIMIT 1)
+    (SELECT l.id FROM logements l
+     JOIN immeubles i ON i.id = l.immeuble_id
+     WHERE i.regie_id = v_regie_id LIMIT 1)
   RETURNING id INTO v_ticket_restreint;
   
   RAISE NOTICE '✅ TEST 4: Ticket RESTREINT créé (id: %), assigné à entreprise: %', v_ticket_restreint, v_entreprise_assignee;
-  RAISE NOTICE '🔍 TEST 4A: Entreprise assignée DOIT voir ticket via Policy "Entreprise can view assigned tickets"';
+  RAISE NOTICE '🔍 TEST 4A: Entreprise assignée DOIT voir ticket via Policy "Entreprise can view assigned tickets" (M34-M35)';
   RAISE NOTICE '🔍 TEST 4B: Entreprise autre (id: %) NE DOIT PAS voir ticket', v_entreprise_autre;
 END $$;
 
@@ -186,9 +193,10 @@ SELECT
   diffuse_at,
   statut,
   CASE 
-    WHEN plafond_valide_par IS NOT NULL AND plafond_valide_at IS NOT NULL THEN '✅ Traceability OK'
+    WHEN plafond_valide_par IS NOT NULL AND plafond_valide_at IS NOT NULL 
+         AND diffuse_par IS NOT NULL AND diffuse_at IS NOT NULL THEN '✅ Traceability M31 complète'
     WHEN plafond_valide_par IS NULL AND plafond_valide_at IS NULL THEN '⚠️ Pas encore validé (normal si ticket nouveau)'
-    ELSE '❌ Traceability incomplète'
+    ELSE '❌ Traceability M31 incomplète'
   END AS validation_status
 FROM tickets
 WHERE titre LIKE 'TEST M%'
