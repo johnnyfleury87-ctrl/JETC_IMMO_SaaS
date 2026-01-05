@@ -640,11 +640,77 @@
         // 🔴 ACTION 1 : Charger les régies en attente
         await loadRegiesEnAttente();
         
+        // 🔴 ACTION 2 : Charger les statistiques globales
+        await loadStats();
+        
       } catch (error) {
         console.error('[DASHBOARD][ERROR]', error);
         console.log('[DASHBOARD][REDIRECT] Raison: Exception', error.message);
         alert('Erreur technique. Reconnexion requise.');
         window.location.href = '/login.html';
+      }
+    }
+
+    // ============================================
+    // CHARGEMENT DES STATISTIQUES GLOBALES
+    // ============================================
+    
+    async function loadStats() {
+      console.log('[STATS] Chargement des statistiques globales...');
+      
+      try {
+        // Charger les stats depuis la vue admin_dashboard (consolidée)
+        const { data: stats, error: statsError } = await supabase
+          .from('admin_dashboard')
+          .select('*')
+          .single();
+        
+        if (statsError) {
+          console.error('[STATS][ERROR]', statsError);
+          console.error('[STATS][ERROR] Message:', statsError.message);
+          console.error('[STATS][ERROR] Code:', statsError.code);
+          console.error('[STATS][ERROR] Details:', statsError.details);
+          
+          // Afficher l'erreur en UI (temporaire pour debug)
+          document.getElementById('error').textContent = 
+            `Erreur chargement stats: ${statsError.message} (${statsError.code})`;
+          document.getElementById('error').style.display = 'block';
+          
+          return;
+        }
+        
+        console.log('[STATS] Statistiques chargées:', stats);
+        
+        if (!stats) {
+          console.warn('[STATS] Aucune statistique retournée');
+          return;
+        }
+        
+        // Mettre à jour les compteurs
+        document.getElementById('stat-regies').textContent = stats.total_regies || 0;
+        document.getElementById('stat-regies-30j').textContent = stats.regies_30_jours || 0;
+        
+        document.getElementById('stat-immeubles').textContent = stats.total_immeubles || 0;
+        document.getElementById('stat-immeubles-30j').textContent = stats.immeubles_30_jours || 0;
+        
+        document.getElementById('stat-logements').textContent = stats.total_logements || 0;
+        document.getElementById('stat-logements-30j').textContent = stats.logements_30_jours || 0;
+        
+        document.getElementById('stat-locataires').textContent = stats.total_locataires || 0;
+        document.getElementById('stat-locataires-30j').textContent = stats.locataires_30_jours || 0;
+        
+        document.getElementById('stat-tickets').textContent = stats.total_tickets || 0;
+        document.getElementById('stat-tickets-30j').textContent = stats.tickets_30_jours || 0;
+        
+        document.getElementById('stat-entreprises').textContent = stats.total_entreprises || 0;
+        document.getElementById('stat-entreprises-30j').textContent = stats.entreprises_30_jours || 0;
+        
+        console.log('[STATS] ✅ Statistiques mises à jour');
+        
+      } catch (error) {
+        console.error('[STATS][EXCEPTION]', error);
+        document.getElementById('error').textContent = 'Erreur technique : ' + error.message;
+        document.getElementById('error').style.display = 'block';
       }
     }
 
