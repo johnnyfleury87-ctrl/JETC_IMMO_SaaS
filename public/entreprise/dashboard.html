@@ -559,7 +559,7 @@
           <span class="menu-icon">🎫</span>
           <span class="menu-label">Tickets disponibles</span>
         </a>
-        <a href="#" class="menu-item disabled">
+        <a href="#" class="menu-item" data-view="missions" onclick="switchView('missions')">
           <span class="menu-icon">🏗️</span>
           <span class="menu-label">Mes missions</span>
         </a>
@@ -595,6 +595,21 @@
           <div class="loading-state">
             <div style="font-size: 32px; margin-bottom: 10px;">⏳</div>
             <p>Chargement des tickets disponibles...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section Mes Missions -->
+      <div id="mesMissionsSection" class="mes-missions-section" style="display: none;">
+        <h2>🏗️ Mes missions</h2>
+        <p style="color: var(--gray-600); margin-bottom: 20px;">
+          Missions créées suite à l'acceptation de tickets.
+        </p>
+        
+        <div id="missionsListContainer">
+          <div class="loading-state">
+            <div style="font-size: 32px; margin-bottom: 10px;">⏳</div>
+            <p>Chargement de vos missions...</p>
           </div>
         </div>
       </div>
@@ -778,6 +793,7 @@
       
       // Masquer toutes les sections
       document.getElementById('ticketsDisponiblesSection').style.display = 'none';
+      document.getElementById('mesMissionsSection').style.display = 'none';
       
       // Retirer classe active des menu items
       document.querySelectorAll('.menu-item').forEach(item => {
@@ -789,6 +805,10 @@
         document.getElementById('ticketsDisponiblesSection').style.display = 'block';
         document.querySelector('[data-view="tickets"]').classList.add('active');
         loadTicketsDisponibles();
+      } else if (view === 'missions') {
+        document.getElementById('mesMissionsSection').style.display = 'block';
+        document.querySelector('[data-view="missions"]').classList.add('active');
+        loadMesMissions();
       }
     }
 
@@ -859,6 +879,133 @@
       const container = document.getElementById('ticketsListContainer');
       const html = `<div class="tickets-list">${tickets.map(renderTicketCard).join('')}</div>`;
       container.innerHTML = html;
+    }
+
+    // ========== LISTE MES MISSIONS ==========
+    async function loadMesMissions() {
+      console.log('[MISSIONS] Chargement missions entreprise');
+      
+      const container = document.getElementById('missionsListContainer');
+      container.innerHTML = '<div class="loading-state"><div style="font-size: 32px; margin-bottom: 10px;">⏳</div><p>Chargement de vos missions...</p></div>';
+      
+      try {
+        if (!window.currentEntreprise?.id) {
+          container.innerHTML = '<div class="error-state"><h3>Erreur</h3><p>Aucune entreprise trouvée.</p></div>';
+          return;
+        }
+        
+        // Charger missions via vue missions_details (contient toutes les infos)
+        const { data: missions, error } = await supabase
+          .from('missions')
+          .select(`
+            *,
+            tickets (
+              id,
+              titre,
+              description,
+              categorie,
+              sous_categorie,
+              priorite,
+              statut,
+              created_at,
+              plafond_intervention_chf
+            )
+          `)
+          .eq('entreprise_id', window.currentEntreprise.id)
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error('[MISSIONS] Erreur:', error);
+          container.innerHTML = `<div class="error-state"><h3>Erreur</h3><p>${error.message}</p></div>`;
+          return;
+        }
+        
+        console.log('[MISSIONS] Missions chargées:', missions?.length || 0);
+        
+        if (!missions || missions.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">📋</div>
+              <h3>Aucune mission en cours</h3>
+              <p>Vous n'avez pas encore accepté de tickets.</p>
+              <p style="font-size: 13px; margin-top: 10px;">Consultez les <a href="#" onclick="switchView('tickets'); return false;" style="color: var(--primary-blue); text-decoration: underline;">tickets disponibles</a> pour accepter une mission.</p>
+            </div>
+          `;
+          return;
+        }
+        
+        // Afficher missions
+        renderMissionsList(missions);
+        
+      } catch (error) {
+        console.error('[MISSIONS] Exception:', error);
+        container.innerHTML = `<div class="error-state"><h3>Erreur</h3><p>${error.message}</p></div>`;
+      }
+    }
+
+    function renderMissionsList(missions) {
+      const container = document.getElementById('missionsListContainer');
+      const html = `<div class="tickets-list">${missions.map(renderMissionCard).join('')}</div>`;
+      container.innerHTML = html;
+    }
+
+    function renderMissionCard(mission) {
+      const dateCreation = new Date(mission.created_at).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      const ticket = mission.tickets;
+      
+      return `
+        <div class="ticket-card">
+          <h3>${escapeHtml(ticket?.titre || 'Mission sans titre')}</h3>
+          <p class="ticket-card-description">${escapeHtml(ticket?.description || 'Aucune description')}</p>
+          
+          <div class="ticket-card-meta">
+            <span class="badge-statut badge-${mission.statut}">${getMissionStatutLabel(mission.statut)}</span>
+            ${ticket?.priorite ? `<span class="badge-priorite badge-${ticket.priorite}">${ticket.priorite}</span>` : ''}
+            ${ticket?.categorie ? `<span style="font-size: 12px; color: var(--gray-500);">${ticket.categorie}</span>` : ''}
+          </div>
+          
+          <div class="ticket-card-infos">
+            <div class="ticket-card-info-item">
+              <label>Mission créée le</label>
+              <span>📅 ${dateCreation}</span>
+            </div>
+            <div class="ticket-card-info-item">
+              <label>Statut mission</label>
+              <span>${getMissionStatutLabel(mission.statut)}</span>
+            </div>
+            ${ticket?.plafond_intervention_chf ? `
+            <div class="ticket-card-info-item">
+              <label>Plafond intervention</label>
+              <span>CHF ${ticket.plafond_intervention_chf.toFixed(2)}</span>
+            </div>
+            ` : ''}
+            ${mission.montant ? `
+            <div class="ticket-card-info-item">
+              <label>Montant mission</label>
+              <span>CHF ${mission.montant.toFixed(2)}</span>
+            </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    function getMissionStatutLabel(statut) {
+      const labels = {
+        'en_attente': 'En attente',
+        'en_cours': 'En cours',
+        'terminee': 'Terminée',
+        'validee': 'Validée',
+        'annulee': 'Annulée'
+      };
+      return labels[statut] || statut;
     }
 
     function renderTicketCard(ticket) {
@@ -987,10 +1134,12 @@
         
         console.log('[ACCEPTER] Mission créée:', data);
         
-        alert('✅ Ticket accepté avec succès !\n\nUne mission a été créée.');
+        alert('✅ Ticket accepté avec succès !\n\nUne mission a été créée. Vous allez être redirigé vers vos missions.');
         
-        // Recharger liste
-        loadTicketsDisponibles();
+        // Basculer vers vue Mes missions
+        setTimeout(() => {
+          switchView('missions');
+        }, 500);
         
       } catch (error) {
         console.error('[ACCEPTER] Exception:', error);
