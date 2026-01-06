@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Entreprise de services - JETC_IMMO</title>
   <link rel="stylesheet" href="/css/design-system.css">
-  <!-- ✅ CRITIQUE : Charger CDN Supabase AVANT supabaseClient.js -->
+  <!-- ✅ BOOTSTRAP SUPABASE UNIQUE -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/supabaseClient.js"></script>
+  <script src="/js/bootstrapSupabase.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -689,7 +689,10 @@
     // ========== AUTHENTIFICATION ==========
     async function checkAuth() {
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        // Attendre bootstrap
+        await window.__SUPABASE_READY__;
+        
+        const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
         
         if (sessionError || !session) {
           console.log('[DASHBOARD ENTREPRISE] Non authentifié');
@@ -698,7 +701,7 @@
         }
         
         // Vérifier que c'est bien une entreprise
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile, error: profileError } = await window.supabaseClient
           .from('profiles')
           .select('role, email')
           .eq('id', session.user.id)
@@ -744,7 +747,7 @@
       try {
         console.log('[ENTREPRISE] Chargement données pour profile_id:', profileId);
         
-        const { data: entreprise, error } = await supabase
+        const { data: entreprise, error } = await window.supabaseClient
           .from('entreprises')
           .select('id, nom, siret, adresse, ville')
           .eq('profile_id', profileId)
@@ -779,7 +782,7 @@
     async function logout() {
       console.log('[LOGOUT] Déconnexion en cours...');
       try {
-        await supabase.auth.signOut();
+        await window.supabaseClient.auth.signOut();
         console.log('[LOGOUT] Déconnexion réussie');
       } catch (error) {
         console.error('[LOGOUT] Erreur:', error);
@@ -827,7 +830,7 @@
         
         // Utiliser vue tickets_visibles_entreprise avec filtre entreprise_id
         // La vue filtre déjà selon RLS + mode_diffusion + statut='en_attente' + locked_at IS NULL
-        const { data: tickets, error } = await supabase
+        const { data: tickets, error } = await window.supabaseClient
           .from('tickets_visibles_entreprise')
           .select('*')
           .eq('visible_par_entreprise_id', window.currentEntreprise.id)
@@ -856,7 +859,7 @@
         // Charger disponibilités pour chaque ticket (en parallèle)
         const ticketsWithDispos = await Promise.all(
           tickets.map(async (ticket) => {
-            const { data: disponibilites } = await supabase
+            const { data: disponibilites } = await window.supabaseClient
               .from('tickets_disponibilites')
               .select('*')
               .eq('ticket_id', ticket.id)
@@ -895,7 +898,7 @@
         }
         
         // Charger missions via vue missions_details (contient toutes les infos)
-        const { data: missions, error } = await supabase
+        const { data: missions, error } = await window.supabaseClient
           .from('missions')
           .select(`
             *,
@@ -1113,7 +1116,7 @@
         }
         
         // Appel RPC accept_ticket_and_create_mission (M05 + M41)
-        const { data, error } = await supabase.rpc('accept_ticket_and_create_mission', rpcParams);
+        const { data, error } = await window.supabaseClient.rpc('accept_ticket_and_create_mission', rpcParams);
         
         if (error) {
           console.error('[ACCEPTER] Erreur RPC:', error);
@@ -1175,7 +1178,7 @@
       
       try {
         // Charger ticket
-        const { data: ticket, error } = await supabase
+        const { data: ticket, error } = await window.supabaseClient
           .from('tickets_visibles_entreprise')
           .select('*')
           .eq('id', ticketId)
@@ -1188,7 +1191,7 @@
         }
         
         // Charger disponibilités
-        const { data: disponibilites } = await supabase
+        const { data: disponibilites } = await window.supabaseClient
           .from('tickets_disponibilites')
           .select('*')
           .eq('ticket_id', ticketId)
