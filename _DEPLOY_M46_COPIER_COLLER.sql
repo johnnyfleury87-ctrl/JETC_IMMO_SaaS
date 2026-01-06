@@ -79,7 +79,7 @@ USING (profile_id = auth.uid());
 
 CREATE POLICY "Regie can view techniciens of authorized entreprises"
 ON techniciens FOR SELECT
-USING (EXISTS (SELECT 1 FROM regies r WHERE r.profile_id = auth.uid() AND r.actif = true));
+USING (EXISTS (SELECT 1 FROM regies r WHERE r.profile_id = auth.uid()));
 
 CREATE POLICY "Admin JTEC can view all techniciens"
 ON techniciens FOR SELECT

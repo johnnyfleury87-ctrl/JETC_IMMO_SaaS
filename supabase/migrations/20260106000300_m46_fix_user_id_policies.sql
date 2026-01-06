@@ -125,7 +125,6 @@ USING (
   EXISTS (
     SELECT 1 FROM regies r
     WHERE r.profile_id = auth.uid()
-    AND r.actif = true
   )
 );
 
