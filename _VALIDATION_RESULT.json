@@ -1,0 +1,35 @@
+{
+  "date": "2026-01-06T06:04:15.292Z",
+  "score": {
+    "total": 14,
+    "ok": 14,
+    "percentage": 100
+  },
+  "details": {
+    "backend": {
+      "total": 4,
+      "ok": 4,
+      "errors": []
+    },
+    "frontend": {
+      "total": 2,
+      "ok": 2,
+      "errors": []
+    },
+    "database": {
+      "total": 3,
+      "ok": 3,
+      "errors": []
+    },
+    "rls": {
+      "total": 1,
+      "ok": 1,
+      "errors": []
+    },
+    "documentation": {
+      "total": 4,
+      "ok": 4,
+      "errors": []
+    }
+  }
+}

@@ -88,8 +88,7 @@ module.exports = async (req, res) => {
       .from('profiles')
       .insert({
         id: authUser.user.id,
-        nom,
-        prenom,
+        email: email,
         role: 'technicien'
       });
 
@@ -111,10 +110,14 @@ module.exports = async (req, res) => {
     const { data: technicien, error: createTechError } = await supabaseAdmin
       .from('techniciens')
       .insert({
-        id: authUser.user.id,
+        profile_id: authUser.user.id,
         entreprise_id: profile.entreprise_id,
+        nom,
+        prenom,
+        email,
         telephone,
-        specialites: specialites || []
+        specialites: specialites || [],
+        actif: true
       })
       .select()
       .single();

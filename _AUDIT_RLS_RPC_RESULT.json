@@ -1,0 +1,27 @@
+{
+  "rls_tests": {
+    "techniciens_anon": {
+      "status": "⚠️ permissif",
+      "http_status": 200
+    }
+  },
+  "rpc_functions": {
+    "assign_technicien_to_mission": {
+      "status": "✅ existe"
+    }
+  },
+  "recommendations": [
+    "Vérifier les policies RLS de la table techniciens"
+  ],
+  "structure_checks": {
+    "techniciens": {
+      "status": "✅ conforme"
+    },
+    "missions": {
+      "status": "✅ conforme"
+    },
+    "entreprises": {
+      "status": "✅ conforme"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+Rôles détectés le 06/01/2026 06:07:22:
+
+- admin_jtec
+- entreprise
+- locataire
+- regie

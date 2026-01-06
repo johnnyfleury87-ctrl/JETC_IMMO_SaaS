@@ -43,7 +43,7 @@ module.exports = async (req, res) => {
     }
 
     // 4️⃣ Récupérer données du body
-    const { technicien_id, telephone, specialites, disponible } = req.body;
+    const { technicien_id, telephone, specialites, actif } = req.body;
 
     if (!technicien_id) {
       return res.status(400).json({ error: 'technicien_id requis' });
@@ -81,7 +81,7 @@ module.exports = async (req, res) => {
     
     if (telephone !== undefined) updateData.telephone = telephone;
     if (specialites !== undefined) updateData.specialites = specialites;
-    if (disponible !== undefined) updateData.disponible = disponible;
+    if (actif !== undefined) updateData.actif = actif;
 
     if (Object.keys(updateData).length === 0) {
       return res.status(400).json({ error: 'Aucune donnée à mettre à jour' });

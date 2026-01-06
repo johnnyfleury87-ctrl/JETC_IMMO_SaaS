@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion des Techniciens - JETC_IMMO</title>
+  <link rel="stylesheet" href="/css/design-system.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabaseClient.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--gray-50);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 30px 40px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    .header p {
+      color: var(--gray-600);
+      margin-top: 5px;
+    }
+
+    .btn-primary {
+      padding: 12px 24px;
+      background: var(--primary-blue);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-blue);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+      padding: 8px 16px;
+      background: white;
+      color: var(--gray-700);
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: var(--gray-50);
+      border-color: var(--gray-400);
+    }
+
+    .btn-danger {
+      padding: 8px 16px;
+      background: var(--red-500);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .btn-danger:hover {
+      background: var(--red-600);
+    }
+
+    .btn-back {
+      padding: 10px 16px;
+      background: white;
+      color: var(--gray-700);
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+      font-size: 14px;
+      transition: all 0.2s;
+      margin-bottom: 20px;
+    }
+
+    .btn-back:hover {
+      background: var(--gray-50);
+      border-color: var(--gray-400);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 24px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      border-left: 4px solid var(--primary-blue);
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--gray-600);
+    }
+
+    .techniciens-table {
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: var(--gray-50);
+      border-bottom: 2px solid var(--gray-200);
+    }
+
+    th {
+      padding: 16px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--gray-700);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    td {
+      padding: 16px;
+      border-bottom: 1px solid var(--gray-100);
+      color: var(--gray-700);
+    }
+
+    tbody tr:hover {
+      background: var(--gray-50);
+    }
+
+    .badge-actif {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .badge-inactif {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #fecaca;
+      color: #991b1b;
+    }
+
+    .specialites-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .specialite-tag {
+      background: var(--blue-50);
+      color: var(--primary-blue);
+      padding: 3px 8px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .actions-cell {
+      display: flex;
+      gap: 8px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+
+    .empty-state h3 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--gray-900);
+      margin-bottom: 8px;
+    }
+
+    .empty-state p {
+      color: var(--gray-600);
+      margin-bottom: 20px;
+    }
+
+    .loading-state {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: var(--radius-lg);
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-xl);
+      transform: scale(0.9);
+      transition: transform 0.3s;
+    }
+
+    .modal-overlay.show .modal-content {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h3 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--gray-900);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 28px;
+      color: var(--gray-400);
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+      background: var(--gray-100);
+      color: var(--gray-600);
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      color: var(--gray-700);
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .form-group small {
+      display: block;
+      margin-top: 5px;
+      color: var(--gray-500);
+      font-size: 12px;
+    }
+
+    .specialites-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .specialite-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .specialite-checkbox input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+    }
+
+    .specialite-checkbox label {
+      margin: 0;
+      font-weight: 400;
+      color: var(--gray-700);
+      cursor: pointer;
+    }
+
+    .modal-footer {
+      padding: 20px 24px;
+      border-top: 1px solid var(--gray-200);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .alert {
+      padding: 16px;
+      border-radius: var(--radius-md);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: start;
+      gap: 12px;
+    }
+
+    .alert-error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+    }
+
+    .alert-success {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/entreprise/dashboard.html" class="btn-back">
+      <span>←</span>
+      <span>Retour au dashboard</span>
+    </a>
+
+    <div class="header">
+      <div>
+        <h1>👥 Gestion des Techniciens</h1>
+        <p>Créez et gérez vos techniciens pour les assigner à vos missions</p>
+      </div>
+      <button class="btn-primary" onclick="openCreateModal()">
+        <span>+</span>
+        <span>Créer un technicien</span>
+      </button>
+    </div>
+
+    <div id="alertContainer"></div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-label">Techniciens total</div>
+      </div>
+      <div class="stat-card" style="border-left-color: var(--green-500);">
+        <div class="stat-value" id="statActifs">0</div>
+        <div class="stat-label">Techniciens actifs</div>
+      </div>
+      <div class="stat-card" style="border-left-color: var(--red-500);">
+        <div class="stat-value" id="statInactifs">0</div>
+        <div class="stat-label">Techniciens inactifs</div>
+      </div>
+    </div>
+
+    <div class="techniciens-table">
+      <div id="techniciensListContainer">
+        <div class="loading-state">
+          <div style="font-size: 48px; margin-bottom: 16px;">⏳</div>
+          <p>Chargement de vos techniciens...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Créer/Modifier Technicien -->
+  <div id="modalTechnicien" class="modal-overlay" onclick="closeModalIfOverlay(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="modalTitle">Créer un technicien</h3>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="formTechnicien" onsubmit="handleSubmit(event)">
+          <div class="form-group">
+            <label for="nom">Nom *</label>
+            <input type="text" id="nom" name="nom" required>
+          </div>
+
+          <div class="form-group">
+            <label for="prenom">Prénom *</label>
+            <input type="text" id="prenom" name="prenom" required>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email *</label>
+            <input type="email" id="email" name="email" required>
+            <small>Sera utilisé pour la connexion du technicien</small>
+          </div>
+
+          <div class="form-group">
+            <label for="telephone">Téléphone</label>
+            <input type="tel" id="telephone" name="telephone">
+          </div>
+
+          <div class="form-group">
+            <label>Spécialités</label>
+            <div class="specialites-selector">
+              <div class="specialite-checkbox">
+                <input type="checkbox" id="spec-plomberie" value="Plomberie">
+                <label for="spec-plomberie">Plomberie</label>
+              </div>
+              <div class="specialite-checkbox">
+                <input type="checkbox" id="spec-electricite" value="Électricité">
+                <label for="spec-electricite">Électricité</label>
+              </div>
+              <div class="specialite-checkbox">
+                <input type="checkbox" id="spec-serrurerie" value="Serrurerie">
+                <label for="spec-serrurerie">Serrurerie</label>
+              </div>
+              <div class="specialite-checkbox">
+                <input type="checkbox" id="spec-chauffage" value="Chauffage">
+                <label for="spec-chauffage">Chauffage</label>
+              </div>
+              <div class="specialite-checkbox">
+                <input type="checkbox" id="spec-menuiserie" value="Menuiserie">
+                <label for="spec-menuiserie">Menuiserie</label>
+              </div>
+              <div class="specialite-checkbox">
+                <input type="checkbox" id="spec-peinture" value="Peinture">
+                <label for="spec-peinture">Peinture</label>
+              </div>
+            </div>
+          </div>
+
+          <input type="hidden" id="technicien_id" name="technicien_id">
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeModal()">Annuler</button>
+        <button type="submit" form="formTechnicien" class="btn-primary">
+          <span id="btnSubmitText">Créer</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let techniciens = [];
+    let currentMode = 'create'; // 'create' or 'edit'
+
+    // =========================================
+    // INITIALISATION
+    // =========================================
+    async function init() {
+      try {
+        // Vérifier authentification
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error || !session) {
+          window.location.href = '/login.html';
+          return;
+        }
+
+        // Charger les techniciens
+        await loadTechniciens();
+      } catch (error) {
+        console.error('Erreur initialisation:', error);
+        showAlert('Erreur lors de l\'initialisation', 'error');
+      }
+    }
+
+    // =========================================
+    // CHARGEMENT DES TECHNICIENS
+    // =========================================
+    async function loadTechniciens() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          window.location.href = '/login.html';
+          return;
+        }
+
+        const response = await fetch('/api/techniciens/list', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Erreur chargement techniciens');
+        }
+
+        const data = await response.json();
+        techniciens = data.techniciens || [];
+        
+        updateStats();
+        renderTechniciens();
+      } catch (error) {
+        console.error('Erreur chargement techniciens:', error);
+        showAlert(`Erreur: ${error.message}`, 'error');
+        
+        // Afficher état vide en cas d'erreur
+        document.getElementById('techniciensListContainer').innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">⚠️</div>
+            <h3>Erreur de chargement</h3>
+            <p>${error.message}</p>
+            <button class="btn-primary" onclick="loadTechniciens()">Réessayer</button>
+          </div>
+        `;
+      }
+    }
+
+    // =========================================
+    // AFFICHAGE DES TECHNICIENS
+    // =========================================
+    function renderTechniciens() {
+      const container = document.getElementById('techniciensListContainer');
+
+      if (techniciens.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">👥</div>
+            <h3>Aucun technicien</h3>
+            <p>Commencez par créer votre premier technicien</p>
+            <button class="btn-primary" onclick="openCreateModal()">
+              <span>+</span>
+              <span>Créer un technicien</span>
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      const tableHTML = `
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Email</th>
+                <th>Téléphone</th>
+                <th>Spécialités</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${techniciens.map(tech => `
+                <tr>
+                  <td>
+                    <strong>${tech.nom || ''} ${tech.prenom || ''}</strong>
+                  </td>
+                  <td>${tech.email || '-'}</td>
+                  <td>${tech.telephone || '-'}</td>
+                  <td>
+                    <div class="specialites-list">
+                      ${(tech.specialites || []).map(spec => 
+                        `<span class="specialite-tag">${spec}</span>`
+                      ).join('') || '<span style="color: var(--gray-400);">Aucune</span>'}
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge-${tech.actif ? 'actif' : 'inactif'}">
+                      ${tech.actif ? 'Actif' : 'Inactif'}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="actions-cell">
+                      <button class="btn-secondary" onclick="openEditModal('${tech.id}')">
+                        Modifier
+                      </button>
+                      ${tech.actif ? 
+                        `<button class="btn-secondary" onclick="toggleActif('${tech.id}', false)">
+                          Désactiver
+                        </button>` : 
+                        `<button class="btn-secondary" onclick="toggleActif('${tech.id}', true)">
+                          Activer
+                        </button>`
+                      }
+                      <button class="btn-danger" onclick="confirmDelete('${tech.id}', '${tech.nom} ${tech.prenom}')">
+                        Supprimer
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      container.innerHTML = tableHTML;
+    }
+
+    // =========================================
+    // MISE À JOUR DES STATISTIQUES
+    // =========================================
+    function updateStats() {
+      const total = techniciens.length;
+      const actifs = techniciens.filter(t => t.actif).length;
+      const inactifs = total - actifs;
+
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statActifs').textContent = actifs;
+      document.getElementById('statInactifs').textContent = inactifs;
+    }
+
+    // =========================================
+    // MODAL - OUVRIR/FERMER
+    // =========================================
+    function openCreateModal() {
+      currentMode = 'create';
+      document.getElementById('modalTitle').textContent = 'Créer un technicien';
+      document.getElementById('btnSubmitText').textContent = 'Créer';
+      document.getElementById('formTechnicien').reset();
+      document.getElementById('technicien_id').value = '';
+      document.getElementById('email').disabled = false;
+      
+      document.getElementById('modalTechnicien').classList.add('show');
+    }
+
+    function openEditModal(technicienId) {
+      const tech = techniciens.find(t => t.id === technicienId);
+      if (!tech) return;
+
+      currentMode = 'edit';
+      document.getElementById('modalTitle').textContent = 'Modifier le technicien';
+      document.getElementById('btnSubmitText').textContent = 'Enregistrer';
+      
+      document.getElementById('technicien_id').value = tech.id;
+      document.getElementById('nom').value = tech.nom || '';
+      document.getElementById('prenom').value = tech.prenom || '';
+      document.getElementById('email').value = tech.email || '';
+      document.getElementById('email').disabled = true; // Ne pas modifier l'email
+      document.getElementById('telephone').value = tech.telephone || '';
+
+      // Cocher les spécialités
+      document.querySelectorAll('.specialite-checkbox input[type="checkbox"]').forEach(cb => {
+        cb.checked = (tech.specialites || []).includes(cb.value);
+      });
+
+      document.getElementById('modalTechnicien').classList.add('show');
+    }
+
+    function closeModal() {
+      document.getElementById('modalTechnicien').classList.remove('show');
+      document.getElementById('formTechnicien').reset();
+    }
+
+    function closeModalIfOverlay(event) {
+      if (event.target.classList.contains('modal-overlay')) {
+        closeModal();
+      }
+    }
+
+    // =========================================
+    // SOUMISSION FORMULAIRE
+    // =========================================
+    async function handleSubmit(event) {
+      event.preventDefault();
+
+      const formData = new FormData(event.target);
+      const data = {
+        nom: formData.get('nom'),
+        prenom: formData.get('prenom'),
+        email: formData.get('email'),
+        telephone: formData.get('telephone'),
+        specialites: []
+      };
+
+      // Récupérer les spécialités cochées
+      document.querySelectorAll('.specialite-checkbox input[type="checkbox"]:checked').forEach(cb => {
+        data.specialites.push(cb.value);
+      });
+
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          window.location.href = '/login.html';
+          return;
+        }
+
+        let url, method;
+        if (currentMode === 'create') {
+          url = '/api/techniciens/create';
+          method = 'POST';
+        } else {
+          url = '/api/techniciens/update';
+          method = 'PATCH';
+          data.technicien_id = document.getElementById('technicien_id').value;
+        }
+
+        const response = await fetch(url, {
+          method: method,
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Erreur lors de la sauvegarde');
+        }
+
+        showAlert(
+          currentMode === 'create' 
+            ? 'Technicien créé avec succès !' 
+            : 'Technicien mis à jour avec succès !',
+          'success'
+        );
+
+        closeModal();
+        await loadTechniciens();
+
+      } catch (error) {
+        console.error('Erreur soumission:', error);
+        showAlert(`Erreur: ${error.message}`, 'error');
+      }
+    }
+
+    // =========================================
+    // ACTIVER / DÉSACTIVER TECHNICIEN
+    // =========================================
+    async function toggleActif(technicienId, actif) {
+      if (!confirm(`Êtes-vous sûr de vouloir ${actif ? 'activer' : 'désactiver'} ce technicien ?`)) {
+        return;
+      }
+
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          window.location.href = '/login.html';
+          return;
+        }
+
+        const response = await fetch('/api/techniciens/update', {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            technicien_id: technicienId,
+            actif: actif
+          })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Erreur lors de la mise à jour');
+        }
+
+        showAlert(`Technicien ${actif ? 'activé' : 'désactivé'} avec succès !`, 'success');
+        await loadTechniciens();
+
+      } catch (error) {
+        console.error('Erreur toggle actif:', error);
+        showAlert(`Erreur: ${error.message}`, 'error');
+      }
+    }
+
+    // =========================================
+    // SUPPRIMER TECHNICIEN
+    // =========================================
+    function confirmDelete(technicienId, technicienNom) {
+      if (!confirm(`⚠️ ATTENTION !\n\nÊtes-vous sûr de vouloir supprimer définitivement le technicien "${technicienNom}" ?\n\nCette action est irréversible et supprimera :\n- Le compte utilisateur\n- Toutes ses données\n\nSi le technicien a des missions actives, la suppression sera refusée.`)) {
+        return;
+      }
+
+      deleteTechnicien(technicienId);
+    }
+
+    async function deleteTechnicien(technicienId) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          window.location.href = '/login.html';
+          return;
+        }
+
+        const response = await fetch('/api/techniciens/delete', {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            technicien_id: technicienId
+          })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Erreur lors de la suppression');
+        }
+
+        showAlert('Technicien supprimé avec succès !', 'success');
+        await loadTechniciens();
+
+      } catch (error) {
+        console.error('Erreur suppression:', error);
+        showAlert(`Erreur: ${error.message}`, 'error');
+      }
+    }
+
+    // =========================================
+    // ALERTES
+    // =========================================
+    function showAlert(message, type = 'success') {
+      const alertContainer = document.getElementById('alertContainer');
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type}`;
+      alert.innerHTML = `
+        <span>${type === 'error' ? '⚠️' : '✅'}</span>
+        <span>${message}</span>
+      `;
+      
+      alertContainer.appendChild(alert);
+
+      setTimeout(() => {
+        alert.remove();
+      }, 5000);
+    }
+
+    // =========================================
+    // DÉMARRAGE
+    // =========================================
+    init();
+  </script>
+</body>
+</html>
