@@ -1,0 +1,146 @@
+[
+  {
+    "page": "index.html",
+    "exists": true,
+    "supabaseInit": "AUCUN",
+    "authCheck": false,
+    "routing": "AUCUN",
+    "issues": []
+  },
+  {
+    "page": "login.html",
+    "exists": true,
+    "supabaseInit": "BOOTSTRAP (✅ nouveau) + await ready",
+    "authCheck": true,
+    "routing": "AUCUN",
+    "issues": []
+  },
+  {
+    "page": "register.html",
+    "exists": true,
+    "supabaseInit": "AUCUN",
+    "authCheck": false,
+    "routing": "REDIRECTION SIMPLE",
+    "issues": []
+  },
+  {
+    "page": "admin/dashboard.html",
+    "exists": true,
+    "supabaseInit": "CLIENT.JS (⚠️ déprécié)",
+    "authCheck": true,
+    "routing": "BASÉ SUR RÔLE",
+    "issues": [
+      "Utilise ancien supabaseClient.js au lieu de bootstrapSupabase.js",
+      "N'attend pas __SUPABASE_READY__ avant utilisation"
+    ]
+  },
+  {
+    "page": "regie/dashboard.html",
+    "exists": true,
+    "supabaseInit": "CLIENT.JS (⚠️ déprécié)",
+    "authCheck": true,
+    "routing": "BASÉ SUR RÔLE",
+    "issues": [
+      "Utilise ancien supabaseClient.js au lieu de bootstrapSupabase.js",
+      "N'attend pas __SUPABASE_READY__ avant utilisation"
+    ]
+  },
+  {
+    "page": "entreprise/dashboard.html",
+    "exists": true,
+    "supabaseInit": "BOOTSTRAP (✅ nouveau) + await ready",
+    "authCheck": true,
+    "routing": "BASÉ SUR RÔLE",
+    "issues": []
+  },
+  {
+    "page": "entreprise/techniciens.html",
+    "exists": true,
+    "supabaseInit": "BOOTSTRAP (✅ nouveau) + await ready",
+    "authCheck": true,
+    "routing": "REDIRECTION SIMPLE",
+    "issues": []
+  },
+  {
+    "page": "technicien/dashboard.html",
+    "exists": true,
+    "supabaseInit": "AUCUN",
+    "authCheck": false,
+    "routing": "BASÉ SUR RÔLE",
+    "issues": []
+  },
+  {
+    "page": "locataire/dashboard.html",
+    "exists": true,
+    "supabaseInit": "CLIENT.JS (⚠️ déprécié)",
+    "authCheck": true,
+    "routing": "BASÉ SUR RÔLE",
+    "issues": [
+      "Utilise ancien supabaseClient.js au lieu de bootstrapSupabase.js",
+      "N'attend pas __SUPABASE_READY__ avant utilisation"
+    ]
+  },
+  {
+    "page": "proprietaire/dashboard.html",
+    "exists": true,
+    "supabaseInit": "AUCUN",
+    "authCheck": false,
+    "routing": "BASÉ SUR RÔLE",
+    "issues": []
+  },
+  {
+    "page": "regie/tickets.html",
+    "exists": true,
+    "supabaseInit": "CLIENT.JS (⚠️ déprécié)",
+    "authCheck": true,
+    "routing": "BASÉ SUR RÔLE",
+    "issues": [
+      "Utilise ancien supabaseClient.js au lieu de bootstrapSupabase.js",
+      "N'attend pas __SUPABASE_READY__ avant utilisation"
+    ]
+  },
+  {
+    "page": "regie/entreprises.html",
+    "exists": true,
+    "supabaseInit": "CLIENT.JS (⚠️ déprécié)",
+    "authCheck": true,
+    "routing": "BASÉ SUR RÔLE",
+    "issues": [
+      "Utilise ancien supabaseClient.js au lieu de bootstrapSupabase.js",
+      "N'attend pas __SUPABASE_READY__ avant utilisation"
+    ]
+  },
+  {
+    "page": "regie/logements.html",
+    "exists": true,
+    "supabaseInit": "CLIENT.JS (⚠️ déprécié)",
+    "authCheck": true,
+    "routing": "BASÉ SUR RÔLE",
+    "issues": [
+      "Utilise ancien supabaseClient.js au lieu de bootstrapSupabase.js",
+      "N'attend pas __SUPABASE_READY__ avant utilisation"
+    ]
+  },
+  {
+    "page": "regie/locataires.html",
+    "exists": true,
+    "supabaseInit": "CLIENT.JS (⚠️ déprécié)",
+    "authCheck": true,
+    "routing": "BASÉ SUR RÔLE",
+    "issues": [
+      "Utilise ancien supabaseClient.js au lieu de bootstrapSupabase.js",
+      "N'attend pas __SUPABASE_READY__ avant utilisation"
+    ]
+  },
+  {
+    "page": "regie/immeubles.html",
+    "exists": true,
+    "supabaseInit": "CLIENT.JS (⚠️ déprécié)",
+    "authCheck": true,
+    "routing": "BASÉ SUR RÔLE",
+    "issues": [
+      "Utilise ancien supabaseClient.js au lieu de bootstrapSupabase.js",
+      "N'attend pas __SUPABASE_READY__ avant utilisation"
+    ]
+  }
+]

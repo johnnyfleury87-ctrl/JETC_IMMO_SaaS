@@ -6,7 +6,7 @@
   <title>Gestion des immeubles - JETC_IMMO</title>
   <link rel="stylesheet" href="/css/design-system.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/supabaseClient.js"></script>
+  <script src="/js/bootstrapSupabase.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -699,7 +699,11 @@
     // Vérifier l'authentification
     async function checkAuth() {
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        // ✅ Attendre que le bootstrap soit prêt
+        await window.__SUPABASE_READY__;
+        console.log('[IMMEUBLES] ✅ Supabase prêt');
+        
+        const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
         
         if (sessionError || !session) {
           console.log('[IMMEUBLES] Non authentifié');
@@ -708,7 +712,7 @@
         }
         
         // Récupérer le profil
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile, error: profileError } = await window.supabaseClient
           .from('profiles')
           .select('role, email')
           .eq('id', session.user.id)
@@ -722,7 +726,7 @@
         }
 
         // Récupérer la régie
-        const { data: regie, error: regieError } = await supabase
+        const { data: regie, error: regieError } = await window.supabaseClient
           .from('regies')
           .select('id, nom')
           .eq('profile_id', session.user.id)

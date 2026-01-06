@@ -591,9 +591,9 @@
     <!-- MODALS SUPPRIMÉS (maintenant dans tickets.html) -->
   </div>
 
-  <!-- 🔴 ACTION 2 : Charger Supabase (SOURCE DE VÉRITÉ) -->
+  <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/supabaseClient.js"></script>
+  <script src="/js/bootstrapSupabase.js"></script>
   
   <script>
     // ============================================
@@ -616,16 +616,13 @@
     async function checkAuth() {
       console.log('[REGIE][AUTH] Démarrage vérification...');
       
-      // HARD GUARD: Vérifier que Supabase est chargé
-      if (typeof supabase === 'undefined') {
-        console.error('[REGIE][FATAL] Supabase client not loaded');
-        alert('Erreur technique: Client Supabase non chargé. Rechargez la page.');
-        return;
-      }
-      
       try {
+        // ✅ Attendre que le bootstrap soit prêt
+        await window.__SUPABASE_READY__;
+        console.log('[REGIE][AUTH] ✅ Supabase prêt');
+        
         // 1️⃣ Vérifier la session Supabase (SOURCE DE VÉRITÉ)
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
         
         console.log('[REGIE][SESSION]', {
           hasSession: !!session,
@@ -642,7 +639,7 @@
         // 2️⃣ Récupérer le profil utilisateur
         console.log('[REGIE][PROFILE_FETCH] Récupération profil pour user:', session.user.id);
         
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile, error: profileError } = await window.supabaseClient
           .from('profiles')
           .select('id, email, role')
           .eq('id', session.user.id)

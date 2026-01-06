@@ -559,7 +559,7 @@
 
   <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/supabaseClient.js"></script>
+  <script src="/js/bootstrapSupabase.js"></script>
   
   <script>
     // ============================================
@@ -568,16 +568,13 @@
     async function checkAuth() {
       console.log('[DASHBOARD][AUTH] Démarrage vérification...');
       
-      // HARD GUARD: Vérifier que Supabase est chargé
-      if (typeof supabase === 'undefined') {
-        console.error('[DASHBOARD][FATAL] Supabase client not loaded');
-        alert('Erreur technique: Client Supabase non chargé. Rechargez la page.');
-        return;
-      }
-      
       try {
+        // ✅ Attendre que le bootstrap soit prêt
+        await window.__SUPABASE_READY__;
+        console.log('[DASHBOARD][AUTH] ✅ Supabase prêt');
+        
         // Vérifier la session Supabase (SOURCE DE VÉRITÉ)
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
         
         console.log('[DASHBOARD][SESSION]', {
           hasSession: !!session,
@@ -592,7 +589,7 @@
         }
         
         // Récupérer le profil depuis Supabase
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile, error: profileError } = await window.supabaseClient
           .from('profiles')
           .select('id, email, role')
           .eq('id', session.user.id)

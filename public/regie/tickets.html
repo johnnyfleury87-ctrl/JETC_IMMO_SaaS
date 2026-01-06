@@ -625,7 +625,7 @@
 
   <!-- Supabase Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/supabaseClient.js"></script>
+  <script src="/js/bootstrapSupabase.js"></script>
   
   <script>
     // ============================================
@@ -655,16 +655,14 @@
     async function checkAuth() {
       console.log('[TICKETS][AUTH] Vérification...');
       
-      if (typeof supabase === 'undefined') {
-        console.error('[TICKETS][FATAL] Supabase client not loaded');
-        alert('Erreur technique: Client Supabase non chargé. Rechargez la page.');
-        return;
-      }
-      
       try {
+        // ✅ Attendre que le bootstrap soit prêt
+        await window.__SUPABASE_READY__;
+        console.log('[TICKETS][AUTH] ✅ Supabase prêt');
+        
         console.log('[REGIE][DEBUG] 🚀 checkAuth() démarré');
         
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
         console.log('[REGIE][DEBUG] session=', session, 'sessionError=', sessionError);
         
         if (sessionError || !session) {
@@ -675,7 +673,7 @@
           return;
         }
         
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile, error: profileError } = await window.supabaseClient
           .from('profiles')
           .select('id, email, role')
           .eq('id', session.user.id)

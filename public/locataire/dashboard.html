@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Locataire - JETC_IMMO</title>
   <link rel="stylesheet" href="/css/design-system.css">
-  <!-- ✅ CRITIQUE : Charger CDN Supabase AVANT supabaseClient.js -->
+  <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/supabaseClient.js"></script>
+  <script src="/js/bootstrapSupabase.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -1150,7 +1150,11 @@
     // Vérifier authentification et charger les données du locataire
     async function checkAuth() {
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        // ✅ Attendre que le bootstrap soit prêt
+        await window.__SUPABASE_READY__;
+        console.log('[DASHBOARD LOCATAIRE] ✅ Supabase prêt');
+        
+        const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
         
         if (sessionError || !session) {
           console.log('[DASHBOARD LOCATAIRE] Non authentifié');
@@ -1159,7 +1163,7 @@
         }
         
         // Vérifier que c'est bien un locataire
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile, error: profileError } = await window.supabaseClient
           .from('profiles')
           .select('role, email')
           .eq('id', session.user.id)
