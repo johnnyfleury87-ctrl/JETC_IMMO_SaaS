@@ -699,7 +699,7 @@
         }
         
         // Récupérer régie
-        const { data: regie, error: regieError } = await supabase
+        const { data: regie, error: regieError } = await window.supabaseClient
           .from('regies')
           .select('id, nom')  // ✅ Colonne réelle: 'nom' (pas 'nom_agence')
           .eq('profile_id', profile.id)

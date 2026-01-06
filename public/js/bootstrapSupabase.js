@@ -29,6 +29,9 @@
   }
 
   console.log('[BOOTSTRAP] Configuration trouvée');
+  console.log('[BOOTSTRAP] URL:', SUPABASE_URL.substring(0, 30) + '...');
+  console.log('[BOOTSTRAP] Anon key present:', !!SUPABASE_ANON_KEY);
+  console.log('[BOOTSTRAP] Supabase lib loaded:', typeof window.supabase !== 'undefined');
 
   /**
    * Initialiser le client Supabase
