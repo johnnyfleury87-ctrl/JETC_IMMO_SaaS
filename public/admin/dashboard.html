@@ -642,8 +642,9 @@
         
       } catch (error) {
         console.error('[DASHBOARD][ERROR]', error);
+        console.error('[DASHBOARD][ERROR] Stack:', error.stack);
         console.log('[DASHBOARD][REDIRECT] Raison: Exception', error.message);
-        alert('Erreur technique. Reconnexion requise.');
+        alert('❌ Erreur: ' + error.message + '\n\nVoir la console (F12) pour plus de détails.');
         window.location.href = '/login.html';
       }
     }

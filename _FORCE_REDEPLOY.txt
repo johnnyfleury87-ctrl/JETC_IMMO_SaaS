@@ -1,0 +1,122 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 FORCE REDEPLOY - CACHE VERCEL PROBLÉMATIQUE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🐛 PROBLÈME IDENTIFIÉ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Symptôme : Console production affiche ENCORE "supabase.from is not a function"
+Fichiers : logements.html:1012, immeubles.html, locataires.html
+
+Cause ROOT :
+  - Code LOCAL propre (0 occurrence de supabase. sans window.supabaseClient)
+  - Code PRODUCTION obsolète (cache Vercel ou build partiel)
+  - Vercel sert une version ANCIENNE des fichiers malgré les commits
+
+Vérification effectuée :
+  ✅ Scan exhaustif local : 0 occurrence problématique
+  ✅ git show HEAD : 0 occurrence problématique
+  ❌ Production : ENCORE des erreurs (preuve = capture console)
+
+Conclusion : CACHE VERCEL ou BUILD INCOMPLET
+
+🔧 ACTION CORRECTIVE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Méthode : Forcer redeploy en modifiant TOUTES les pages régie
+
+Fichiers modifiés (ajout commentaire <!-- Force redeploy 2026-01-06 -->) :
+  ✅ public/regie/dashboard.html
+  ✅ public/regie/locataires.html
+  ✅ public/regie/immeubles.html
+  ✅ public/regie/logements.html
+  ✅ public/regie/tickets.html
+  ✅ public/regie/entreprises.html
+
+Raison : Forcer Vercel à invalider le cache et rebuilder TOUTES les pages
+
+🚀 DÉPLOIEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Commit  : a52eada
+Message : fix(P0-URGENT): Force redeploy TOUTES pages régie - cache Vercel
+Branch  : main
+Statut  : ✅ PUSHED
+
+Historique récent :
+  a52eada - Force redeploy pages régie
+  3e02a39 - Fix tickets.html ligne 702
+  4b12f74 - Fix auth-standard.js
+  f6304a6 - Force redeploy précédent
+  d867898 - Fix REGIE+LOCATAIRE
+
+⏰ TEMPS D'ATTENTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build Vercel : 2-3 minutes
+Propagation CDN : 1-2 minutes
+
+Total : Attendre 3-5 minutes avant de tester
+
+⚠️ TESTS OBLIGATOIRES (APRÈS 5 MIN)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. VIDER CACHE NAVIGATEUR (obligatoire)
+   Chrome/Edge : Ctrl+Shift+Delete → Cocher "Images et fichiers en cache"
+   Ou : Mode navigation privée
+
+2. SE CONNECTER EN RÉGIE
+   Email : johnny.thiriet@gmail.com
+   Pass  : TestJetc2026!
+
+3. TESTER CHAQUE VUE
+   [ ] Dashboard → Pas d'erreur console
+   [ ] Locataires → Liste chargée, pas d'erreur console
+   [ ] Immeubles → Liste chargée, pas d'erreur console
+   [ ] Logements → Liste chargée, pas d'erreur console
+   [ ] Tickets → Liste chargée, pas d'erreur console
+   [ ] Entreprises → Liste chargée, pas d'erreur console
+
+4. VÉRIFIER CONSOLE (F12)
+   ✅ DOIT voir : [BOOTSTRAP] logs
+   ✅ DOIT voir : Client initialisé avec succès
+   ❌ NE DOIT PAS voir : supabase.from is not a function
+   ❌ NE DOIT PAS voir : window.supabase is not defined
+
+🎯 RÉSULTAT ATTENDU
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Console propre sur TOUTES les pages :
+  [BOOTSTRAP] Démarrage initialisation Supabase...
+  [BOOTSTRAP] Configuration trouvée
+  [BOOTSTRAP] URL: https://bwzyajsrmfhrxdmfpyqy...
+  [BOOTSTRAP] Anon key present: true
+  [BOOTSTRAP] Supabase lib loaded: true
+  [BOOTSTRAP] ✅ Client initialisé avec succès
+  [PAGE][AUTH] ✅ Supabase prêt
+  [PAGE] Données chargées
+
+UI fonctionnelle :
+  ✅ Listes visibles (locataires, immeubles, logements, tickets)
+  ✅ Navigation fluide
+  ✅ Aucune popup d'erreur
+
+🔍 SI ÇA NE MARCHE TOUJOURS PAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Vérifier que Vercel a BIEN déployé (voir dashboard Vercel)
+2. Vérifier le commit déployé = a52eada
+3. Vider COMPLÈTEMENT le cache navigateur
+4. Tester en navigation privée
+5. Vérifier réseau (F12 → Network) : les fichiers .html ont été re-téléchargés
+
+Si ENCORE des erreurs après 5 min + cache vidé :
+  → Problème de CDN Vercel (rare)
+  → Contacter support Vercel
+  → Ou : Redeploy manuel depuis dashboard Vercel
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Date : 2026-01-06 12:00
+Commit : a52eada
+Statut : FORCE REDEPLOY EN COURS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

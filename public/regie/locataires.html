@@ -815,7 +815,7 @@
         // ============================================
         console.log('[LOCATAIRES][AUTH] User ID:', currentUser.id);
         
-        const { data: profile, error: profileError } = await window.supabase
+        const { data: profile, error: profileError } = await window.supabaseClient
           .from('profiles')
           .select('id, email, role, regie_id')
           .eq('id', currentUser.id)
@@ -828,7 +828,7 @@
         if (profile && profile.regie_id) {
           console.log('[LOCATAIRES][REGIE_ID]', profile.regie_id);
           
-          const { data: regie, error: regieError } = await window.supabase
+          const { data: regie, error: regieError } = await window.supabaseClient
             .from('regies')
             .select('id, nom')
             .eq('id', profile.regie_id)
@@ -929,11 +929,12 @@
 
       } catch (error) {
         console.error('[LOCATAIRES][INIT][EXCEPTION]', error);
+        console.error('[LOCATAIRES][INIT][STACK]', error.stack);
         
         // ✅ PAS d'alert() bloquant
         showWarningBanner(
-          'Erreur technique lors de l\'initialisation. ' +
-          'Rafraîchissez la page ou contactez l\'administrateur.'
+          '❌ Erreur: ' + error.message + '<br>' +
+          'Vérifiez la console (F12) pour plus de détails.'
         );
         
         // Afficher tableau vide (pas de crash)
@@ -949,7 +950,7 @@
       const messageEl = document.getElementById('warningBannerMessage');
       
       if (banner && messageEl) {
-        messageEl.textContent = message;
+        messageEl.innerHTML = message; // ✅ Support HTML pour afficher les erreurs détaillées
         banner.classList.add('show');
       }
     }
@@ -994,7 +995,7 @@
           return;
         }
 
-        const { data: locataires, error } = await window.supabase
+        const { data: locataires, error } = await window.supabaseClient
           .from('locataires')
           .select(`
             *,
@@ -1076,7 +1077,7 @@
           return;
         }
 
-        const { data: logements, error } = await window.supabase
+        const { data: logements, error } = await window.supabaseClient
           .from('logements')
           .select(`
             id,
@@ -1227,7 +1228,7 @@
       }
 
       try {
-        const { data, error } = await window.supabase
+        const { data, error } = await window.supabaseClient
           .rpc('liberer_logement_locataire', {
             p_locataire_id: locataireId,
             p_date_sortie: new Date().toISOString().split('T')[0]
@@ -1313,7 +1314,7 @@
 
       try {
         // Récupérer l'email du locataire
-        const { data: profile } = await window.supabase
+        const { data: profile } = await window.supabaseClient
           .from('profiles')
           .select('email')
           .eq('id', currentLocataireId)

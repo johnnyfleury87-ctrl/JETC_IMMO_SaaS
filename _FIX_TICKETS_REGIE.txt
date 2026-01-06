@@ -1,0 +1,133 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔴 FIX CRITIQUE P0 - RÉGIE TICKETS CASSÉ EN PRODUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🐛 BUG IDENTIFIÉ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Fichier  : public/regie/tickets.html
+Ligne    : 702
+Fonction : checkAuth()
+Erreur   : TypeError: supabase.from is not a function
+
+Code AVANT (INCORRECT):
+  const { data: regie, error: regieError } = await supabase
+    .from('regies')
+
+Code APRÈS (CORRECT):
+  const { data: regie, error: regieError } = await window.supabaseClient
+    .from('regies')
+
+�� ANALYSE ROOT CAUSE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Variable `supabase` non définie dans le scope de checkAuth()
+2. La page attend window.__SUPABASE_READY__ (✅ CORRECT)
+3. La page utilise window.supabaseClient partout SAUF ligne 702
+4. Cette ligne a échappé aux corrections précédentes
+
+Impact:
+- Console: TypeError lors du chargement de /regie/tickets.html
+- UI: Dashboard régie ne peut pas charger les infos de l'agence
+- Cascade: Toutes les fonctions de tickets.html bloquées
+
+🔧 CORRECTIONS APPLIQUÉES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Fichier 1: public/regie/tickets.html
+  Ligne 702: supabase → window.supabaseClient
+  ✅ CORRIGÉ
+
+Fichier 2: public/js/bootstrapSupabase.js
+  Ajout logs debug:
+    [BOOTSTRAP] URL: https://...
+    [BOOTSTRAP] Anon key present: true
+    [BOOTSTRAP] Supabase lib loaded: true
+  ✅ AMÉLIORÉ (debug production)
+
+📊 SCAN EXHAUSTIF POST-FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Patterns vérifiés dans TOUT public/:
+  ❌ supabase.from(        → 0 occurrences
+  ❌ window.supabase.from( → 0 occurrences
+  ❌ supabase.auth.        → 0 occurrences
+  ❌ window.supabase.auth. → 0 occurrences
+  ❌ = supabase;           → 0 occurrences
+  ❌ const supabase =      → 0 occurrences
+
+Fichiers scannés: 53
+Occurrences restantes: 0
+
+Pages rég ie vérifiées:
+  ✅ dashboard.html    → PROPRE
+  ✅ entreprises.html  → PROPRE
+  ✅ tickets.html      → CORRIGÉ
+  ✅ locataires.html   → PROPRE
+  ✅ immeubles.html    → PROPRE
+  ✅ logements.html    → PROPRE
+
+🚀 DÉPLOIEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Commit  : 3e02a39
+Message : fix(P0-CRITIQUE): regie/tickets.html ligne 702 - supabase → window.supabaseClient + logs bootstrap
+Branch  : main
+Statut  : ✅ PUSHED (Vercel build en cours)
+
+Commits précédents (contexte):
+  4b12f74 - fix(P0-CRITIQUE): Corriger auth-standard.js
+  f6304a6 - fix(P0): Force redeploy
+  d867898 - fix(P0): REGIE+LOCATAIRE supabase undefined
+
+⚠️ TESTS OBLIGATOIRES (2-3 min après deploy)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+URL PROD: https://[votre-projet].vercel.app
+
+TEST RÉGIE:
+  [ ] Login: johnny.thiriet@gmail.com / TestJetc2026!
+  [ ] Dashboard affiché
+  [ ] Nom agence visible
+  [ ] Onglet "Tickets" cliquable
+  [ ] /regie/tickets.html charge SANS erreur
+  [ ] Console (F12): ZÉRO "supabase.from is not a function"
+  [ ] Console: Voir [BOOTSTRAP] logs
+  [ ] Console: Voir [TICKETS][AUTH] OK
+  [ ] Tickets visibles (si données existent)
+
+AUTRES VUES RÉGIE (vérifier non régression):
+  [ ] /regie/locataires.html → OK
+  [ ] /regie/immeubles.html → OK
+  [ ] /regie/logements.html → OK
+  [ ] /regie/entreprises.html → OK
+
+🎯 RÉSULTAT ATTENDU
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Console propre:
+  [BOOTSTRAP] Démarrage initialisation Supabase...
+  [BOOTSTRAP] Configuration trouvée
+  [BOOTSTRAP] URL: https://bwzyajsrmfhrxdmfpyqy...
+  [BOOTSTRAP] Anon key present: true
+  [BOOTSTRAP] Supabase lib loaded: true
+  [BOOTSTRAP] ✅ Client initialisé avec succès
+  [TICKETS][AUTH] Vérification...
+  [TICKETS][AUTH] ✅ Supabase prêt
+  [REGIE][DEBUG] 🚀 checkAuth() démarré
+  [REGIE][DEBUG] session= Object {...}
+  [REGIE][DEBUG] profile= Object {id, email, role: 'regie'}
+  [REGIE][DEBUG] regie= Object {id, nom: '...'}
+  [TICKETS][AUTH] OK, regie_id: uuid-here
+
+UI:
+  ✅ Dashboard régie chargé
+  ✅ Email + nom agence affichés
+  ✅ Navigation fonctionnelle
+  ✅ Tickets visibles
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Date : 2026-01-06
+Commit : 3e02a39
+Statut : FIX DÉPLOYÉ - EN ATTENTE VALIDATION PROD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
