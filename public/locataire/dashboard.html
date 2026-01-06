@@ -1210,7 +1210,7 @@
         console.log('[DASHBOARD LOCATAIRE] Chargement données pour profile_id:', profileId);
         
         // Récupérer le locataire avec jointures
-        const { data: locataire, error } = await supabase
+        const { data: locataire, error } = await window.supabaseClient
           .from('locataires')
           .select(`
             *,

@@ -694,7 +694,7 @@
         // 4️⃣ Récupérer les données régie (REQUÊTE SÉPARÉE pour éviter problèmes JOIN)
         console.log('[REGIE][DATA_FETCH] Récupération données régie pour profile_id:', session.user.id);
         
-        const { data: regie, error: regieError } = await supabase
+        const { data: regie, error: regieError } = await window.supabaseClient
           .from('regies')
           .select('id, nom, statut_validation, commentaire_refus')
           .eq('profile_id', session.user.id)
