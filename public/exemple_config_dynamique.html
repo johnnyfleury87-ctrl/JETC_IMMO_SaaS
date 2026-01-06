@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exemple - Configuration Supabase Dynamique</title>
+  
+  <!-- 1️⃣ INJECTION CONFIGURATION (avant supabaseClient.js) -->
+  <script>
+    // Charger configuration depuis API
+    fetch('/api/config')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then(config => {
+        console.log('[CONFIG] Configuration chargée depuis API');
+        
+        // Injecter dans window pour supabaseClient.js
+        window.__SUPABASE_ENV__ = {
+          url: config.supabaseUrl,
+          anonKey: config.supabaseAnonKey
+        };
+        
+        console.log('[CONFIG] window.__SUPABASE_ENV__ prêt');
+      })
+      .catch(error => {
+        console.error('[CONFIG] Erreur chargement configuration:', error);
+        alert('Impossible de charger la configuration Supabase');
+      });
+  </script>
+  
+  <!-- 2️⃣ CDN SUPABASE -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- 3️⃣ CLIENT SUPABASE (attend window.__SUPABASE_ENV__) -->
+  <script src="/js/supabaseClient.js"></script>
+  
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 { color: #333; }
+    pre {
+      background: #f0f0f0;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    .status {
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px 0;
+    }
+    .status.success { background: #d4edda; color: #155724; }
+    .status.error { background: #f8d7da; color: #721c24; }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>✅ Exemple Configuration Dynamique</h1>
+    
+    <p>Cette page démontre l'utilisation de <code>window.__SUPABASE_ENV__</code> pour configurer Supabase sans URL hardcodée.</p>
+    
+    <div id="status"></div>
+    
+    <h2>🔍 Vérification</h2>
+    <button onclick="checkSupabase()">Vérifier connexion Supabase</button>
+    
+    <h2>📋 Configuration actuelle</h2>
+    <pre id="config">Chargement...</pre>
+    
+    <h2>🔐 Tester authentification</h2>
+    <button onclick="testAuth()">Obtenir session utilisateur</button>
+    <pre id="session">Pas encore testé</pre>
+  </div>
+
+  <script>
+    // Afficher configuration au chargement
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        const config = window.__SUPABASE_ENV__;
+        
+        if (config) {
+          document.getElementById('config').textContent = JSON.stringify({
+            url: config.url,
+            anonKey: config.anonKey ? config.anonKey.substring(0, 30) + '...' : 'MANQUANT'
+          }, null, 2);
+        } else {
+          document.getElementById('config').textContent = 'ERREUR : window.__SUPABASE_ENV__ non défini';
+        }
+      }, 1000); // Attendre que config soit chargée
+    });
+
+    // Vérifier connexion Supabase
+    async function checkSupabase() {
+      const statusDiv = document.getElementById('status');
+      
+      if (!window.supabase) {
+        statusDiv.className = 'status error';
+        statusDiv.textContent = '❌ Client Supabase non initialisé';
+        return;
+      }
+
+      try {
+        // Tester une requête simple (health check)
+        const { data, error } = await window.supabase.from('profiles').select('count');
+        
+        if (error) {
+          statusDiv.className = 'status error';
+          statusDiv.textContent = `❌ Erreur : ${error.message}`;
+        } else {
+          statusDiv.className = 'status success';
+          statusDiv.textContent = '✅ Connexion Supabase OK';
+        }
+      } catch (err) {
+        statusDiv.className = 'status error';
+        statusDiv.textContent = `❌ Erreur : ${err.message}`;
+      }
+    }
+
+    // Tester authentification
+    async function testAuth() {
+      const sessionPre = document.getElementById('session');
+      
+      if (!window.supabase) {
+        sessionPre.textContent = 'Erreur : Client Supabase non initialisé';
+        return;
+      }
+
+      try {
+        const { data: { session }, error } = await window.supabase.auth.getSession();
+        
+        if (error) {
+          sessionPre.textContent = `Erreur : ${error.message}`;
+        } else if (session) {
+          sessionPre.textContent = JSON.stringify({
+            user: {
+              id: session.user.id,
+              email: session.user.email,
+              role: session.user.user_metadata?.role
+            },
+            expires_at: new Date(session.expires_at * 1000).toLocaleString()
+          }, null, 2);
+        } else {
+          sessionPre.textContent = 'Aucune session active (utilisateur non connecté)';
+        }
+      } catch (err) {
+        sessionPre.textContent = `Erreur : ${err.message}`;
+      }
+    }
+  </script>
+</body>
+</html>

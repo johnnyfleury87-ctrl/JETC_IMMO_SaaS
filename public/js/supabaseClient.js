@@ -1,8 +1,9 @@
 /**
  * ======================================================
- * CLIENT SUPABASE FRONTEND (BROWSER)
+ * CLIENT SUPABASE FRONTEND (BROWSER) - CONFIGURATION DYNAMIQUE
  * ======================================================
  * Version browser-compatible (pas de module ES6)
+ * Récupère config depuis window.__SUPABASE_ENV__ (injecté par serveur)
  * Charge depuis CDN et expose `window.supabase`
  * ======================================================
  */
@@ -10,13 +11,15 @@
 (function() {
   'use strict';
 
-  // Configuration hardcodée (à remplacer par variables d'environnement Vercel)
-  const SUPABASE_URL = 'https://bwzyajsrmfhrxdmfpyqy.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3enlhanNybWZocnhkbWZweXF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwMzg2NTUsImV4cCI6MjA4MTYxNDY1NX0.sLB8N8PJ_vW2mS-0a_N6If6lcuOoF36YHNcolAL5KXs';
+  // 1️⃣ Récupérer configuration depuis window (injectée par le serveur)
+  const config = window.__SUPABASE_ENV__ || {};
+  const SUPABASE_URL = config.url;
+  const SUPABASE_ANON_KEY = config.anonKey;
 
-  // Vérification
+  // 2️⃣ Vérification
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    console.error('[SUPABASE] Configuration manquante');
+    console.error('[SUPABASE] Configuration manquante. Vérifier injection window.__SUPABASE_ENV__');
+    console.error('[SUPABASE] Attendu: window.__SUPABASE_ENV__ = { url: "...", anonKey: "..." }');
     return;
   }
 
