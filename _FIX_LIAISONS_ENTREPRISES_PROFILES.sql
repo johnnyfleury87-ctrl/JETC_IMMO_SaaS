@@ -12,6 +12,7 @@
 -- =====================================================
 SELECT '=== DIAGNOSTIC AVANT CORRECTION ===' as info;
 
+-- Utiliser LEFT JOIN au lieu de FULL OUTER JOIN avec OR
 SELECT 
   e.id as entreprise_id,
   e.nom as entreprise_nom,
@@ -27,8 +28,8 @@ SELECT
     ELSE '❌ INCOHÉRENCE'
   END as statut
 FROM entreprises e
-FULL OUTER JOIN profiles p ON (e.profile_id = p.id OR p.entreprise_id = e.id)
-WHERE p.role = 'entreprise' OR e.id IS NOT NULL
+LEFT JOIN profiles p ON e.profile_id = p.id
+WHERE p.role = 'entreprise' OR p.role IS NULL
 ORDER BY e.nom;
 
 -- =====================================================
@@ -78,6 +79,7 @@ WHERE p.role = 'entreprise';
 
 SELECT '=== PROFILES SANS ENTREPRISE ===' as info;
 
+-- Simplifier la requête sans FULL JOIN
 SELECT 
   p.id,
   p.email,
@@ -85,9 +87,11 @@ SELECT
   'Aucune entreprise liée' as probleme,
   '⚠️ Nécessite intervention manuelle' as action_requise
 FROM profiles p
-LEFT JOIN entreprises e ON (e.profile_id = p.id OR p.entreprise_id = e.id)
 WHERE p.role = 'entreprise'
-  AND e.id IS NULL;
+  AND NOT EXISTS (
+    SELECT 1 FROM entreprises e 
+    WHERE e.profile_id = p.id OR p.entreprise_id = e.id
+  );
 
 -- 📝 CORRECTION MANUELLE POUR PROFILES SANS ENTREPRISE
 -- Si le profil entreprise@test.app n'a pas d'entreprise, exécuter :
