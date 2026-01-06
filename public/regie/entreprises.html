@@ -716,7 +716,7 @@
     // =======================================================
     async function loadRegieProfile() {
       try {
-        const { data: profile, error } = await supabase
+        const { data: profile, error } = await window.supabaseClient
           .from('profiles')
           .select('id, email, role, regie_id')
           .eq('id', currentUser.id)
@@ -731,7 +731,7 @@
         }
 
         // Charger infos régie complètes
-        const { data: regie, error: regieError } = await supabase
+        const { data: regie, error: regieError } = await window.supabaseClient
           .from('regies')
           .select('id, nom')
           .eq('id', profile.regie_id)
@@ -768,7 +768,7 @@
         console.log('[ENTREPRISES] Chargement depuis Supabase...');
 
         // Charger entreprises via RLS (policy SELECT existante via regies_entreprises)
-        const { data: entreprisesData, error } = await supabase
+        const { data: entreprisesData, error } = await window.supabaseClient
           .from('entreprises')
           .select('id, nom, email, telephone, ville, code_postal, siret, created_at')
           .order('nom', { ascending: true });
@@ -781,7 +781,7 @@
         console.log('[ENTREPRISES] Chargées:', entreprisesData?.length || 0);
 
         // Charger autorisations regies_entreprises pour mode_diffusion
-        const { data: autorisations, error: autoError } = await supabase
+        const { data: autorisations, error: autoError } = await window.supabaseClient
           .from('regies_entreprises')
           .select('entreprise_id, mode_diffusion')
           .eq('regie_id', currentRegie.id);

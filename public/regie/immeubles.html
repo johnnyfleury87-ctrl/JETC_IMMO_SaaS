@@ -800,7 +800,7 @@
     // Charger la liste des immeubles
     async function loadImmeubles() {
       try {
-        const { data: immeubles, error } = await supabase
+        const { data: immeubles, error } = await window.supabaseClient
           .from('immeubles')
           .select('*')
           .eq('regie_id', currentRegieId)
@@ -897,7 +897,7 @@
       event.stopPropagation();
       
       try {
-        const { data: immeuble, error } = await supabase
+        const { data: immeuble, error } = await window.supabaseClient
           .from('immeubles')
           .select('*')
           .eq('id', immeubleId)
@@ -950,7 +950,7 @@
       }
 
       try {
-        const { error } = await supabase
+        const { error } = await window.supabaseClient
           .from('immeubles')
           .delete()
           .eq('id', immeubleId);
@@ -1068,7 +1068,7 @@
           // =====================================
           console.log('[IMMEUBLES][UPDATE] Modification immeuble ID :', editingImmeubleId);
           
-          const { error } = await supabase
+          const { error } = await window.supabaseClient
             .from('immeubles')
             .update(immeubleData)
             .eq('id', editingImmeubleId);
@@ -1088,7 +1088,7 @@
           // =====================================
           console.log('[IMMEUBLES][INSERT] Création nouvel immeuble');
           
-          const { data: newImmeuble, error: immeubleError } = await supabase
+          const { data: newImmeuble, error: immeubleError } = await window.supabaseClient
             .from('immeubles')
             .insert([immeubleData])
             .select();
@@ -1134,7 +1134,7 @@
             console.log('[IMMEUBLES][LOGEMENTS] Insertion de', logementsToCreate.length, 'logements');
             console.log('[IMMEUBLES][LOGEMENTS] Table cible : logements');
             
-            const { data: logementsCreated, error: logementsError } = await supabase
+            const { data: logementsCreated, error: logementsError } = await window.supabaseClient
               .from('logements')
               .insert(logementsToCreate)
               .select();

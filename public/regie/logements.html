@@ -979,7 +979,7 @@
     // Charger les immeubles
     async function loadImmeubles() {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await window.supabaseClient
           .from('immeubles')
           .select('id, nom, adresse, ville')
           .eq('regie_id', currentRegieId)
@@ -1020,7 +1020,7 @@
         const filterImmeuble = document.getElementById('filterImmeuble').value;
         const filterStatut = document.getElementById('filterStatut').value;
         
-        let query = supabase
+        let query = window.supabaseClient
           .from('logements')
           .select(`
             *,
@@ -1141,7 +1141,7 @@
     // Modifier logement
     async function editLogement(logementId) {
       try {
-        const { data: logement, error } = await supabase
+        const { data: logement, error } = await window.supabaseClient
           .from('logements')
           .select('*')
           .eq('id', logementId)
@@ -1205,7 +1205,7 @@
       }
 
       try {
-        const { error } = await supabase
+        const { error } = await window.supabaseClient
           .from('logements')
           .delete()
           .eq('id', logementId);
@@ -1366,7 +1366,7 @@
         // VALIDATION BACKEND : Vérifier étage vs immeuble
         // =====================================================
         if (logementData.immeuble_id && logementData.etage !== null) {
-          const { data: immeubleCheck, error: immeubleError } = await supabase
+          const { data: immeubleCheck, error: immeubleError } = await window.supabaseClient
             .from('immeubles')
             .select('nombre_etages, nom')
             .eq('id', logementData.immeuble_id)
@@ -1392,7 +1392,7 @@
           // MODIFICATION
           console.log('[LOGEMENTS][UPDATE] Modification logement ID :', editingLogementId);
           
-          const { error } = await supabase
+          const { error } = await window.supabaseClient
             .from('logements')
             .update(logementData)
             .eq('id', editingLogementId);
@@ -1410,7 +1410,7 @@
           // CRÉATION
           console.log('[LOGEMENTS][INSERT] Création nouveau logement');
           
-          const { data, error } = await supabase
+          const { data, error } = await window.supabaseClient
             .from('logements')
             .insert([logementData])
             .select();
@@ -1474,7 +1474,7 @@
       
       // Charger les locataires disponibles (sans logement)
       try {
-        const { data: locataires, error } = await supabase
+        const { data: locataires, error } = await window.supabaseClient
           .from('locataires')
           .select('id, nom, prenom, email')
           .eq('regie_id', currentRegieId)
@@ -1532,7 +1532,7 @@
         console.log('[ATTRIBUTION] Début attribution:', { locataireId, logementId: currentLogementIdAttribution });
         
         // Vérifier que le locataire n'est pas déjà lié
-        const { data: locataireCheck, error: checkError } = await supabase
+        const { data: locataireCheck, error: checkError } = await window.supabaseClient
           .from('locataires')
           .select('logement_id, nom, prenom')
           .eq('id', locataireId)
@@ -1550,7 +1550,7 @@
         }
         
         // 1. Mettre à jour le locataire (logement_id)
-        const { error: updateLocataireError } = await supabase
+        const { error: updateLocataireError } = await window.supabaseClient
           .from('locataires')
           .update({ logement_id: currentLogementIdAttribution })
           .eq('id', locataireId);
@@ -1562,7 +1562,7 @@
         }
         
         // 2. Mettre à jour le logement (statut = occupé)
-        const { error: updateLogementError } = await supabase
+        const { error: updateLogementError } = await window.supabaseClient
           .from('logements')
           .update({ statut: 'occupé' })
           .eq('id', currentLogementIdAttribution);
