@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Supabase Config Dynamique</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .status {
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    .success { background: #d4edda; color: #155724; }
+    .error { background: #f8d7da; color: #721c24; }
+    .info { background: #d1ecf1; color: #0c5460; }
+    pre {
+      background: #fff;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .btn-primary { background: #007bff; color: white; }
+    .btn-secondary { background: #6c757d; color: white; }
+  </style>
+</head>
+<body>
+  <h1>🔧 Test Configuration Supabase Dynamique</h1>
+  
+  <div id="status"></div>
+  
+  <h2>Tests</h2>
+  <button class="btn-primary" onclick="testApiConfig()">1. Tester /api/config</button>
+  <button class="btn-primary" onclick="testSupabaseInit()">2. Tester Init Supabase</button>
+  <button class="btn-secondary" onclick="testLogin()">3. Tester Login</button>
+  
+  <h2>Logs</h2>
+  <pre id="logs"></pre>
+  
+  <!-- CDN Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Client Supabase dynamique -->
+  <script src="/js/supabaseClient.js"></script>
+  
+  <script>
+    const statusDiv = document.getElementById('status');
+    const logsDiv = document.getElementById('logs');
+    
+    function log(message, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString();
+      logsDiv.textContent += `[${timestamp}] ${message}\n`;
+      logsDiv.scrollTop = logsDiv.scrollHeight;
+    }
+    
+    function showStatus(message, type) {
+      statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+    }
+    
+    // Test 1 : API Config
+    async function testApiConfig() {
+      log('Test 1 : Appel /api/config...');
+      try {
+        const response = await fetch('/api/config');
+        const data = await response.json();
+        log('✅ API Config répond : ' + JSON.stringify(data, null, 2));
+        showStatus('✅ API /api/config fonctionne', 'success');
+      } catch (error) {
+        log('❌ Erreur API Config : ' + error.message, 'error');
+        showStatus('❌ API /api/config inaccessible', 'error');
+      }
+    }
+    
+    // Test 2 : Init Supabase
+    function testSupabaseInit() {
+      log('Test 2 : Vérification client Supabase...');
+      if (window.supabase && window.supabase.auth) {
+        log('✅ window.supabase existe');
+        log('✅ window.supabase.auth existe');
+        showStatus('✅ Client Supabase initialisé', 'success');
+      } else {
+        log('❌ window.supabase non initialisé');
+        showStatus('❌ Client Supabase non initialisé. Attendre quelques secondes...', 'error');
+      }
+    }
+    
+    // Test 3 : Login test
+    async function testLogin() {
+      log('Test 3 : Test session utilisateur...');
+      if (!window.supabase) {
+        log('❌ Supabase non initialisé');
+        showStatus('❌ Supabase non prêt', 'error');
+        return;
+      }
+      
+      try {
+        const { data, error } = await window.supabase.auth.getSession();
+        if (error) throw error;
+        
+        if (data.session) {
+          log('✅ Session active : ' + data.session.user.email);
+          showStatus('✅ Utilisateur connecté : ' + data.session.user.email, 'success');
+        } else {
+          log('ℹ️ Aucune session active (normal si pas connecté)');
+          showStatus('ℹ️ Aucune session active', 'info');
+        }
+      } catch (error) {
+        log('❌ Erreur getSession : ' + error.message);
+        showStatus('❌ Erreur vérification session', 'error');
+      }
+    }
+    
+    // Écouter l'événement supabase:ready
+    window.addEventListener('supabase:ready', () => {
+      log('🎉 Événement supabase:ready reçu');
+      showStatus('✅ Supabase prêt !', 'success');
+      testSupabaseInit();
+    });
+    
+    // Log initial
+    log('Page chargée, attente initialisation Supabase...');
+    showStatus('⏳ Chargement configuration...', 'info');
+  </script>
+</body>
+</html>
