@@ -798,7 +798,7 @@
         // ============================================
         // 1. Vérifier session (CAS C : non connecté)
         // ============================================
-        const { data: { session }, error: sessionError } = await window.supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
         
         if (sessionError || !session) {
           console.warn('[LOCATAIRES][INIT] Pas de session valide, redirect login');
@@ -1167,7 +1167,7 @@
         const data = Object.fromEntries(formData.entries());
 
         // Appeler API backend pour créer locataire (via RPC)
-        const { data: { session } } = await window.supabase.auth.getSession();
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
         const token = session?.access_token;
 
         if (!token) {
@@ -1249,7 +1249,7 @@
     // ============================================
 
     async function logout() {
-      await window.supabase.auth.signOut();
+      await window.supabaseClient.auth.signOut();
       window.location.href = '/login.html';
     }
 

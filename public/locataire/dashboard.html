@@ -1386,7 +1386,7 @@
     async function logout() {
       console.log('[LOGOUT] Déconnexion en cours...');
       try {
-        await supabase.auth.signOut();
+        await window.supabaseClient.auth.signOut();
         console.log('[LOGOUT] Déconnexion réussie');
       } catch (error) {
         console.error('[LOGOUT] Erreur:', error);
@@ -1640,7 +1640,7 @@
         console.log('[TICKET] Données:', ticketData);
         
         // Récupérer le token d'authentification
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
         if (!session) {
           throw new Error('Session expirée');
         }
@@ -1721,7 +1721,7 @@
         // APRÈS: .rpc('get_tickets_locataire') → Bypass RLS
         console.log('[TICKETS][M23] Appel RPC get_tickets_locataire...');
         
-        const { data: tickets, error } = await supabase.rpc('get_tickets_locataire');
+        const { data: tickets, error } = await window.supabaseClient.rpc('get_tickets_locataire');
         
         if (error) {
           console.error('[TICKETS] Erreur RPC:', error);
@@ -1835,7 +1835,7 @@
         // APRÈS: .rpc('get_ticket_detail_locataire', {p_ticket_id}) → Bypass RLS
         console.log('[MODAL][M23] Appel RPC get_ticket_detail_locataire...');
         
-        const { data: ticketData, error } = await supabase.rpc('get_ticket_detail_locataire', {
+        const { data: ticketData, error } = await window.supabaseClient.rpc('get_ticket_detail_locataire', {
           p_ticket_id: ticketId
         });
         

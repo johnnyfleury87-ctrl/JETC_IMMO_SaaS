@@ -641,7 +641,7 @@
     async function logout() {
       console.log('[LOGOUT] Déconnexion en cours...');
       try {
-        await supabase.auth.signOut();
+        await window.supabaseClient.auth.signOut();
         console.log('[LOGOUT] Déconnexion réussie');
       } catch (error) {
         console.error('[LOGOUT] Erreur:', error);
@@ -685,7 +685,7 @@
           console.error('[REGIE][DEBUG] ❌ PROFILE NULL - LOGOUT BLOQUÉ POUR DEBUG');
           console.error('[REGIE][DEBUG] profileError=', profileError);
           // 🛑 TEMPORAIREMENT DÉSACTIVÉ POUR DEBUG (ÉTAPE 1.6)
-          // await supabase.auth.signOut();
+          // await window.supabaseClient.auth.signOut();
           // window.location.href = '/login.html';
           return;
         }
@@ -693,7 +693,7 @@
         if (profile.role !== 'regie') {
           console.error('[REGIE][DEBUG] ❌ ROLE INCORRECT:', profile.role, '- LOGOUT BLOQUÉ POUR DEBUG');
           // 🛑 TEMPORAIREMENT DÉSACTIVÉ POUR DEBUG (ÉTAPE 1.6)
-          // await supabase.auth.signOut();
+          // await window.supabaseClient.auth.signOut();
           // window.location.href = '/login.html';
           return;
         }
@@ -711,7 +711,7 @@
           console.error('[REGIE][DEBUG] ❌ REGIE NULL - LOGOUT BLOQUÉ POUR DEBUG');
           console.error('[REGIE][DEBUG] regieError=', regieError);
           // 🛑 TEMPORAIREMENT DÉSACTIVÉ POUR DEBUG (ÉTAPE 1.6)
-          // await supabase.auth.signOut();
+          // await window.supabaseClient.auth.signOut();
           // window.location.href = '/login.html';
           return;
         }
@@ -752,7 +752,7 @@
         // APRÈS: .rpc('get_tickets_list_regie', {p_statut: ...}) → Bypass RLS
         console.log(`[REGIE][DEBUG] 🚀 Appel RPC get_tickets_list_regie avec p_statut=${statut}`);
         
-        const { data: tickets, error } = await supabase.rpc('get_tickets_list_regie', {
+        const { data: tickets, error } = await window.supabaseClient.rpc('get_tickets_list_regie', {
           p_statut: statut
         });
         
@@ -938,7 +938,7 @@
       
       try {
         // ✅ M32: Utiliser RPC valider_ticket_regie (validation + diffusion en 1 appel)
-        const { data, error } = await supabase.rpc('valider_ticket_regie', {
+        const { data, error } = await window.supabaseClient.rpc('valider_ticket_regie', {
           p_ticket_id: currentTicketIdForValidation,
           p_plafond_chf: plafond,
           p_mode_diffusion: modeDiffusion,
@@ -1011,7 +1011,7 @@
       });
       
       try {
-        const { error } = await supabase.rpc('diffuser_ticket', {
+        const { error } = await window.supabaseClient.rpc('diffuser_ticket', {
           p_ticket_id: currentTicketIdForDiffusion,
           p_mode_diffusion: modeDiffusion,
           p_entreprise_id: entrepriseId
@@ -1047,7 +1047,7 @@
       console.log('[ACTION] Clôture ticket:', ticketId);
       
       try {
-        const { error } = await supabase.rpc('update_ticket_statut', {
+        const { error } = await window.supabaseClient.rpc('update_ticket_statut', {
           p_ticket_id: ticketId,
           p_nouveau_statut: 'clos'
         });

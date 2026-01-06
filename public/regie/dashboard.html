@@ -602,7 +602,7 @@
     async function logout() {
       console.log('[LOGOUT] Déconnexion en cours...');
       try {
-        await supabase.auth.signOut();
+        await window.supabaseClient.auth.signOut();
         console.log('[LOGOUT] Déconnexion réussie');
       } catch (error) {
         console.error('[LOGOUT] Erreur:', error);
@@ -659,7 +659,7 @@
           
           // ⚠️ CORRECTION: Logout propre au lieu de popup bloquante
           console.log('[REGIE][LOGOUT_FORCED] Déconnexion forcée (profil manquant)');
-          await supabase.auth.signOut();
+          await window.supabaseClient.auth.signOut();
           
           // Message clair sans popup bloquante
           const errorMessage = document.createElement('div');
@@ -677,7 +677,7 @@
         // 3️⃣ Vérifier le rôle
         if (profile.role !== 'regie') {
           console.log('[REGIE][REDIRECT] Raison: Rôle incorrect', profile.role);
-          await supabase.auth.signOut();
+          await window.supabaseClient.auth.signOut();
           
           const errorMessage = document.createElement('div');
           errorMessage.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);max-width:400px;text-align:center;z-index:10000;';
@@ -711,7 +711,7 @@
         if (regieError) {
           console.error('[REGIE][DB_ERROR] Erreur technique lors récupération régie:', regieError);
           
-          await supabase.auth.signOut();
+          await window.supabaseClient.auth.signOut();
           
           const errorMessage = document.createElement('div');
           errorMessage.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);max-width:400px;text-align:center;z-index:10000;';
@@ -730,7 +730,7 @@
             profileId: session.user.id
           });
           
-          await supabase.auth.signOut();
+          await window.supabaseClient.auth.signOut();
           
           const errorMessage = document.createElement('div');
           errorMessage.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);max-width:400px;text-align:center;z-index:10000;';
@@ -752,7 +752,7 @@
         
         if (regie.statut_validation === 'en_attente') {
           console.log('[REGIE][REDIRECT] Raison: Régie en attente de validation');
-          await supabase.auth.signOut();
+          await window.supabaseClient.auth.signOut();
           
           const errorMessage = document.createElement('div');
           errorMessage.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);max-width:500px;text-align:center;z-index:10000;';
@@ -768,7 +768,7 @@
         
         if (regie.statut_validation === 'refuse') {
           console.log('[REGIE][REDIRECT] Raison: Régie refusée');
-          await supabase.auth.signOut();
+          await window.supabaseClient.auth.signOut();
           
           const errorMessage = document.createElement('div');
           errorMessage.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);max-width:500px;text-align:center;z-index:10000;';
@@ -785,7 +785,7 @@
         
         if (regie.statut_validation !== 'valide') {
           console.error('[REGIE][VALIDATION_STATUS] Statut invalide:', regie.statut_validation);
-          await supabase.auth.signOut();
+          await window.supabaseClient.auth.signOut();
           
           const errorMessage = document.createElement('div');
           errorMessage.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);max-width:500px;text-align:center;z-index:10000;';
@@ -847,7 +847,7 @@
         // ✅ M22: Utiliser RPC au lieu de SELECT direct (évite récursion RLS)
         // AVANT: .from('tickets').select(...count...) → Récursion RLS → Déconnexion
         // APRÈS: .rpc('get_tickets_dashboard_regie') → SECURITY DEFINER → Bypass RLS
-        const { data, error } = await supabase.rpc('get_tickets_dashboard_regie');
+        const { data, error } = await window.supabaseClient.rpc('get_tickets_dashboard_regie');
         
         if (error) {
           console.error('[REGIE][TICKETS] ❌ Erreur RPC:', error);

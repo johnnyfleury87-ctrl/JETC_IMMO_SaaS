@@ -1,0 +1,47 @@
+[
+  {
+    "role": "entreprise",
+    "status": "OK",
+    "email": "entreprise@test.app",
+    "userId": "97fb88cc-cefa-4f65-86af-27e3858eabb9",
+    "profileRole": "entreprise",
+    "expectedDashboard": "/entreprise/dashboard.html"
+  },
+  {
+    "role": "regie",
+    "status": "OK",
+    "email": "johnny.thiriet@gmail.com",
+    "userId": "098c6bee-c00d-4127-9a2d-f66415300826",
+    "profileRole": "regie",
+    "expectedDashboard": "/regie/dashboard.html"
+  },
+  {
+    "role": "admin_jtec",
+    "status": "OK",
+    "email": "johnny.fleury87@gmail.com",
+    "userId": "14c2c351-e015-46ae-95ff-bbfcd975f8e2",
+    "profileRole": "admin_jtec",
+    "expectedDashboard": "/admin/dashboard.html"
+  },
+  {
+    "role": "locataire",
+    "status": "OK",
+    "email": "locataire1@exemple.ch",
+    "userId": "352745b6-f008-4a09-926c-7179476deafa",
+    "profileRole": "locataire",
+    "expectedDashboard": "/locataire/dashboard.html"
+  },
+  {
+    "role": "technicien",
+    "status": "OK",
+    "email": "tech@test.app",
+    "userId": "e5dc1c44-96b0-49fd-b18e-1b8f539df1a5",
+    "profileRole": "technicien",
+    "expectedDashboard": "/technicien/dashboard.html"
+  },
+  {
+    "role": "proprietaire",
+    "status": "NO_ACCOUNT",
+    "error": "Pas de compte test disponible"
+  }
+]

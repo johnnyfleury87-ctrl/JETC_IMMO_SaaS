@@ -693,7 +693,7 @@
       console.log('[INIT] Démarrage application entreprises');
 
       // Vérifier authentification
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
       if (!session) {
         console.log('[AUTH] Pas de session, redirection login');
         window.location.href = '/login.html';
@@ -752,7 +752,7 @@
     }
 
     async function logout() {
-      await supabase.auth.signOut();
+      await window.supabaseClient.auth.signOut();
       window.location.href = '/login.html';
     }
 
@@ -938,7 +938,7 @@
           // =======================================================
           console.log('[CREATE] Mode: AVEC compte auth');
           
-          const { data: session } = await supabase.auth.getSession();
+          const { data: session } = await window.supabaseClient.auth.getSession();
           const token = session.session.access_token;
           
           const response = await fetch('/api/regie/create-entreprise-account', {
@@ -973,7 +973,7 @@
           // =======================================================
           console.log('[CREATE] Mode: SANS compte auth (simple)');
           
-          const { data, error } = await supabase.rpc('create_entreprise_simple', {
+          const { data, error } = await window.supabaseClient.rpc('create_entreprise_simple', {
             p_nom: nom,
             p_email: email,
             p_telephone: telephone,
@@ -1020,7 +1020,7 @@
       
       try {
         // Appel RPC M38
-        const { data, error } = await supabase.rpc('update_entreprise_mode_diffusion', {
+        const { data, error } = await window.supabaseClient.rpc('update_entreprise_mode_diffusion', {
           p_entreprise_id: entrepriseId,
           p_mode_diffusion: newMode
         });
