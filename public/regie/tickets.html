@@ -961,7 +961,7 @@
       try {
         const { data: ticket, error } = await window.supabaseClient
           .from('tickets')
-          .select('sous_categorie, piece, priorite, plafond_ht')
+          .select('sous_categorie, piece, priorite, plafond_intervention_chf')
           .eq('id', ticketId)
           .single();
         
@@ -972,7 +972,7 @@
           document.getElementById('validation-sous-categorie').value = ticket.sous_categorie || '';
           document.getElementById('validation-piece').value = ticket.piece || '';
           document.getElementById('validation-priorite').value = ticket.priorite || 'normale';
-          document.getElementById('validation-plafond').value = ticket.plafond_ht || '';
+          document.getElementById('validation-plafond').value = ticket.plafond_intervention_chf || '';
         }
       } catch (err) {
         console.error('[MODAL] Exception chargement ticket:', err);
@@ -1058,7 +1058,7 @@
             sous_categorie: sousCategorie,
             piece: piece,
             priorite: priorite,
-            plafond_ht: plafond
+            plafond_intervention_chf: plafond
           })
           .eq('id', currentTicketIdForValidation);
         
