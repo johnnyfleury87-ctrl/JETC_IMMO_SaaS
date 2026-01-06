@@ -829,11 +829,15 @@
         }
         
         // Utiliser vue tickets_visibles_entreprise avec filtre entreprise_id
-        // La vue filtre déjà selon RLS + mode_diffusion + statut='en_attente' + locked_at IS NULL
+        // ✅ CORRECTION M45: Filtrer UNIQUEMENT tickets vraiment disponibles
+        // La vue contient 3 cas (general, restreint, historique)
+        // → On ne veut QUE les tickets en_attente et non verrouillés (Cas 1+2)
         const { data: tickets, error } = await window.supabaseClient
           .from('tickets_visibles_entreprise')
           .select('*')
           .eq('visible_par_entreprise_id', window.currentEntreprise.id)
+          .eq('statut', 'en_attente')       // ✅ FIX: Exclure tickets en_cours/termine/clos
+          .is('locked_at', null)             // ✅ FIX: Exclure tickets déjà acceptés
           .order('created_at', { ascending: false });
         
         if (error) {

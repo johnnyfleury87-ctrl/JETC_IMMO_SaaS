@@ -1,0 +1,68 @@
+{
+  "date": "2026-01-06T10:50:12.728Z",
+  "url": "https://bwzyajsrmfhrxdmfpyqy.supabase.co",
+  "tables": {
+    "tickets": {
+      "exists": true,
+      "accessible": true
+    },
+    "missions": {
+      "exists": true,
+      "accessible": true
+    },
+    "factures": {
+      "exists": true,
+      "accessible": true
+    },
+    "profiles": {
+      "exists": true,
+      "accessible": true
+    }
+  },
+  "views": {
+    "tickets_visibles_entreprise": {
+      "exists": true,
+      "accessible": true
+    },
+    "missions_details": {
+      "exists": false,
+      "error": "Could not find the table 'public.missions_details' in the schema cache"
+    },
+    "admin_factures_mensuelles_regies": {
+      "exists": true,
+      "accessible": true
+    }
+  },
+  "rpcs": {
+    "accept_ticket_and_create_mission": {
+      "exists": true,
+      "error": "Could not find the function public.accept_ticket_and_create_mission without parameters in the schema cache"
+    },
+    "assign_technicien_to_mission": {
+      "exists": true,
+      "error": "Could not find the function public.assign_technicien_to_mission without parameters in the schema cache"
+    },
+    "start_mission": {
+      "exists": true,
+      "error": "Could not find the function public.start_mission without parameters in the schema cache"
+    },
+    "complete_mission": {
+      "exists": true,
+      "error": "Could not find the function public.complete_mission without parameters in the schema cache"
+    },
+    "validate_mission": {
+      "exists": true,
+      "error": "Could not find the function public.validate_mission without parameters in the schema cache"
+    }
+  },
+  "policies": {
+    "tickets": {
+      "exists": "unknown",
+      "error": "Could not find the function public.exec_sql(query) in the schema cache"
+    },
+    "missions": {
+      "exists": "unknown",
+      "error": "Could not find the function public.exec_sql(query) in the schema cache"
+    }
+  }
+}
