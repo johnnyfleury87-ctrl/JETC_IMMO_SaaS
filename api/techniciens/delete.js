@@ -12,21 +12,21 @@ const { supabaseAdmin } = require('../_supabase');
 module.exports = async (req, res) => {
   // 1️⃣ Vérifier méthode HTTP
   if (req.method !== 'DELETE') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
+    return res.status(405).json({ success: false, error: 'Method Not Allowed' });
   }
 
   try {
     // 2️⃣ Vérifier authentification
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Token manquant' });
+      return res.status(401).json({ success: false, error: 'Token manquant' });
     }
 
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
 
     if (authError || !user) {
-      return res.status(401).json({ error: 'Token invalide' });
+      return res.status(401).json({ success: false, error: 'Token invalide' });
     }
 
     // 3️⃣ Vérifier rôle entreprise
@@ -37,11 +37,11 @@ module.exports = async (req, res) => {
       .single();
 
     if (profileError || !profile) {
-      return res.status(403).json({ error: 'Profile introuvable' });
+      return res.status(403).json({ success: false, error: 'Profile introuvable' });
     }
 
     if (profile.role !== 'entreprise') {
-      return res.status(403).json({ error: 'Action réservée aux entreprises' });
+      return res.status(403).json({ success: false, error: 'Action réservée aux entreprises' });
     }
 
     // 🔍 Récupérer entreprise_id si nécessaire
@@ -100,6 +100,7 @@ module.exports = async (req, res) => {
 
     if (missions && missions.length > 0) {
       return res.status(400).json({ 
+        success: false,
         error: 'Impossible de supprimer : missions actives assignées',
         missions_count: missions.length 
       });
@@ -114,6 +115,7 @@ module.exports = async (req, res) => {
     if (deleteTechError) {
       console.error('[API /techniciens/delete] Erreur suppression technicien:', deleteTechError);
       return res.status(500).json({ 
+        success: false,
         error: 'Erreur suppression technicien',
         details: deleteTechError.message 
       });
@@ -143,7 +145,7 @@ module.exports = async (req, res) => {
     console.log('[API /techniciens/delete] Suppression complète réussie:', technicien_id);
 
     // 🔟 Retourner succès
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: 'Technicien supprimé avec succès',
       technicien_id
@@ -151,7 +153,8 @@ module.exports = async (req, res) => {
 
   } catch (error) {
     console.error('[API /techniciens/delete] Erreur inattendue:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
+      success: false,
       error: 'Erreur serveur',
       details: error.message 
     });
