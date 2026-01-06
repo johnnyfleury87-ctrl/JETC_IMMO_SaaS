@@ -548,9 +548,23 @@
     // =========================================
     async function init() {
       try {
+        // 🛡️ Guard : Vérifier que le client Supabase est prêt
+        if (!window.supabase) {
+          console.error('❌ Client Supabase non disponible');
+          showAlert('Erreur: Client Supabase non initialisé. Rechargez la page.', 'error');
+          return;
+        }
+        
+        if (!window.supabase.auth || !window.supabase.auth.getSession) {
+          console.error('❌ supabase.auth.getSession non disponible');
+          showAlert('Erreur: API Supabase manquante. Vérifiez la connexion.', 'error');
+          return;
+        }
+
         // Vérifier authentification
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error || !session) {
+          console.warn('Aucune session active, redirection login');
           window.location.href = '/login.html';
           return;
         }
@@ -559,7 +573,7 @@
         await loadTechniciens();
       } catch (error) {
         console.error('Erreur initialisation:', error);
-        showAlert('Erreur lors de l\'initialisation', 'error');
+        showAlert(`Erreur lors de l'initialisation: ${error.message}`, 'error');
       }
     }
 

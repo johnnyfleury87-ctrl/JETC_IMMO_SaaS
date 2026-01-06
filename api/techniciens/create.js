@@ -47,8 +47,42 @@ module.exports = async (req, res) => {
       return res.status(403).json({ error: 'Action réservée aux entreprises' });
     }
 
-    if (!profile.entreprise_id) {
-      return res.status(400).json({ error: 'Entreprise non liée au profile' });
+    // 🔍 Récupérer entreprise_id : essayer d'abord depuis profile.entreprise_id
+    let entrepriseId = profile.entreprise_id;
+    
+    // Si entreprise_id n'est pas dans le profile, chercher via entreprises.profile_id
+    if (!entrepriseId) {
+      console.log('[API /techniciens/create] entreprise_id NULL dans profile, recherche via entreprises.profile_id...');
+      
+      const { data: entreprise, error: entError } = await supabaseAdmin
+        .from('entreprises')
+        .select('id')
+        .eq('profile_id', user.id)
+        .single();
+      
+      if (entError || !entreprise) {
+        console.error('[API /techniciens/create] ❌ Aucune entreprise liée:', {
+          user_id: user.id,
+          profile_email: user.email,
+          profile_role: profile.role,
+          profile_entreprise_id: profile.entreprise_id,
+          error: entError?.message
+        });
+        
+        return res.status(403).json({ 
+          error: 'Aucune entreprise liée à votre compte',
+          debug: process.env.NODE_ENV === 'development' ? {
+            user_id: user.id,
+            profile_role: profile.role,
+            suggestion: 'Exécuter le script SQL de correction pour lier une entreprise'
+          } : undefined
+        });
+      }
+      
+      entrepriseId = entreprise.id;
+      console.log('[API /techniciens/create] ✅ entreprise_id trouvé via table entreprises:', entrepriseId);
+    } else {
+      console.log('[API /techniciens/create] ✅ entreprise_id depuis profile:', entrepriseId);
     }
 
     // 4️⃣ Récupérer données du body
@@ -111,7 +145,7 @@ module.exports = async (req, res) => {
       .from('techniciens')
       .insert({
         profile_id: authUser.user.id,
-        entreprise_id: profile.entreprise_id,
+        entreprise_id: entrepriseId, // Utiliser la variable récupérée
         nom,
         prenom,
         email,

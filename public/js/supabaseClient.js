@@ -29,8 +29,10 @@
     if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
       console.log('[SUPABASE] Initialisation client...');
       
-      // Créer le client Supabase
-      window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      // ⚠️ NE PAS ÉCRASER window.supabase (qui est la lib CDN)
+      // Créer un client séparé
+      const supabaseLib = window.supabase;
+      const supabaseClient = supabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         auth: {
           autoRefreshToken: true,
           persistSession: true,
@@ -38,9 +40,20 @@
         }
       });
       
+      // Remplacer window.supabase par le client initialisé
+      window.supabase = supabaseClient;
+      
+      // Guard de sécurité : vérifier que auth.getSession existe
+      if (!window.supabase?.auth?.getSession) {
+        console.error('[SUPABASE] ❌ Client mal initialisé : auth.getSession manquant');
+        window.supabase = null;
+        return;
+      }
+      
       console.log('[SUPABASE] Client initialisé ✅');
+      console.log('[SUPABASE] auth.getSession disponible:', typeof window.supabase.auth.getSession);
     } else {
-      console.error('[SUPABASE] CDN non chargé');
+      console.error('[SUPABASE] ❌ CDN non chargé - vérifier que <script src="...@supabase/supabase-js@2"></script> est présent');
     }
   }
 

@@ -42,6 +42,18 @@ module.exports = async (req, res) => {
       return res.status(403).json({ error: 'Profile introuvable' });
     }
 
+    // 🔍 Récupérer entreprise_id si nécessaire (comme dans create.js)
+    let entrepriseId = profile.entreprise_id;
+    if (!entrepriseId && profile.role === 'entreprise') {
+      const { data: entreprise } = await supabaseAdmin
+        .from('entreprises')
+        .select('id')
+        .eq('profile_id', user.id)
+        .single();
+      
+      entrepriseId = entreprise?.id;
+    }
+
     // 4️⃣ Récupérer données du body
     const { technicien_id, telephone, specialites, actif } = req.body;
 
@@ -62,7 +74,7 @@ module.exports = async (req, res) => {
 
     // Vérification permission
     const canUpdate = (
-      profile.role === 'entreprise' && profile.entreprise_id === technicien.entreprise_id
+      profile.role === 'entreprise' && entrepriseId === technicien.entreprise_id
     ) || (
       profile.role === 'technicien' && user.id === technicien_id
     );
@@ -70,7 +82,7 @@ module.exports = async (req, res) => {
     if (!canUpdate) {
       console.warn('[API /techniciens/update] Permission refusée:', {
         user_role: profile.role,
-        user_entreprise: profile.entreprise_id,
+        user_entreprise: entrepriseId,
         tech_entreprise: technicien.entreprise_id
       });
       return res.status(403).json({ error: 'Non autorisé à modifier ce technicien' });

@@ -44,6 +44,22 @@ module.exports = async (req, res) => {
       return res.status(403).json({ error: 'Action réservée aux entreprises' });
     }
 
+    // 🔍 Récupérer entreprise_id si nécessaire
+    let entrepriseId = profile.entreprise_id;
+    if (!entrepriseId) {
+      const { data: entreprise } = await supabaseAdmin
+        .from('entreprises')
+        .select('id')
+        .eq('profile_id', user.id)
+        .single();
+      
+      entrepriseId = entreprise?.id;
+      
+      if (!entrepriseId) {
+        return res.status(403).json({ error: 'Aucune entreprise liée à votre compte' });
+      }
+    }
+
     // 4️⃣ Récupérer technicien_id
     const { technicien_id } = req.body;
 
@@ -62,9 +78,9 @@ module.exports = async (req, res) => {
       return res.status(404).json({ error: 'Technicien introuvable' });
     }
 
-    if (technicien.entreprise_id !== profile.entreprise_id) {
+    if (technicien.entreprise_id !== entrepriseId) {
       console.warn('[API /techniciens/delete] Tentative suppression non autorisée:', {
-        user_entreprise: profile.entreprise_id,
+        user_entreprise: entrepriseId,
         tech_entreprise: technicien.entreprise_id
       });
       return res.status(403).json({ error: 'Non autorisé à supprimer ce technicien' });
