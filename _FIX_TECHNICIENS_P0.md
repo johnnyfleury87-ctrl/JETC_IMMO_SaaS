@@ -1,8 +1,8 @@
-# FIX TECHNICIENS P0 - RAPPORT
+# FIX TECHNICIENS + LOGIN P0 - RAPPORT
 
 **Date**: 6 janvier 2026  
 **Priorité**: P0 (Bloquant)  
-**Status**: ✅ CORRIGÉ
+**Status**: ✅ CORRIGÉ (techniciens.html + login.html)
 
 ---
 
@@ -257,5 +257,66 @@ git push
 
 ---
 
-**✅ TOUS LES POINTS P0 CORRIGÉS**  
+## 🔧 CORRECTION SUPPLÉMENTAIRE : LOGIN.HTML
+
+### Problème découvert
+Après correction de `techniciens.html`, **login.html** avait les mêmes erreurs :
+- `TypeError: Cannot read properties of undefined (reading 'getSession')`
+- `TypeError: Cannot read properties of undefined (reading 'signInWithPassword')`
+
+### Cause
+`login.html` appelait `supabase.auth.*` au lieu de `window.supabaseClient.auth.*`
+
+### Corrections appliquées
+
+**Fichier**: `public/login.html`
+
+1. **Ajout guards et diagnostics** :
+```javascript
+console.log('[LOGIN] supabaseClient:', !!window.supabaseClient);
+console.log('[LOGIN] has auth:', !!window.supabaseClient?.auth);
+console.log('[LOGIN] has signInWithPassword:', typeof window.supabaseClient?.auth?.signInWithPassword);
+console.log('[LOGIN] has getSession:', typeof window.supabaseClient?.auth?.getSession);
+
+if (!window.supabaseClient?.auth?.signInWithPassword) {
+  console.error('[LOGIN] ❌ supabaseClient manquant ou non initialisé');
+  // Afficher erreur UI
+  throw new Error('supabaseClient non initialisé');
+}
+```
+
+2. **Remplacé tous les appels** :
+- `supabase.auth.signInWithPassword()` → `window.supabaseClient.auth.signInWithPassword()`
+- `supabase.auth.getSession()` → `window.supabaseClient.auth.getSession()`
+- `supabase.auth.signOut()` → `window.supabaseClient.auth.signOut()`
+- `supabase.from()` → `window.supabaseClient.from()`
+
+**Lignes modifiées** :
+- Ligne ~207 : Guards et diagnostics
+- Ligne ~229 : `signInWithPassword`
+- Ligne ~283 : `signOut` (profile error)
+- Ligne ~297 : `from('profiles')`
+- Ligne ~311 : `from('regies')`
+- Ligne ~330 : `signOut` (en_attente)
+- Ligne ~344 : `signOut` (refuse)
+- Ligne ~382 : `getSession` (check session existante)
+- Ligne ~398 : `from('profiles')`
+
+### Résultat
+- ✅ Plus d'erreur "Cannot read properties of undefined"
+- ✅ Login fonctionne avec email + password
+- ✅ Validation de rôle OK
+- ✅ Redirection correcte selon le rôle
+
+### Commit
+```bash
+git commit -m "fix(login): Utiliser window.supabaseClient au lieu de supabase"
+git push
+```
+
+Commit: `c81cd0d`
+
+---
+
+**✅ TOUS LES POINTS P0 CORRIGÉS (TECHNICIENS + LOGIN)**  
 **✅ PRÊT POUR TESTS UTILISATEUR**
