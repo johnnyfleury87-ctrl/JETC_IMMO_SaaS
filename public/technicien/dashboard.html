@@ -468,6 +468,54 @@
       }
     }
 
+    /* Modal actions */
+    .modal-section textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--gray-300);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .modal-section textarea:focus {
+      outline: none;
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .modal-actions button {
+      flex: 1;
+    }
+
+    .alert-absence {
+      background: var(--red-50);
+      border: 1px solid var(--red-300);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 20px;
+    }
+
+    .alert-absence strong {
+      color: var(--red-700);
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .alert-absence p {
+      color: var(--red-600);
+      font-size: 14px;
+      margin: 5px 0;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .sidebar {
@@ -879,6 +927,14 @@
       
       const modalBody = document.getElementById('modalBody');
       modalBody.innerHTML = `
+        ${mission.locataire_absent ? `
+        <div class="alert-absence">
+          <strong>⚠️ ABSENCE LOCATAIRE SIGNALÉE</strong>
+          ${mission.absence_raison ? `<p><strong>Motif:</strong> ${mission.absence_raison}</p>` : ''}
+          ${mission.absence_signalement_at ? `<p><strong>Signalé le:</strong> ${formatDateTime(mission.absence_signalement_at)}</p>` : ''}
+        </div>
+        ` : ''}
+
         <div class="modal-section">
           <label>Statut</label>
           <p><span class="badge badge-${mission.statut}">${getStatutLabel(mission.statut)}</span></p>
@@ -931,10 +987,21 @@
         </div>
         ` : ''}
         
-        ${mission.notes ? `
         <div class="modal-section">
-          <label>📝 Notes</label>
-          <p>${mission.notes}</p>
+          <label>📝 Rapport d'intervention</label>
+          <textarea 
+            id="missionNotes" 
+            placeholder="Décrivez les travaux réalisés, pièces utilisées, observations...">${mission.notes || ''}</textarea>
+          <div class="modal-actions">
+            <button class="btn-primary" onclick="saveNotes()">💾 Sauvegarder notes</button>
+          </div>
+        </div>
+
+        ${mission.statut === 'en_cours' && !mission.locataire_absent ? `
+        <div class="modal-section">
+          <button class="btn-secondary" onclick="signalerAbsence()" style="width: 100%;">
+            ⚠️ Signaler absence locataire
+          </button>
         </div>
         ` : ''}
       `;
@@ -945,6 +1012,78 @@
     function closeModal() {
       document.getElementById('modalDetails').classList.add('hidden');
       currentMissionId = null;
+    }
+
+    // =====================================================
+    // ACTIONS COMPLÉMENTAIRES (ÉTAPE 4)
+    // =====================================================
+    async function saveNotes() {
+      if (!currentMissionId) return;
+      
+      const notesTextarea = document.getElementById('missionNotes');
+      if (!notesTextarea) return;
+      
+      const notes = notesTextarea.value.trim();
+      
+      console.log(`[NOTES] Sauvegarde notes mission ${currentMissionId}`);
+      
+      try {
+        const { error } = await window.supabaseClient
+          .from('missions')
+          .update({ notes })
+          .eq('id', currentMissionId);
+          
+        if (error) {
+          console.error('[NOTES] Erreur sauvegarde:', error);
+          showError('Erreur lors de la sauvegarde des notes');
+          return;
+        }
+        
+        console.log('[NOTES] Notes sauvegardées avec succès');
+        showSuccess('✅ Notes sauvegardées');
+        
+        // Rafraîchir les missions pour mettre à jour la liste
+        await loadMissions();
+      } catch (error) {
+        console.error('[NOTES] Erreur:', error);
+        showError('Impossible de sauvegarder les notes');
+      }
+    }
+
+    async function signalerAbsence() {
+      if (!currentMissionId) return;
+      
+      const raison = prompt('Motif de l\'absence du locataire :');
+      if (!raison || raison.trim() === '') return;
+      
+      console.log(`[ABSENCE] Signalement absence mission ${currentMissionId}`);
+      
+      try {
+        const { error } = await window.supabaseClient
+          .from('missions')
+          .update({
+            locataire_absent: true,
+            absence_signalement_at: new Date().toISOString(),
+            absence_raison: raison.trim()
+          })
+          .eq('id', currentMissionId);
+          
+        if (error) {
+          console.error('[ABSENCE] Erreur signalement:', error);
+          showError('Erreur lors du signalement');
+          return;
+        }
+        
+        console.log('[ABSENCE] Absence signalée avec succès');
+        showSuccess('⚠️ Absence locataire signalée');
+        
+        // Fermer modal et rafraîchir
+        closeModal();
+        await loadMissions();
+      } catch (error) {
+        console.error('[ABSENCE] Erreur:', error);
+        showError('Impossible de signaler l\'absence');
+      }
     }
 
     // =====================================================
