@@ -332,6 +332,22 @@
     .btn-secondary:hover {
       background: var(--gray-200);
     }
+    
+    .btn-success {
+      background: #10b981;
+      color: white;
+    }
+    
+    .btn-success:hover:not(:disabled) {
+      background: #059669;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .btn-success:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
 
     .empty-state {
       text-align: center;
@@ -967,6 +983,11 @@
       
       const ticket = mission.tickets;
       
+      // Déterminer actions disponibles selon statut
+      const canAssign = mission.statut === 'en_attente' && !mission.technicien_id;
+      const canStart = mission.statut === 'en_attente' && mission.technicien_id;
+      const canComplete = mission.statut === 'en_cours';
+      
       return `
         <div class="ticket-card">
           <h3>${escapeHtml(ticket?.titre || 'Mission sans titre')}</h3>
@@ -976,6 +997,7 @@
             <span class="badge-statut badge-${mission.statut}">${getMissionStatutLabel(mission.statut)}</span>
             ${ticket?.priorite ? `<span class="badge-priorite badge-${ticket.priorite}">${ticket.priorite}</span>` : ''}
             ${ticket?.categorie ? `<span style="font-size: 12px; color: var(--gray-500);">${ticket.categorie}</span>` : ''}
+            ${mission.technicien_id ? `<span style="font-size: 12px; color: var(--green-600);">👤 Technicien assigné</span>` : ''}
           </div>
           
           <div class="ticket-card-infos">
@@ -993,12 +1015,36 @@
               <span>CHF ${ticket.plafond_intervention_chf.toFixed(2)}</span>
             </div>
             ` : ''}
-            ${mission.montant ? `
+            ${mission.montant_reel_chf ? `
             <div class="ticket-card-info-item">
               <label>Montant mission</label>
-              <span>CHF ${mission.montant.toFixed(2)}</span>
+              <span>CHF ${mission.montant_reel_chf.toFixed(2)}</span>
             </div>
             ` : ''}
+          </div>
+          
+          <div class="ticket-card-footer">
+            <span style="font-size: 13px; color: var(--gray-500);">Mission #${mission.id.substring(0, 8)}...</span>
+            <div class="ticket-card-actions">
+              <button class="btn btn-secondary" onclick="openMissionDetailsModal('${mission.id}')">
+                📄 Détails
+              </button>
+              ${canAssign ? `
+                <button class="btn btn-primary" onclick="openAssignerTechnicienModal('${mission.id}')">
+                  👤 Assigner technicien
+                </button>
+              ` : ''}
+              ${canStart ? `
+                <button class="btn btn-success" onclick="demarrerMission('${mission.id}')">
+                  ▶️ Démarrer
+                </button>
+              ` : ''}
+              ${canComplete ? `
+                <button class="btn btn-success" onclick="terminerMission('${mission.id}')">
+                  ✅ Terminer
+                </button>
+              ` : ''}
+            </div>
           </div>
         </div>
       `;
@@ -1302,6 +1348,246 @@
       if (event.target.id === 'modalTicketDetails') {
         closeTicketDetailsModal();
       }
+      if (event.target.id === 'modalAssignerTechnicien') {
+        closeAssignerTechnicienModal();
+      }
+      if (event.target.id === 'modalMissionDetails') {
+        closeMissionDetailsModal();
+      }
+    }
+
+    // ========== ACTIONS MISSIONS ==========
+    
+    // Ouvrir modal assigner technicien
+    async function openAssignerTechnicienModal(missionId) {
+      console.log('[MISSION] Ouverture modal assigner technicien:', missionId);
+      
+      try {
+        if (!window.currentEntreprise?.id) {
+          alert('Erreur: Entreprise non trouvée');
+          return;
+        }
+        
+        // Charger techniciens actifs de l'entreprise
+        const { data: techniciens, error } = await window.supabaseClient
+          .from('techniciens')
+          .select('*')
+          .eq('entreprise_id', window.currentEntreprise.id)
+          .eq('actif', true)
+          .order('nom', { ascending: true });
+        
+        if (error) {
+          console.error('[MISSION] Erreur chargement techniciens:', error);
+          alert('Erreur: ' + error.message);
+          return;
+        }
+        
+        if (!techniciens || techniciens.length === 0) {
+          alert('⚠️ Aucun technicien actif disponible.\n\nVeuillez d\'abord ajouter des techniciens à votre entreprise.');
+          return;
+        }
+        
+        // Remplir modal
+        const techniciensHtml = techniciens.map((t, index) => {
+          const checked = index === 0 ? 'checked' : '';
+          return `
+            <div class="disponibilite-item">
+              <label class="disponibilite-radio-label">
+                <input type="radio" name="technicien" value="${t.id}" ${checked} />
+                <div class="disponibilite-content">
+                  <h5>${escapeHtml(t.prenom)} ${escapeHtml(t.nom)}</h5>
+                  ${t.telephone ? `<p>📞 ${escapeHtml(t.telephone)}</p>` : ''}
+                  ${t.specialite ? `<p>🔧 ${escapeHtml(t.specialite)}</p>` : ''}
+                </div>
+              </label>
+            </div>
+          `;
+        }).join('');
+        
+        document.getElementById('modalTechniciensListe').innerHTML = techniciensHtml;
+        
+        // Bouton assigner
+        const assignBtn = document.getElementById('modalAssignerBtn');
+        assignBtn.onclick = () => assignerTechnicienToMission(missionId);
+        
+        // Afficher modal
+        document.getElementById('modalAssignerTechnicien').classList.add('show');
+        
+      } catch (error) {
+        console.error('[MISSION] Exception:', error);
+        alert('Erreur: ' + error.message);
+      }
+    }
+    
+    function closeAssignerTechnicienModal() {
+      document.getElementById('modalAssignerTechnicien').classList.remove('show');
+    }
+    
+    // Assigner technicien à mission
+    async function assignerTechnicienToMission(missionId) {
+      console.log('[MISSION] Assignation technicien mission:', missionId);
+      
+      try {
+        // Récupérer technicien sélectionné
+        const selectedRadio = document.querySelector('input[name="technicien"]:checked');
+        
+        if (!selectedRadio) {
+          alert('⚠️ Veuillez sélectionner un technicien.');
+          return;
+        }
+        
+        const technicienId = selectedRadio.value;
+        console.log('[MISSION] Technicien sélectionné:', technicienId);
+        
+        // Appel RPC assign_technicien_to_mission
+        const { data, error } = await window.supabaseClient.rpc('assign_technicien_to_mission', {
+          p_mission_id: missionId,
+          p_technicien_id: technicienId
+        });
+        
+        if (error) {
+          console.error('[MISSION] Erreur RPC:', error);
+          alert(`❌ Erreur: ${error.message}`);
+          return;
+        }
+        
+        console.log('[MISSION] Assignation réussie:', data);
+        
+        if (data && data.success === false) {
+          alert(`❌ ${data.error || 'Erreur inconnue'}`);
+          return;
+        }
+        
+        alert('✅ Technicien assigné avec succès !');
+        
+        // Fermer modal et recharger missions
+        closeAssignerTechnicienModal();
+        loadMesMissions();
+        
+      } catch (error) {
+        console.error('[MISSION] Exception:', error);
+        alert('Erreur: ' + error.message);
+      }
+    }
+    
+    // Démarrer mission (appel RPC start_mission)
+    async function demarrerMission(missionId) {
+      console.log('[MISSION] Démarrage mission:', missionId);
+      
+      if (!confirm('⚠️ Confirmer le démarrage de cette mission ?')) {
+        return;
+      }
+      
+      try {
+        const { data, error } = await window.supabaseClient.rpc('start_mission', {
+          p_mission_id: missionId
+        });
+        
+        if (error) {
+          console.error('[MISSION] Erreur RPC:', error);
+          alert(`❌ Erreur: ${error.message}`);
+          return;
+        }
+        
+        console.log('[MISSION] Démarrage réussi:', data);
+        
+        if (data && data.success === false) {
+          alert(`❌ ${data.error || 'Erreur inconnue'}`);
+          return;
+        }
+        
+        alert('✅ Mission démarrée !');
+        loadMesMissions();
+        
+      } catch (error) {
+        console.error('[MISSION] Exception:', error);
+        alert('Erreur: ' + error.message);
+      }
+    }
+    
+    // Terminer mission (appel RPC complete_mission)
+    async function terminerMission(missionId) {
+      console.log('[MISSION] Terminer mission:', missionId);
+      
+      if (!confirm('⚠️ Confirmer la fin de cette mission ?\n\nCette action marquera la mission comme terminée.')) {
+        return;
+      }
+      
+      try {
+        const { data, error } = await window.supabaseClient.rpc('complete_mission', {
+          p_mission_id: missionId
+        });
+        
+        if (error) {
+          console.error('[MISSION] Erreur RPC:', error);
+          alert(`❌ Erreur: ${error.message}`);
+          return;
+        }
+        
+        console.log('[MISSION] Terminé avec succès:', data);
+        
+        if (data && data.success === false) {
+          alert(`❌ ${data.error || 'Erreur inconnue'}`);
+          return;
+        }
+        
+        alert('✅ Mission terminée !\n\nLa régie pourra maintenant la valider.');
+        loadMesMissions();
+        
+      } catch (error) {
+        console.error('[MISSION] Exception:', error);
+        alert('Erreur: ' + error.message);
+      }
+    }
+    
+    // Ouvrir modal détails mission
+    async function openMissionDetailsModal(missionId) {
+      console.log('[MISSION] Ouverture modal détails:', missionId);
+      
+      try {
+        // Charger mission complète
+        const { data: mission, error } = await window.supabaseClient
+          .from('missions')
+          .select(`
+            *,
+            tickets (
+              id,
+              titre,
+              description,
+              categorie,
+              sous_categorie,
+              priorite,
+              statut,
+              plafond_intervention_chf
+            ),
+            techniciens (
+              id,
+              nom,
+              prenom,
+              telephone
+            )
+          `)
+          .eq('id', missionId)
+          .eq('entreprise_id', window.currentEntreprise.id)
+          .single();
+        
+        if (error) {
+          console.error('[MISSION] Erreur chargement:', error);
+          alert('Erreur: ' + error.message);
+          return;
+        }
+        
+        // Afficher détails (à implémenter selon besoins)
+        alert(`📋 Détails Mission\n\nTicket: ${mission.tickets.titre}\nStatut: ${getMissionStatutLabel(mission.statut)}\nTechnicien: ${mission.techniciens ? mission.techniciens.prenom + ' ' + mission.techniciens.nom : 'Non assigné'}\n\n(Interface détaillée à développer)`);
+        
+      } catch (error) {
+        console.error('[MISSION] Exception:', error);
+        alert('Erreur: ' + error.message);
+      }
+    }
+    
+    function closeMissionDetailsModal() {
+      // À implémenter si modal complète créée
     }
 
     // Initialisation
@@ -1312,5 +1598,31 @@
 
   <!-- Mobile Menu Handler -->
   <script src="/js/mobile-menu.js"></script>
+  
+  <!-- ========== MODAL ASSIGNER TECHNICIEN ========== -->
+  <div id="modalAssignerTechnicien" class="modal-overlay" onclick="closeModalIfOverlay(event)">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>👤 Assigner un technicien</h2>
+        <button class="modal-close" onclick="closeAssignerTechnicienModal()">✕</button>
+      </div>
+      
+      <div class="modal-body">
+        <p style="margin-bottom: 20px; color: var(--gray-600);">
+          Sélectionnez le technicien qui effectuera cette intervention.
+        </p>
+        
+        <div id="modalTechniciensListe">
+          <!-- Liste techniciens injectée dynamiquement -->
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAssignerTechnicienModal()">Annuler</button>
+        <button id="modalAssignerBtn" class="btn btn-primary">✅ Assigner</button>
+      </div>
+    </div>
+  </div>
+  
 </body>
 </html>
