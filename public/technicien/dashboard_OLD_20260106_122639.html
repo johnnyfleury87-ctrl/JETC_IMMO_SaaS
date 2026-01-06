@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Technicien - JETC_IMMO</title>
+  <link rel="stylesheet" href="/css/design-system.css">
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/bootstrapSupabase.js"></script>
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-dashboard">
+          <img src="/logo_moi.png" alt="JETC_IMMO Logo">
+          <h1>JETC_IMMO</h1>
+        </div>
+        <div class="sidebar-subtitle">Technicien</div>
+      </div>
+      <nav class="sidebar-menu">
+        <a href="#" class="menu-item active">
+          <span class="menu-icon">🔧</span>
+          <span class="menu-label">Dashboard</span>
+        </a>
+        <a href="#" class="menu-item disabled">
+          <span class="menu-icon">📋</span>
+          <span class="menu-label">Missions assignées</span>
+        </a>
+        <a href="#" class="menu-item disabled">
+          <span class="menu-icon">🔨</span>
+          <span class="menu-label">Interventions</span>
+        </a>
+        <a href="#" class="menu-item disabled">
+          <span class="menu-icon">💬</span>
+          <span class="menu-label">Messagerie</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info-sidebar">
+          <div class="user-avatar" id="userAvatar">T</div>
+          <div class="user-details">
+            <div class="user-email" id="userEmail">Chargement...</div>
+            <div class="user-role">Technicien</div>
+          </div>
+        </div>
+        <button class="btn-logout" onclick="logout()">Déconnexion</button>
+      </div>
+    </aside>
+    <main class="main-content">
+    <div class="welcome-card">
+      <h2>🎉 Bienvenue sur votre dashboard</h2>
+      <p><strong>Rôle :</strong> Technicien</p>
+      <p>Vous êtes connecté en tant que <strong id="userEmailDisplay">utilisateur</strong></p>
+      
+      <div class="info-box">
+        <h3>📋 Fonctionnalités à venir (ÉTAPES suivantes)</h3>
+        <ul style="text-align: left;">
+          <li><strong>ÉTAPE 11</strong> : Voir missions assignées</li>
+          <li><strong>ÉTAPE 12</strong> : Démarrer/terminer interventions</li>
+          <li><strong>ÉTAPE 12</strong> : Ajouter photos et rapports</li>
+          <li><strong>ÉTAPE 14</strong> : Messagerie avec locataires</li>
+        </ul>
+      </div>
+
+      <p style="margin-top: 30px; color: #999;">
+        <small>ÉTAPE 2 - Authentification fonctionnelle ✅</small>
+      </p>
+    </div>
+    </main>
+  </div>
+
+  <script>
+    // Vérifier l'authentification
+    async function checkAuth() {
+      try {
+        // ✅ Attendre que le bootstrap soit prêt
+        await window.__SUPABASE_READY__;
+        console.log('[DASHBOARD TECHNICIEN] ✅ Supabase prêt');
+        
+        const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
+        
+        if (sessionError || !session) {
+          console.log('[DASHBOARD TECHNICIEN] Non authentifié');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        // Vérifier que c'est bien un technicien
+        const { data: profile, error: profileError } = await window.supabaseClient
+          .from('profiles')
+          .select('role, email')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (profileError || !profile) {
+          console.error('[DASHBOARD TECHNICIEN] Erreur chargement profil:', profileError);
+          alert('Erreur: impossible de charger votre profil');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        if (profile.role !== 'technicien') {
+          console.error('[DASHBOARD TECHNICIEN] Accès refusé - rôle:', profile.role);
+          alert('Accès réservé aux techniciens');
+          window.location.href = '/login.html';
+          return;
+        }
+        
+        // Afficher email utilisateur
+        const email = profile.email || session.user.email;
+        document.getElementById('userEmail').textContent = email;
+        const firstLetter = email.charAt(0).toUpperCase();
+        document.getElementById('userAvatar').textContent = firstLetter;
+        
+        console.log('[DASHBOARD TECHNICIEN] ✅ Utilisateur connecté');
+        
+      } catch (error) {
+        console.error('[DASHBOARD TECHNICIEN] Exception:', error);
+        alert('Erreur technique lors de la vérification');
+        window.location.href = '/login.html';
+      }
+    }
+
+    // Déconnexion
+    async function logout() {
+      try {
+        await window.supabaseClient.auth.signOut();
+        console.log('[LOGOUT] Déconnexion réussie');
+      } catch (error) {
+        console.error('[LOGOUT] Erreur:', error);
+      }
+      window.location.href = '/login.html';
+    }
+
+    // Initialisation
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuth();
+    });
+  </script>
+
+  <!-- Mobile Menu Handler -->
+  <script src="/js/mobile-menu.js"></script>
+</body>
+</html>

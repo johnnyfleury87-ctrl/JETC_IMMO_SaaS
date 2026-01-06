@@ -1,0 +1,102 @@
+
+╔══════════════════════════════════════════════════════════╗
+║  AUDIT COMPLET BASE DE DONNÉES - VUE TECHNICIEN          ║
+╚══════════════════════════════════════════════════════════╝
+
+
+============================================================
+📋 STRUCTURE TABLE missions
+============================================================
+✅ Table missions accessible
+
+📊 Colonnes détectées:
+   - id
+   - ticket_id
+   - entreprise_id
+   - technicien_id
+   - date_intervention_prevue
+   - date_intervention_realisee
+   - statut
+   - created_at
+   - started_at
+   - completed_at
+   - validated_at
+   - notes
+   - devis_url
+   - facture_url
+   - montant_reel_chf
+   - updated_at
+   - rapport_url
+   - signature_locataire_url
+   - signature_technicien_url
+   - devise
+   - disponibilite_id
+   - locataire_absent
+   - absence_signalement_at
+   - absence_raison
+   - photos_urls
+
+🔹 Colonnes critiques pour technicien
+--------------------------------------------------
+   ✅ id
+   ✅ entreprise_id
+   ✅ technicien_id
+   ✅ statut
+   ✅ started_at
+   ✅ completed_at
+   ✅ notes
+   ✅ photos_urls
+
+============================================================
+📋 STRUCTURE TABLE mission_signalements
+============================================================
+✅ Table mission_signalements accessible
+
+============================================================
+📋 POLICIES RLS missions POUR TECHNICIEN
+============================================================
+⚠️ Impossible de lire pg_policies via RPC ou direct
+   Raison: Could not find the table 'public.pg_policies' in the schema cache
+
+🔄 Tentative lecture policies via SQL direct...
+⚠️ RPC get_missions_policies introuvable
+
+============================================================
+📋 RPC FUNCTIONS POUR TECHNICIEN
+============================================================
+🔍 Fonctions RPC attendues:
+
+   ❌ start_mission - N'EXISTE PAS
+   ❌ complete_mission - N'EXISTE PAS
+   ❌ add_mission_photos - N'EXISTE PAS
+   ❌ create_mission_signalement - N'EXISTE PAS
+   ❌ get_technicien_missions - N'EXISTE PAS
+
+============================================================
+📋 LIEN TECHNICIEN ↔ PROFILE
+============================================================
+✅ 2 techniciens trouvés
+
+👤 Teste (ID: e3d51a56-4c1a-4d6b-a7c1-3065adf3acbd)
+   - profile_id: e5dc1c44-96b0-49fd-b18e-1b8f539df1a5
+   - entreprise_id: 6ff210bc-9985-457c-8851-4185123edb07
+   ✅ Profile: tech@test.app (role: technicien)
+
+👤 Dupont (ID: e96bf1f6-0d41-435d-ba5c-4d4611ceeebd)
+   - profile_id: f4ca9426-73f9-4efa-850c-c660b5f86875
+   - entreprise_id: 6ff210bc-9985-457c-8851-4185123edb07
+   ✅ Profile: jean@test.app (role: technicien)
+
+
+============================================================
+📋 TEST LECTURE MISSIONS (simulation technicien)
+============================================================
+🧪 Test avec technicien: Teste (profile_id: e5dc1c44-96b0-49fd-b18e-1b8f539df1a5)
+✅ 0 missions assignées à ce technicien
+
+============================================================
+📋 FIN AUDIT
+============================================================
+✅ Audit terminé
+📄 Générez maintenant le rapport: audit/REPORT_TECHNICIEN_DB_STATE.md
+
