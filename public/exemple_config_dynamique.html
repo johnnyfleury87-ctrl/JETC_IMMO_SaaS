@@ -126,7 +126,7 @@
 
       try {
         // Tester une requête simple (health check)
-        const { data, error } = await window.supabase.from('profiles').select('count');
+        const { data, error } = await window.supabaseClient.from('profiles').select('count');
         
         if (error) {
           statusDiv.className = 'status error';
@@ -151,7 +151,7 @@
       }
 
       try {
-        const { data: { session }, error } = await window.supabase.auth.getSession();
+        const { data: { session }, error } = await window.supabaseClient.auth.getSession();
         
         if (error) {
           sessionPre.textContent = `Erreur : ${error.message}`;

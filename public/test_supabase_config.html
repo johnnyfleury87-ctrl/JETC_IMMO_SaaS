@@ -89,9 +89,9 @@
     // Test 2 : Init Supabase
     function testSupabaseInit() {
       log('Test 2 : Vérification client Supabase...');
-      if (window.supabase && window.supabase.auth) {
+      if (window.supabase && window.supabaseClient.auth) {
         log('✅ window.supabase existe');
-        log('✅ window.supabase.auth existe');
+        log('✅ window.supabaseClient.auth existe');
         showStatus('✅ Client Supabase initialisé', 'success');
       } else {
         log('❌ window.supabase non initialisé');
@@ -109,7 +109,7 @@
       }
       
       try {
-        const { data, error } = await window.supabase.auth.getSession();
+        const { data, error } = await window.supabaseClient.auth.getSession();
         if (error) throw error;
         
         if (data.session) {

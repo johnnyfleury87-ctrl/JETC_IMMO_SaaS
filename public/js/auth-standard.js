@@ -1,7 +1,7 @@
 /**
  * ✅ CORRECTION AUTH GLOBALE
  * Module d'authentification standardisé pour tous les dashboards
- * Source de vérité unique : supabase.auth.getSession()
+ * Source de vérité unique : window.supabaseClient.auth.getSession()
  */
 
 /**
@@ -13,16 +13,19 @@
 async function checkAuthStandard(expectedRole, options = {}) {
   console.log(`[AUTH][${expectedRole.toUpperCase()}] Vérification authentification...`);
   
-  // Vérifier que Supabase est chargé
-  if (typeof supabase === 'undefined') {
+  // Attendre que Supabase soit chargé
+  if (typeof window.__SUPABASE_READY__ === 'undefined') {
     console.error('[AUTH][FATAL] Supabase client non chargé');
     alert('Erreur technique: Client Supabase non chargé. Rechargez la page.');
     return null;
   }
   
   try {
+    // Attendre bootstrap
+    await window.__SUPABASE_READY__;
+    
     // ✅ SOURCE DE VÉRITÉ : Session Supabase
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
     
     console.log('[AUTH][SESSION]', {
       hasSession: !!session,
@@ -37,7 +40,7 @@ async function checkAuthStandard(expectedRole, options = {}) {
     }
     
     // Récupérer le profil depuis Supabase
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile, error: profileError } = await window.supabaseClient
       .from('profiles')
       .select('id, email, role')
       .eq('id', session.user.id)
@@ -95,8 +98,8 @@ async function checkAuthStandard(expectedRole, options = {}) {
 async function logoutStandard() {
   console.log('[AUTH] Déconnexion en cours...');
   
-  if (typeof supabase !== 'undefined') {
-    await supabase.auth.signOut();
+  if (typeof window.supabaseClient !== 'undefined') {
+    await window.supabaseClient.auth.signOut();
     console.log('[AUTH] ✅ Déconnexion Supabase effectuée');
   }
   
@@ -111,7 +114,7 @@ async function logoutStandard() {
 async function checkRegieValidation(userId) {
   console.log('[AUTH][REGIE] Vérification statut validation...');
   
-  const { data: regie, error: regieError } = await supabase
+  const { data: regie, error: regieError } = await window.supabaseClient
     .from('regies')
     .select('id, nom, statut_validation')
     .eq('profile_id', userId)
@@ -120,14 +123,14 @@ async function checkRegieValidation(userId) {
   if (regieError) {
     console.error('[AUTH][REGIE][ERROR]', regieError);
     alert('Erreur lors de la vérification de votre agence');
-    await supabase.auth.signOut();
+    await window.supabaseClient.auth.signOut();
     window.location.href = '/login.html';
     return null;
   }
   
   if (!regie) {
     alert('Aucune régie associée à ce compte');
-    await supabase.auth.signOut();
+    await window.supabaseClient.auth.signOut();
     window.location.href = '/login.html';
     return null;
   }
@@ -135,21 +138,21 @@ async function checkRegieValidation(userId) {
   // Vérifier statut
   if (regie.statut_validation === 'en_attente') {
     alert('⏳ Votre agence est en attente de validation par l\'équipe JETC_IMMO.');
-    await supabase.auth.signOut();
+    await window.supabaseClient.auth.signOut();
     window.location.href = '/login.html';
     return null;
   }
   
   if (regie.statut_validation === 'refuse') {
     alert('❌ Votre inscription a été refusée.');
-    await supabase.auth.signOut();
+    await window.supabaseClient.auth.signOut();
     window.location.href = '/login.html';
     return null;
   }
   
   if (regie.statut_validation !== 'valide') {
     alert('Statut de validation invalide');
-    await supabase.auth.signOut();
+    await window.supabaseClient.auth.signOut();
     window.location.href = '/login.html';
     return null;
   }
