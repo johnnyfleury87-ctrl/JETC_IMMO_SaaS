@@ -917,25 +917,12 @@
           return;
         }
         
-        // Charger missions via vue missions_details (contient toutes les infos)
+        // ✅ Charger via vue missions_details (avec infos technicien)
         const { data: missions, error } = await window.supabaseClient
-          .from('missions')
-          .select(`
-            *,
-            tickets (
-              id,
-              titre,
-              description,
-              categorie,
-              sous_categorie,
-              priorite,
-              statut,
-              created_at,
-              plafond_intervention_chf
-            )
-          `)
+          .from('missions_details')
+          .select('*')
           .eq('entreprise_id', window.currentEntreprise.id)
-          .order('created_at', { ascending: false });
+          .order('mission_created_at', { ascending: false });
         
         if (error) {
           console.error('[MISSIONS] Erreur:', error);
@@ -973,7 +960,8 @@
     }
 
     function renderMissionCard(mission) {
-      const dateCreation = new Date(mission.created_at).toLocaleDateString('fr-FR', {
+      // ✅ Utiliser les colonnes de la vue missions_details
+      const dateCreation = new Date(mission.mission_created_at).toLocaleDateString('fr-FR', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
@@ -981,23 +969,26 @@
         minute: '2-digit'
       });
       
-      const ticket = mission.tickets;
-      
       // Déterminer actions disponibles selon statut
-      const canAssign = mission.statut === 'en_attente' && !mission.technicien_id;
-      const canStart = mission.statut === 'en_attente' && mission.technicien_id;
-      const canComplete = mission.statut === 'en_cours';
+      const canAssign = mission.mission_statut === 'en_attente' && !mission.technicien_id;
+      const canStart = mission.mission_statut === 'en_attente' && mission.technicien_id;
+      const canComplete = mission.mission_statut === 'en_cours';
+      
+      // ✅ Nom complet du technicien assigné
+      const technicienInfo = mission.technicien_nom && mission.technicien_prenom
+        ? `${mission.technicien_prenom} ${mission.technicien_nom}`
+        : null;
       
       return `
         <div class="ticket-card">
-          <h3>${escapeHtml(ticket?.titre || 'Mission sans titre')}</h3>
-          <p class="ticket-card-description">${escapeHtml(ticket?.description || 'Aucune description')}</p>
+          <h3>${escapeHtml(mission.ticket_titre || 'Mission sans titre')}</h3>
+          <p class="ticket-card-description">${escapeHtml(mission.ticket_description || 'Aucune description')}</p>
           
           <div class="ticket-card-meta">
-            <span class="badge-statut badge-${mission.statut}">${getMissionStatutLabel(mission.statut)}</span>
-            ${ticket?.priorite ? `<span class="badge-priorite badge-${ticket.priorite}">${ticket.priorite}</span>` : ''}
-            ${ticket?.categorie ? `<span style="font-size: 12px; color: var(--gray-500);">${ticket.categorie}</span>` : ''}
-            ${mission.technicien_id ? `<span style="font-size: 12px; color: var(--green-600);">👤 Technicien assigné</span>` : ''}
+            <span class="badge-statut badge-${mission.mission_statut}">${getMissionStatutLabel(mission.mission_statut)}</span>
+            ${mission.ticket_priorite ? `<span class="badge-priorite badge-${mission.ticket_priorite}">${mission.ticket_priorite}</span>` : ''}
+            ${mission.ticket_categorie ? `<span style="font-size: 12px; color: var(--gray-500);">${mission.ticket_categorie}</span>` : ''}
+            ${technicienInfo ? `<span style="font-size: 12px; color: var(--green-600); font-weight: 500;">👤 ${escapeHtml(technicienInfo)}</span>` : '<span style="font-size: 12px; color: var(--orange-500);">⏳ Aucun technicien assigné</span>'}
           </div>
           
           <div class="ticket-card-infos">
@@ -1007,40 +998,46 @@
             </div>
             <div class="ticket-card-info-item">
               <label>Statut mission</label>
-              <span>${getMissionStatutLabel(mission.statut)}</span>
+              <span>${getMissionStatutLabel(mission.mission_statut)}</span>
             </div>
-            ${ticket?.plafond_intervention_chf ? `
+            ${technicienInfo ? `
             <div class="ticket-card-info-item">
-              <label>Plafond intervention</label>
-              <span>CHF ${ticket.plafond_intervention_chf.toFixed(2)}</span>
+              <label>Technicien assigné</label>
+              <span>👤 ${escapeHtml(technicienInfo)}</span>
             </div>
             ` : ''}
-            ${mission.montant_reel_chf ? `
+            ${mission.plafond_intervention_chf ? `
+            <div class="ticket-card-info-item">
+              <label>Plafond intervention</label>
+              <span>CHF ${mission.plafond_intervention_chf.toFixed(2)}</span>
+            </div>
+            ` : ''}
+            ${mission.mission_montant ? `
             <div class="ticket-card-info-item">
               <label>Montant mission</label>
-              <span>CHF ${mission.montant_reel_chf.toFixed(2)}</span>
+              <span>CHF ${mission.mission_montant.toFixed(2)}</span>
             </div>
             ` : ''}
           </div>
           
           <div class="ticket-card-footer">
-            <span style="font-size: 13px; color: var(--gray-500);">Mission #${mission.id.substring(0, 8)}...</span>
+            <span style="font-size: 13px; color: var(--gray-500);">Mission #${mission.mission_id.substring(0, 8)}...</span>
             <div class="ticket-card-actions">
-              <button class="btn btn-secondary" onclick="openMissionDetailsModal('${mission.id}')">
+              <button class="btn btn-secondary" onclick="openMissionDetailsModal('${mission.mission_id}')">
                 📄 Détails
               </button>
               ${canAssign ? `
-                <button class="btn btn-primary" onclick="openAssignerTechnicienModal('${mission.id}')">
+                <button class="btn btn-primary" onclick="openAssignerTechnicienModal('${mission.mission_id}')">
                   👤 Assigner technicien
                 </button>
               ` : ''}
               ${canStart ? `
-                <button class="btn btn-success" onclick="demarrerMission('${mission.id}')">
+                <button class="btn btn-success" onclick="demarrerMission('${mission.mission_id}')">
                   ▶️ Démarrer
                 </button>
               ` : ''}
               ${canComplete ? `
-                <button class="btn btn-success" onclick="terminerMission('${mission.id}')">
+                <button class="btn btn-success" onclick="terminerMission('${mission.mission_id}')">
                   ✅ Terminer
                 </button>
               ` : ''}
