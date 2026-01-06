@@ -243,23 +243,23 @@
       document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         hideMessages();
-      
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      const btnLogin = document.getElementById('btnLogin');
-      
-      btnLogin.disabled = true;
-      btnLogin.textContent = 'Connexion...';
-      
-      try {
-        console.log('[LOGIN][STEP 1] Submitting login for:', email);
         
-        // ✅ CORRECTION : Login DIRECT via Supabase (crée session côté client)
-        console.log('[LOGIN][STEP 2] Calling signInWithPassword...');
-        const { data: authData, error: authError } = await window.supabaseClient.auth.signInWithPassword({
-          email: email,
-          password: password
-        });
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const btnLogin = document.getElementById('btnLogin');
+        
+        btnLogin.disabled = true;
+        btnLogin.textContent = 'Connexion...';
+        
+        try {
+          console.log('[LOGIN][STEP 1] Submitting login for:', email);
+          
+          // ✅ CORRECTION : Login DIRECT via Supabase (crée session côté client)
+          console.log('[LOGIN][STEP 2] Calling signInWithPassword...');
+          const { data: authData, error: authError } = await window.supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: password
+          });
         
         if (authError) {
           console.error('[LOGIN][STEP 2 FAILED]', {
