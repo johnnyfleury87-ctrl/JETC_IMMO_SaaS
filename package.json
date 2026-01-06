@@ -18,7 +18,8 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.88.0",
     "dotenv": "^16.3.1",
-    "nodemailer": "^6.9.8"
+    "nodemailer": "^6.9.8",
+    "pdfkit": "^0.17.2"
   },
   "devDependencies": {
     "chai": "^6.2.1",

@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Facturation Mensuelle JETC</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    h1 {
+      color: #333;
+      font-size: 28px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #2196F3;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #1976D2;
+    }
+
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    .btn-secondary:hover {
+      background: #e0e0e0;
+    }
+
+    .filters {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 6px;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .filter-group label {
+      font-size: 12px;
+      color: #666;
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    select, input {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    .stat-card.green {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+
+    .stat-card.blue {
+      background: linear-gradient(135deg, #2196F3 0%, #21CBF3 100%);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      opacity: 0.9;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    thead {
+      background: #f5f5f5;
+    }
+
+    th {
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      color: #333;
+      border-bottom: 2px solid #ddd;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      color: #555;
+    }
+
+    tr:hover {
+      background: #f9f9f9;
+    }
+
+    .text-right {
+      text-align: right;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-period {
+      background: #E3F2FD;
+      color: #1976D2;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+
+    .error {
+      background: #ffebee;
+      color: #c62828;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+
+    .empty-state svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 15px;
+      opacity: 0.3;
+    }
+
+    tfoot {
+      background: #f9f9f9;
+      font-weight: 600;
+    }
+
+    tfoot td {
+      border-top: 2px solid #333;
+      padding: 15px 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>💰 Facturation Mensuelle JETC</h1>
+      <div class="actions">
+        <button class="btn-secondary" onclick="window.location.href='/admin/dashboard.html'">
+          ← Retour
+        </button>
+        <button class="btn-primary" onclick="exportPDF()" id="btnExportPDF">
+          📄 Export PDF
+        </button>
+      </div>
+    </header>
+
+    <div class="filters">
+      <div class="filter-group">
+        <label>Année</label>
+        <select id="filterAnnee" onchange="loadData()">
+          <option value="">Toutes</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Mois</label>
+        <select id="filterMois" onchange="loadData()">
+          <option value="">Tous</option>
+          <option value="1">Janvier</option>
+          <option value="2">Février</option>
+          <option value="3">Mars</option>
+          <option value="4">Avril</option>
+          <option value="5">Mai</option>
+          <option value="6">Juin</option>
+          <option value="7">Juillet</option>
+          <option value="8">Août</option>
+          <option value="9">Septembre</option>
+          <option value="10">Octobre</option>
+          <option value="11">Novembre</option>
+          <option value="12">Décembre</option>
+        </select>
+      </div>
+      <div class="filter-group" style="justify-content: flex-end;">
+        <label>&nbsp;</label>
+        <button class="btn-secondary" onclick="resetFilters()">
+          🔄 Réinitialiser
+        </button>
+      </div>
+    </div>
+
+    <div class="stats" id="stats">
+      <div class="stat-card">
+        <div class="stat-label">Nombre de Missions</div>
+        <div class="stat-value" id="statMissions">-</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-label">Total HT</div>
+        <div class="stat-value" id="statTotalHT">-</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Commission JETC</div>
+        <div class="stat-value" id="statCommission">-</div>
+      </div>
+    </div>
+
+    <div id="errorContainer"></div>
+    <div id="loadingContainer" class="loading">
+      Chargement des données...
+    </div>
+
+    <div id="tableContainer" style="display: none;">
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th>Période</th>
+            <th>Régie</th>
+            <th class="text-right">Nb Factures</th>
+            <th class="text-right">Nb Missions</th>
+            <th class="text-right">Total HT</th>
+            <th class="text-right">Commission JETC</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3">TOTAL</td>
+            <td class="text-right" id="footerMissions">-</td>
+            <td class="text-right" id="footerTotalHT">-</td>
+            <td class="text-right" id="footerCommission">-</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE_URL = window.location.origin;
+    let currentData = null;
+
+    // Initialiser les années dans le filtre
+    function initYearFilter() {
+      const select = document.getElementById('filterAnnee');
+      const currentYear = new Date().getFullYear();
+      
+      for (let year = currentYear; year >= currentYear - 5; year--) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        select.appendChild(option);
+      }
+      
+      // Sélectionner année courante par défaut
+      select.value = currentYear;
+    }
+
+    // Charger les données
+    async function loadData() {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      const annee = document.getElementById('filterAnnee').value;
+      const mois = document.getElementById('filterMois').value;
+
+      let url = `${API_BASE_URL}/api/admin/factures-mensuelles`;
+      const params = [];
+      if (annee) params.push(`annee=${annee}`);
+      if (mois) params.push(`mois=${mois}`);
+      if (params.length > 0) url += '?' + params.join('&');
+
+      document.getElementById('loadingContainer').style.display = 'block';
+      document.getElementById('tableContainer').style.display = 'none';
+      document.getElementById('errorContainer').innerHTML = '';
+
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        currentData = data;
+        displayData(data);
+
+      } catch (error) {
+        console.error('Erreur:', error);
+        document.getElementById('errorContainer').innerHTML = 
+          `<div class="error">❌ ${error.message}</div>`;
+        document.getElementById('loadingContainer').style.display = 'none';
+      }
+    }
+
+    // Afficher les données
+    function displayData(data) {
+      document.getElementById('loadingContainer').style.display = 'none';
+
+      // Mettre à jour les stats
+      document.getElementById('statMissions').textContent = 
+        data.totaux.nombre_missions.toLocaleString('fr-FR');
+      document.getElementById('statTotalHT').textContent = 
+        formatCurrency(data.totaux.total_ht);
+      document.getElementById('statCommission').textContent = 
+        formatCurrency(data.totaux.total_commission_jetc);
+
+      // Afficher le tableau
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+
+      if (data.lignes.length === 0) {
+        document.getElementById('tableContainer').innerHTML = `
+          <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <h3>Aucune donnée</h3>
+            <p>Aucune facture payée pour cette période</p>
+          </div>
+        `;
+        return;
+      }
+
+      document.getElementById('tableContainer').style.display = 'block';
+
+      data.lignes.forEach(ligne => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><span class="badge badge-period">${formatPeriode(ligne.periode)}</span></td>
+          <td>${ligne.regie_nom}</td>
+          <td class="text-right">${ligne.nombre_factures}</td>
+          <td class="text-right">${ligne.nombre_missions}</td>
+          <td class="text-right">${formatCurrency(ligne.total_ht)}</td>
+          <td class="text-right">${formatCurrency(ligne.total_commission_jetc)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Mettre à jour le footer
+      document.getElementById('footerMissions').textContent = 
+        data.totaux.nombre_missions.toLocaleString('fr-FR');
+      document.getElementById('footerTotalHT').textContent = 
+        formatCurrency(data.totaux.total_ht);
+      document.getElementById('footerCommission').textContent = 
+        formatCurrency(data.totaux.total_commission_jetc);
+    }
+
+    // Formater la période
+    function formatPeriode(periode) {
+      const [annee, mois] = periode.split('-');
+      const moisNoms = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 
+                        'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+      return `${moisNoms[parseInt(mois) - 1]} ${annee}`;
+    }
+
+    // Formater montant
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('fr-FR', {
+        style: 'currency',
+        currency: 'EUR'
+      }).format(amount);
+    }
+
+    // Réinitialiser les filtres
+    function resetFilters() {
+      document.getElementById('filterAnnee').value = new Date().getFullYear();
+      document.getElementById('filterMois').value = '';
+      loadData();
+    }
+
+    // Export PDF
+    async function exportPDF() {
+      if (!currentData || currentData.lignes.length === 0) {
+        alert('Aucune donnée à exporter');
+        return;
+      }
+
+      const token = localStorage.getItem('access_token');
+      const annee = document.getElementById('filterAnnee').value;
+      const mois = document.getElementById('filterMois').value;
+
+      let url = `${API_BASE_URL}/api/admin/factures-mensuelles-pdf`;
+      const params = [];
+      if (annee) params.push(`annee=${annee}`);
+      if (mois) params.push(`mois=${mois}`);
+      if (params.length > 0) url += '?' + params.join('&');
+
+      const btn = document.getElementById('btnExportPDF');
+      btn.disabled = true;
+      btn.textContent = 'Génération...';
+
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Erreur lors de la génération du PDF');
+        }
+
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `facturation-jetc-${annee || 'toutes'}-${mois || 'tous'}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+      } catch (error) {
+        console.error('Erreur:', error);
+        alert('Erreur lors de l\'export PDF');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '📄 Export PDF';
+      }
+    }
+
+    // Initialisation
+    initYearFilter();
+    loadData();
+  </script>
+</body>
+</html>

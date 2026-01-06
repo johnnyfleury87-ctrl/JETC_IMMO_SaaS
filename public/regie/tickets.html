@@ -560,8 +560,80 @@
     <div id="modal-validation" class="modal-overlay">
       <div class="modal-content">
         <h3>✅ Valider et diffuser le ticket</h3>
-        <p style="color: var(--gray-600); margin-bottom: 20px;">Définir priorité, plafond et mode de diffusion</p>
+        <p style="color: var(--gray-600); margin-bottom: 20px;">Vérifier/corriger les informations avant diffusion</p>
         
+        <!-- P1: Correction sous_categorie et piece -->
+        <div class="form-group">
+          <label for="validation-sous-categorie">Sous-catégorie *</label>
+          <select id="validation-sous-categorie">
+            <option value="">-- Sélectionner --</option>
+            <optgroup label="Plomberie">
+              <option value="fuite">Fuite</option>
+              <option value="robinet">Robinet</option>
+              <option value="chasse_eau">Chasse d'eau</option>
+              <option value="sanitaire">Sanitaire</option>
+            </optgroup>
+            <optgroup label="Électricité">
+              <option value="panne">Panne</option>
+              <option value="interrupteur">Interrupteur</option>
+              <option value="prise">Prise</option>
+              <option value="lumiere">Lumière</option>
+            </optgroup>
+            <optgroup label="Chauffage">
+              <option value="radiateur">Radiateur</option>
+              <option value="chaudiere">Chaudière</option>
+              <option value="regulation">Régulation</option>
+            </optgroup>
+            <optgroup label="Serrurerie">
+              <option value="porte">Porte</option>
+              <option value="fenetre">Fenêtre</option>
+              <option value="serrure">Serrure</option>
+            </optgroup>
+            <optgroup label="Vitrerie">
+              <option value="vitre_cassee">Vitre cassée</option>
+              <option value="double_vitrage">Double vitrage</option>
+            </optgroup>
+            <optgroup label="Peinture">
+              <option value="mur">Mur</option>
+              <option value="plafond">Plafond</option>
+              <option value="menuiserie">Menuiserie</option>
+            </optgroup>
+            <optgroup label="Maçonnerie">
+              <option value="facade">Façade</option>
+              <option value="cloison">Cloison</option>
+            </optgroup>
+            <optgroup label="Toiture">
+              <option value="tuile">Tuile</option>
+              <option value="gouttiere">Gouttière</option>
+            </optgroup>
+            <optgroup label="Autre">
+              <option value="autre">Autre</option>
+            </optgroup>
+          </select>
+          <small style="color: var(--gray-500);">Corrigez si nécessaire</small>
+        </div>
+
+        <div class="form-group">
+          <label for="validation-piece">Pièce concernée *</label>
+          <select id="validation-piece">
+            <option value="">-- Sélectionner --</option>
+            <option value="cuisine">Cuisine</option>
+            <option value="salon">Salon</option>
+            <option value="chambre">Chambre</option>
+            <option value="salle_de_bain">Salle de bain</option>
+            <option value="wc">WC</option>
+            <option value="entree">Entrée</option>
+            <option value="couloir">Couloir</option>
+            <option value="cave">Cave</option>
+            <option value="garage">Garage</option>
+            <option value="balcon">Balcon</option>
+            <option value="parties_communes">Parties communes</option>
+            <option value="exterieur">Extérieur</option>
+            <option value="autre">Autre</option>
+          </select>
+          <small style="color: var(--gray-500);">Corrigez si nécessaire</small>
+        </div>
+
         <div class="form-group">
           <label for="validation-priorite">Priorité *</label>
           <select id="validation-priorite">
@@ -575,6 +647,7 @@
         <div class="form-group">
           <label for="validation-plafond">Plafond d'intervention (CHF) *</label>
           <input type="number" id="validation-plafond" placeholder="Ex: 500" min="1" step="50" required>
+          <small style="color: var(--gray-500);">Montant maximum autorisé pour l'intervention</small>
         </div>
 
         <div class="form-group">
@@ -880,14 +953,34 @@
     // ============================================
 
     // VALIDATION (nouveau → en_attente) - M32 RPC unique
-    function openValidationModal(ticketId) {
+    async function openValidationModal(ticketId) {
       console.log('[MODAL] Ouverture modal validation:', ticketId);
       currentTicketIdForValidation = ticketId;
+      
+      // P1: Charger les données du ticket pour pré-remplir le formulaire
+      try {
+        const { data: ticket, error } = await window.supabaseClient
+          .from('tickets')
+          .select('sous_categorie, piece, priorite, plafond_ht')
+          .eq('id', ticketId)
+          .single();
+        
+        if (error) {
+          console.error('[MODAL] Erreur chargement ticket:', error);
+        } else {
+          // Pré-remplir les champs avec les valeurs actuelles
+          document.getElementById('validation-sous-categorie').value = ticket.sous_categorie || '';
+          document.getElementById('validation-piece').value = ticket.piece || '';
+          document.getElementById('validation-priorite').value = ticket.priorite || 'normale';
+          document.getElementById('validation-plafond').value = ticket.plafond_ht || '';
+        }
+      } catch (err) {
+        console.error('[MODAL] Exception chargement ticket:', err);
+      }
+      
       document.getElementById('modal-validation').classList.add('active');
       
-      // Reset formulaire
-      document.getElementById('validation-priorite').value = 'normale';
-      document.getElementById('validation-plafond').value = '';
+      // Reset autres champs
       document.getElementById('validation-mode').value = 'general';
       document.getElementById('validation-entreprise').value = '';
       document.getElementById('entreprise-restreint-group').style.display = 'none';
@@ -911,14 +1004,31 @@
         return;
       }
       
+      // P1: Récupérer les valeurs (possiblement corrigées)
+      const sousCategorie = document.getElementById('validation-sous-categorie').value.trim();
+      const piece = document.getElementById('validation-piece').value.trim();
       const priorite = document.getElementById('validation-priorite').value;
       const plafondStr = document.getElementById('validation-plafond').value.trim();
       const modeDiffusion = document.getElementById('validation-mode').value;
       const entrepriseId = document.getElementById('validation-entreprise').value.trim();
       
+      // P1: Validation client-side (sous_categorie et piece obligatoires)
+      if (!sousCategorie) {
+        alert('❌ La sous-catégorie est obligatoire');
+        document.getElementById('validation-sous-categorie').focus();
+        return;
+      }
+      
+      if (!piece) {
+        alert('❌ La pièce concernée est obligatoire');
+        document.getElementById('validation-piece').focus();
+        return;
+      }
+      
       // Validation plafond obligatoire (M32)
       if (!plafondStr || parseFloat(plafondStr) <= 0) {
         alert('❌ Le plafond d\'intervention est obligatoire et doit être > 0 CHF');
+        document.getElementById('validation-plafond').focus();
         return;
       }
       const plafond = parseFloat(plafondStr);
@@ -926,11 +1036,14 @@
       // Validation entreprise_id si mode restreint
       if (modeDiffusion === 'restreint' && !entrepriseId) {
         alert('❌ L\'ID entreprise est obligatoire en mode restreint');
+        document.getElementById('validation-entreprise').focus();
         return;
       }
       
-      console.log('[REGIE][ACTION] Validation ticket M32:', {
+      console.log('[REGIE][ACTION] Validation ticket M32 + P1:', {
         ticketId: currentTicketIdForValidation,
+        sousCategorie,
+        piece,
         priorite,
         plafond,
         modeDiffusion,
@@ -938,6 +1051,25 @@
       });
       
       try {
+        // P1: Mettre à jour le ticket avec les corrections AVANT diffusion
+        const { error: updateError } = await window.supabaseClient
+          .from('tickets')
+          .update({
+            sous_categorie: sousCategorie,
+            piece: piece,
+            priorite: priorite,
+            plafond_ht: plafond
+          })
+          .eq('id', currentTicketIdForValidation);
+        
+        if (updateError) {
+          console.error('[REGIE][ACTION] ❌ Erreur mise à jour ticket:', updateError);
+          alert(`❌ Erreur lors de la mise à jour:\n${updateError.message}`);
+          return;
+        }
+        
+        console.log('[REGIE][ACTION] ✅ Ticket mis à jour avec corrections');
+        
         // ✅ M32: Utiliser RPC valider_ticket_regie (validation + diffusion en 1 appel)
         const { data, error } = await window.supabaseClient.rpc('valider_ticket_regie', {
           p_ticket_id: currentTicketIdForValidation,

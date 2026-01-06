@@ -1,0 +1,163 @@
+{
+  "timestamp": "2026-01-06T10:06:43.626Z",
+  "supabaseUrl": "https://bwzyajsrmfhrxdmfpyqy.supabase.co",
+  "checks": {
+    "tables": {
+      "tickets": {
+        "exists": true,
+        "count": 1
+      },
+      "missions": {
+        "exists": true,
+        "count": 1
+      },
+      "factures": {
+        "exists": true,
+        "count": 0
+      },
+      "tickets_disponibilites": {
+        "exists": true,
+        "count": 1
+      },
+      "mission_signalements": {
+        "exists": true,
+        "count": 0
+      },
+      "mission_historique_statuts": {
+        "exists": true,
+        "count": 0
+      },
+      "profiles": {
+        "exists": true,
+        "count": 7
+      },
+      "regies": {
+        "exists": true,
+        "count": 1
+      },
+      "entreprises": {
+        "exists": true,
+        "count": 1
+      },
+      "techniciens": {
+        "exists": true,
+        "count": 2
+      },
+      "locataires": {
+        "exists": true,
+        "count": 2
+      },
+      "logements": {
+        "exists": true,
+        "count": 4
+      },
+      "immeubles": {
+        "exists": true,
+        "count": 1
+      },
+      "regies_entreprises": {
+        "exists": true,
+        "count": 1
+      }
+    },
+    "views": {
+      "factures_commissions_jtec": {
+        "exists": true,
+        "count": 0
+      },
+      "factures_stats": {
+        "exists": true,
+        "count": 1
+      },
+      "missions_details": {
+        "exists": true,
+        "count": null
+      },
+      "tickets_visibles_entreprise": {
+        "exists": true,
+        "count": 1
+      },
+      "admin_stats_tickets_statuts": {
+        "exists": true,
+        "count": null
+      },
+      "admin_stats_tickets_categories": {
+        "exists": true,
+        "count": 1
+      },
+      "admin_stats_tickets_priorites": {
+        "exists": true,
+        "count": 1
+      }
+    },
+    "rpc": {
+      "generate_facture_from_mission": {
+        "exists": true,
+        "note": "Erreur params attendue"
+      },
+      "accept_ticket_and_create_mission": {
+        "exists": true,
+        "note": "Erreur params attendue"
+      },
+      "assign_technicien_to_mission": {
+        "exists": true,
+        "note": "Erreur params attendue"
+      },
+      "create_ticket_locataire": {
+        "exists": true,
+        "note": "Erreur params attendue"
+      },
+      "diffuser_ticket": {
+        "exists": true,
+        "note": "Erreur params attendue"
+      },
+      "get_user_regie_id": {
+        "exists": true
+      },
+      "signaler_absence_locataire": {
+        "exists": true,
+        "note": "Erreur params attendue"
+      },
+      "ajouter_photos_mission": {
+        "exists": true,
+        "note": "Erreur params attendue"
+      }
+    },
+    "columns": {
+      "tickets": {
+        "missing": [
+          "valide_at"
+        ]
+      },
+      "missions": {
+        "missing": [
+          "montant"
+        ]
+      },
+      "factures": {
+        "missing": [
+          "id",
+          "mission_id",
+          "entreprise_id",
+          "regie_id",
+          "numero",
+          "montant_ht",
+          "montant_tva",
+          "montant_ttc",
+          "taux_tva",
+          "montant_commission",
+          "taux_commission",
+          "statut",
+          "date_emission",
+          "date_echeance"
+        ]
+      }
+    }
+  },
+  "anomalies": [
+    "Table \"tickets\" colonnes manquantes : valide_at",
+    "Table \"missions\" colonnes manquantes : montant",
+    "Table \"factures\" colonnes manquantes : id, mission_id, entreprise_id, regie_id, numero, montant_ht, montant_tva, montant_ttc, taux_tva, montant_commission, taux_commission, statut, date_emission, date_echeance"
+  ],
+  "status": "ANOMALIE"
+}
