@@ -73,7 +73,6 @@ SELECT
   -- Informations immeuble
   imm.nom AS immeuble_nom,
   imm.adresse AS immeuble_adresse,
-  imm.code_postal AS immeuble_code_postal,
   imm.ville AS immeuble_ville,
   
   -- Informations régie
