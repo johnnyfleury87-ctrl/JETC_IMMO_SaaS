@@ -6,7 +6,7 @@
   <title>Gestion des Techniciens - JETC_IMMO</title>
   <link rel="stylesheet" href="/css/design-system.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/supabaseClient.js"></script>
+  <script src="/js/bootstrapSupabase.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
@@ -548,18 +548,15 @@
     // =========================================
     async function init() {
       try {
-        // 🛡️ Guard : Vérifier que le client Supabase est prêt
-        if (!window.supabaseClient) {
-          console.error('❌ Client Supabase non disponible');
-          showAlert('Erreur: Client Supabase non initialisé. Rechargez la page.', 'error');
-          return;
-        }
+        // 🛡️ Attendre que le bootstrap soit prêt
+        console.log('[TECHNICIENS] Attente initialisation Supabase...');
+        await window.__SUPABASE_READY__;
+        console.log('[TECHNICIENS] ✅ Supabase prêt');
         
-        if (!window.supabaseClient.auth || !window.supabaseClient.auth.getSession) {
-          console.error('❌ supabaseClient.auth.getSession non disponible');
-          showAlert('Erreur: API Supabase manquante. Vérifiez la connexion.', 'error');
-          return;
-        }
+        // Diagnostics
+        console.log('[TECHNICIENS] supabaseClient:', !!window.supabaseClient);
+        console.log('[TECHNICIENS] has auth:', !!window.supabaseClient?.auth);
+        console.log('[TECHNICIENS] has getSession:', typeof window.supabaseClient?.auth?.getSession);
 
         // Vérifier authentification
         const { data: { session }, error } = await window.supabaseClient.auth.getSession();
@@ -574,6 +571,17 @@
       } catch (error) {
         console.error('Erreur initialisation:', error);
         showAlert(`Erreur lors de l'initialisation: ${error.message}`, 'error');
+        
+        // Afficher erreur UI avec bouton recharger
+        document.querySelector('.container').innerHTML = `
+          <div style="text-align:center;padding:60px 20px;">
+            <h2 style="color:#dc2626;margin-bottom:16px;">❌ Erreur d'initialisation</h2>
+            <p style="color:#6b7280;margin-bottom:24px;">${error.message}</p>
+            <button onclick="window.location.reload()" style="padding:12px 24px;background:#3b82f6;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">
+              🔄 Recharger la page
+            </button>
+          </div>
+        `;
       }
     }
 

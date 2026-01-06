@@ -144,9 +144,9 @@
     </div>
   </div>
 
-  <!-- ✅ CORRECTION AUTH : Charger Supabase (SOURCE DE VÉRITÉ) -->
+  <!-- ✅ BOOTSTRAP SUPABASE UNIQUE -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/supabaseClient.js"></script>
+  <script src="/js/bootstrapSupabase.js"></script>
   <!-- ✅ M22.5: Fix chemin i18n - /src non accessible en prod Vercel -->
   <script>
     // i18n inline minimal (évite 404 /src/lib/i18n.js)
@@ -202,31 +202,47 @@
     }
 
     // ============================================
-    // ✅ GUARDS ET DIAGNOSTICS SUPABASE
+    // ✅ ATTENDRE BOOTSTRAP SUPABASE
     // ============================================
-    console.log('[LOGIN] supabaseClient:', !!window.supabaseClient);
-    console.log('[LOGIN] has auth:', !!window.supabaseClient?.auth);
-    console.log('[LOGIN] has signInWithPassword:', typeof window.supabaseClient?.auth?.signInWithPassword);
-    console.log('[LOGIN] has getSession:', typeof window.supabaseClient?.auth?.getSession);
-
-    if (!window.supabaseClient?.auth?.signInWithPassword) {
-      console.error('[LOGIN] ❌ supabaseClient manquant ou non initialisé');
-      document.querySelector('.login-container').innerHTML = `
-        <div style="text-align:center;color:#dc2626;padding:20px;">
-          <h2>❌ Erreur d'initialisation</h2>
-          <p>Le client Supabase n'est pas initialisé.</p>
-          <p style="font-size:14px;margin-top:10px;">Rechargez la page ou contactez le support.</p>
-        </div>
-      `;
-      throw new Error('supabaseClient non initialisé');
+    async function initLoginPage() {
+      console.log('[LOGIN] Attente initialisation Supabase...');
+      
+      try {
+        // Attendre que le bootstrap soit prêt
+        await window.__SUPABASE_READY__;
+        console.log('[LOGIN] ✅ Supabase prêt');
+        
+        // Diagnostics
+        console.log('[LOGIN] supabaseClient:', !!window.supabaseClient);
+        console.log('[LOGIN] has auth:', !!window.supabaseClient?.auth);
+        console.log('[LOGIN] has signInWithPassword:', typeof window.supabaseClient?.auth?.signInWithPassword);
+        console.log('[LOGIN] has getSession:', typeof window.supabaseClient?.auth?.getSession);
+        
+        // Initialiser le formulaire
+        setupLoginForm();
+        
+      } catch (error) {
+        console.error('[LOGIN] ❌ Erreur initialisation Supabase:', error);
+        document.querySelector('.login-container').innerHTML = `
+          <div style="text-align:center;color:#dc2626;padding:20px;">
+            <h2>❌ Erreur d'initialisation</h2>
+            <p>Le client Supabase n'a pas pu être initialisé.</p>
+            <p style="font-size:14px;margin-top:10px;color:#6b7280;">${error.message}</p>
+            <button onclick="window.location.reload()" style="margin-top:20px;padding:10px 20px;background:#3b82f6;color:white;border:none;border-radius:8px;cursor:pointer;">
+              🔄 Recharger la page
+            </button>
+          </div>
+        `;
+      }
     }
 
     // ============================================
-    // ✅ CORRECTION AUTH : LOGIN DIRECT SUPABASE
+    // ✅ SETUP FORMULAIRE LOGIN
     // ============================================
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      hideMessages();
+    function setupLoginForm() {
+      document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideMessages();
       
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
@@ -384,34 +400,16 @@
         btnLogin.disabled = false;
         btnLogin.textContent = 'Se connecter';
       }
-    });
+      });
+    }
 
-    // Initialisation
+    // ============================================
+    // ✅ INITIALISATION PAGE
+    // ============================================
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('[LOGIN] ✅ Page de connexion chargée (Auth Supabase Direct)');
-      
-      // Vérifier si déjà connecté
-      setTimeout(async () => {
-        if (window.supabaseClient?.auth?.getSession) {
-          const { data: { session } } = await window.supabaseClient.auth.getSession();
-          if (session) {
-            console.log('[LOGIN] Session existante détectée, redirection...');
-            const { data: profile } = await window.supabaseClient
-              .from('profiles')
-              .select('role')
-              .eq('id', session.user.id)
-              .single();
-            
-            if (profile) {
-              const dashboardRoutes = {
-                locataire: '/locataire/dashboard.html',
-                regie: '/regie/dashboard.html',
-                entreprise: '/entreprise/dashboard.html',
-                technicien: '/technicien/dashboard.html',
-                proprietaire: '/proprietaire/dashboard.html',
-                admin_jtec: '/admin/dashboard.html'
-              };
-              window.location.replace(dashboardRoutes[profile.role] || '/locataire/dashboard.html');
+      console.log('[LOGIN] ✅ DOM chargé, initialisation...');
+      initLoginPage();
+    });
             }
           }
         }
