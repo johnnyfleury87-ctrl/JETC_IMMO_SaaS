@@ -516,6 +516,145 @@
       margin: 5px 0;
     }
 
+    /* Photos upload & gallery */
+    .photo-upload-section {
+      margin-top: 10px;
+    }
+
+    .photo-upload-section input[type="file"] {
+      display: none;
+    }
+
+    .btn-upload-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: var(--gray-100);
+      border: 2px dashed var(--gray-300);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 14px;
+      color: var(--gray-700);
+    }
+
+    .btn-upload-trigger:hover {
+      background: var(--gray-200);
+      border-color: var(--primary-blue);
+      color: var(--primary-blue);
+    }
+
+    .photo-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .photo-item {
+      position: relative;
+      aspect-ratio: 1;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s;
+    }
+
+    .photo-item:hover {
+      transform: scale(1.05);
+      box-shadow: var(--shadow-md);
+    }
+
+    .photo-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .photo-item .delete-photo {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .photo-item:hover .delete-photo {
+      opacity: 1;
+    }
+
+    .upload-progress {
+      margin-top: 10px;
+      padding: 10px;
+      background: var(--blue-50);
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--primary-blue);
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--primary-blue);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Lightbox modal pour photos */
+    .lightbox {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lightbox.active {
+      display: flex;
+    }
+
+    .lightbox img {
+      max-width: 90%;
+      max-height: 90%;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 40px;
+      color: white;
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .sidebar {
@@ -997,6 +1136,38 @@
           </div>
         </div>
 
+        <div class="modal-section">
+          <label>📷 Photos d'intervention</label>
+          ${mission.photos_urls && mission.photos_urls.length > 0 ? `
+            <div class="photo-gallery">
+              ${mission.photos_urls.map(url => `
+                <div class="photo-item" onclick="openLightbox('${url}')">
+                  <img src="${url}" alt="Photo mission" loading="lazy">
+                </div>
+              `).join('')}
+            </div>
+          ` : '<p style="color: var(--gray-500); font-size: 14px;">Aucune photo ajoutée</p>'}
+          
+          ${mission.statut === 'en_cours' || mission.statut === 'en_attente' ? `
+          <div class="photo-upload-section">
+            <input 
+              type="file" 
+              id="photoInput" 
+              accept="image/jpeg,image/png,image/webp,image/heic" 
+              multiple 
+              onchange="uploadPhotos()"
+            >
+            <label for="photoInput" class="btn-upload-trigger">
+              📸 Ajouter des photos
+            </label>
+            <div id="uploadProgress" style="display: none;" class="upload-progress">
+              <span class="spinner"></span>
+              <span id="uploadText">Upload en cours...</span>
+            </div>
+          </div>
+          ` : ''}
+        </div>
+
         ${mission.statut === 'en_cours' && !mission.locataire_absent ? `
         <div class="modal-section">
           <button class="btn-secondary" onclick="signalerAbsence()" style="width: 100%;">
@@ -1087,6 +1258,124 @@
     }
 
     // =====================================================
+    // UPLOAD PHOTOS (ÉTAPE 5)
+    // =====================================================
+    async function uploadPhotos() {
+      if (!currentMissionId) return;
+      
+      const input = document.getElementById('photoInput');
+      const files = input.files;
+      
+      if (!files || files.length === 0) return;
+      
+      console.log(`[PHOTOS] Upload de ${files.length} photo(s) pour mission ${currentMissionId}`);
+      
+      const progressDiv = document.getElementById('uploadProgress');
+      const progressText = document.getElementById('uploadText');
+      progressDiv.style.display = 'block';
+      
+      const uploadedUrls = [];
+      
+      try {
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          progressText.textContent = `Upload ${i + 1}/${files.length}: ${file.name}...`;
+          
+          // Nom de fichier unique avec timestamp
+          const timestamp = Date.now();
+          const fileName = `${timestamp}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+          const filePath = `missions/${currentMissionId}/${fileName}`;
+          
+          console.log(`[PHOTOS] Upload fichier: ${filePath}`);
+          
+          // Upload vers Supabase Storage
+          const { data: uploadData, error: uploadError } = await window.supabaseClient.storage
+            .from('mission-photos')
+            .upload(filePath, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
+          
+          if (uploadError) {
+            console.error(`[PHOTOS] Erreur upload ${file.name}:`, uploadError);
+            continue;
+          }
+          
+          // Récupérer URL publique
+          const { data: urlData } = window.supabaseClient.storage
+            .from('mission-photos')
+            .getPublicUrl(filePath);
+          
+          if (urlData && urlData.publicUrl) {
+            uploadedUrls.push(urlData.publicUrl);
+            console.log(`[PHOTOS] URL publique: ${urlData.publicUrl}`);
+          }
+        }
+        
+        if (uploadedUrls.length === 0) {
+          showError('Aucune photo n\'a pu être uploadée');
+          progressDiv.style.display = 'none';
+          return;
+        }
+        
+        // Récupérer photos existantes
+        const { data: mission, error: fetchError } = await window.supabaseClient
+          .from('missions')
+          .select('photos_urls')
+          .eq('id', currentMissionId)
+          .single();
+        
+        if (fetchError) {
+          console.error('[PHOTOS] Erreur récupération mission:', fetchError);
+        }
+        
+        const existingPhotos = mission?.photos_urls || [];
+        const allPhotos = [...existingPhotos, ...uploadedUrls];
+        
+        // Sauvegarder URLs dans DB
+        const { error: updateError } = await window.supabaseClient
+          .from('missions')
+          .update({ photos_urls: allPhotos })
+          .eq('id', currentMissionId);
+        
+        if (updateError) {
+          console.error('[PHOTOS] Erreur sauvegarde URLs:', updateError);
+          showError('Photos uploadées mais erreur sauvegarde');
+          progressDiv.style.display = 'none';
+          return;
+        }
+        
+        console.log(`[PHOTOS] ${uploadedUrls.length} photo(s) sauvegardée(s)`);
+        showSuccess(`✅ ${uploadedUrls.length} photo(s) ajoutée(s)`);
+        
+        // Rafraîchir et rouvrir modal
+        await loadMissions();
+        viewDetails(currentMissionId);
+        
+        // Reset input
+        input.value = '';
+        progressDiv.style.display = 'none';
+        
+      } catch (error) {
+        console.error('[PHOTOS] Erreur:', error);
+        showError('Impossible d\'uploader les photos');
+        progressDiv.style.display = 'none';
+      }
+    }
+
+    function openLightbox(url) {
+      const lightbox = document.getElementById('lightbox');
+      const lightboxImg = document.getElementById('lightboxImg');
+      lightboxImg.src = url;
+      lightbox.classList.add('active');
+    }
+
+    function closeLightbox() {
+      const lightbox = document.getElementById('lightbox');
+      lightbox.classList.remove('active');
+    }
+
+    // =====================================================
     // UTILITAIRES
     // =====================================================
     function getStatutLabel(statut) {
@@ -1167,6 +1456,12 @@
       });
     });
   </script>
+
+  <!-- Lightbox pour agrandissement photos -->
+  <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+    <button class="lightbox-close" onclick="closeLightbox()">×</button>
+    <img id="lightboxImg" src="" alt="Photo mission">
+  </div>
 
   <script src="/js/mobile-menu.js"></script>
 </body>
