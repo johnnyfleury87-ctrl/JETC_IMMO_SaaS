@@ -611,8 +611,7 @@
             const errorData = await response.json();
             errorMsg = errorData.error || errorMsg;
           } catch (e) {
-            const text = await response.text();
-            console.error('Réponse non-JSON:', text);
+            console.error('Erreur parsing JSON:', e);
             errorMsg = `Erreur serveur (${response.status})`;
           }
           throw new Error(errorMsg);
@@ -835,9 +834,7 @@
             const result = await response.json();
             errorMsg = result.error || errorMsg;
           } catch (e) {
-            // Si la réponse n'est pas du JSON, afficher le texte brut
-            const text = await response.text();
-            console.error('Réponse non-JSON:', text);
+            console.error('Erreur parsing JSON:', e);
             errorMsg = `Erreur serveur (${response.status})`;
           }
           throw new Error(errorMsg);
@@ -906,8 +903,7 @@
             const result = await response.json();
             errorMsg = result.error || errorMsg;
           } catch (e) {
-            const text = await response.text();
-            console.error('Réponse non-JSON:', text);
+            console.error('Erreur parsing JSON:', e);
             errorMsg = `Erreur serveur (${response.status})`;
           }
           throw new Error(errorMsg);
@@ -959,8 +955,7 @@
             const result = await response.json();
             errorMsg = result.error || errorMsg;
           } catch (e) {
-            const text = await response.text();
-            console.error('Réponse non-JSON:', text);
+            console.error('Erreur parsing JSON:', e);
             errorMsg = `Erreur serveur (${response.status})`;
           }
           throw new Error(errorMsg);
