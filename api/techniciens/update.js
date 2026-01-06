@@ -14,21 +14,21 @@ const { supabaseAdmin } = require('../_supabase');
 module.exports = async (req, res) => {
   // 1️⃣ Vérifier méthode HTTP
   if (req.method !== 'PATCH' && req.method !== 'PUT') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
+    return res.status(405).json({ success: false, error: 'Method Not Allowed' });
   }
 
   try {
     // 2️⃣ Vérifier authentification
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Token manquant' });
+      return res.status(401).json({ success: false, error: 'Token manquant' });
     }
 
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
 
     if (authError || !user) {
-      return res.status(401).json({ error: 'Token invalide' });
+      return res.status(401).json({ success: false, error: 'Token invalide' });
     }
 
     // 3️⃣ Récupérer profile utilisateur
@@ -39,7 +39,7 @@ module.exports = async (req, res) => {
       .single();
 
     if (profileError || !profile) {
-      return res.status(403).json({ error: 'Profile introuvable' });
+      return res.status(403).json({ success: false, error: 'Profile introuvable' });
     }
 
     // 🔍 Récupérer entreprise_id si nécessaire (comme dans create.js)
@@ -69,7 +69,7 @@ module.exports = async (req, res) => {
       .single();
 
     if (techError || !technicien) {
-      return res.status(404).json({ error: 'Technicien introuvable' });
+      return res.status(404).json({ success: false, error: 'Technicien introuvable' });
     }
 
     // Vérification permission
@@ -85,7 +85,7 @@ module.exports = async (req, res) => {
         user_entreprise: entrepriseId,
         tech_entreprise: technicien.entreprise_id
       });
-      return res.status(403).json({ error: 'Non autorisé à modifier ce technicien' });
+      return res.status(403).json({ success: false, error: 'Non autorisé à modifier ce technicien' });
     }
 
     // 6️⃣ Préparer données à mettre à jour
@@ -96,7 +96,7 @@ module.exports = async (req, res) => {
     if (actif !== undefined) updateData.actif = actif;
 
     if (Object.keys(updateData).length === 0) {
-      return res.status(400).json({ error: 'Aucune donnée à mettre à jour' });
+      return res.status(400).json({ success: false, error: 'Aucune donnée à mettre à jour' });
     }
 
     // 7️⃣ Mettre à jour
@@ -110,6 +110,7 @@ module.exports = async (req, res) => {
     if (updateError) {
       console.error('[API /techniciens/update] Erreur update:', updateError);
       return res.status(500).json({ 
+        success: false,
         error: 'Erreur mise à jour',
         details: updateError.message 
       });
@@ -118,14 +119,15 @@ module.exports = async (req, res) => {
     console.log('[API /techniciens/update] Technicien mis à jour:', technicien_id);
 
     // 8️⃣ Retourner succès
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       technicien: updated
     });
 
   } catch (error) {
     console.error('[API /techniciens/update] Erreur inattendue:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
+      success: false,
       error: 'Erreur serveur',
       details: error.message 
     });

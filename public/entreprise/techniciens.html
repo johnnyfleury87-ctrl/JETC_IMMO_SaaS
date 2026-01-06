@@ -549,20 +549,20 @@
     async function init() {
       try {
         // 🛡️ Guard : Vérifier que le client Supabase est prêt
-        if (!window.supabase) {
+        if (!window.supabaseClient) {
           console.error('❌ Client Supabase non disponible');
           showAlert('Erreur: Client Supabase non initialisé. Rechargez la page.', 'error');
           return;
         }
         
-        if (!window.supabase.auth || !window.supabase.auth.getSession) {
-          console.error('❌ supabase.auth.getSession non disponible');
+        if (!window.supabaseClient.auth || !window.supabaseClient.auth.getSession) {
+          console.error('❌ supabaseClient.auth.getSession non disponible');
           showAlert('Erreur: API Supabase manquante. Vérifiez la connexion.', 'error');
           return;
         }
 
         // Vérifier authentification
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const { data: { session }, error } = await window.supabaseClient.auth.getSession();
         if (error || !session) {
           console.warn('Aucune session active, redirection login');
           window.location.href = '/login.html';
@@ -582,7 +582,7 @@
     // =========================================
     async function loadTechniciens() {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
         if (!session) {
           window.location.href = '/login.html';
           return;
@@ -596,9 +596,18 @@
           }
         });
 
+        // ✅ Vérifier que la réponse est bien du JSON
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Erreur chargement techniciens');
+          let errorMsg = 'Erreur chargement techniciens';
+          try {
+            const errorData = await response.json();
+            errorMsg = errorData.error || errorMsg;
+          } catch (e) {
+            const text = await response.text();
+            console.error('Réponse non-JSON:', text);
+            errorMsg = `Erreur serveur (${response.status})`;
+          }
+          throw new Error(errorMsg);
         }
 
         const data = await response.json();
@@ -786,7 +795,7 @@
       });
 
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
         if (!session) {
           window.location.href = '/login.html';
           return;
@@ -811,18 +820,40 @@
           body: JSON.stringify(data)
         });
 
-        const result = await response.json();
-
+        // ✅ Vérifier que la réponse est bien du JSON
         if (!response.ok) {
-          throw new Error(result.error || 'Erreur lors de la sauvegarde');
+          let errorMsg = 'Erreur lors de la sauvegarde';
+          try {
+            const result = await response.json();
+            errorMsg = result.error || errorMsg;
+          } catch (e) {
+            // Si la réponse n'est pas du JSON, afficher le texte brut
+            const text = await response.text();
+            console.error('Réponse non-JSON:', text);
+            errorMsg = `Erreur serveur (${response.status})`;
+          }
+          throw new Error(errorMsg);
         }
 
-        showAlert(
-          currentMode === 'create' 
-            ? 'Technicien créé avec succès !' 
-            : 'Technicien mis à jour avec succès !',
-          'success'
-        );
+        const result = await response.json();
+
+        // 🔐 Afficher le mot de passe temporaire si création
+        if (currentMode === 'create' && result.temporary_password) {
+          showAlert(
+            `✅ Technicien créé avec succès !<br><br>
+            <strong>🔑 Mot de passe temporaire :</strong><br>
+            <code style="font-size: 16px; padding: 8px; background: #f3f4f6; border-radius: 4px; display: inline-block; margin: 8px 0;">${result.temporary_password}</code><br>
+            <br>
+            ⚠️ <strong>À communiquer au technicien</strong><br>
+            Le technicien devra changer ce mot de passe après sa première connexion.`,
+            'success',
+            15000 // Afficher 15 secondes
+          );
+        } else if (currentMode === 'create') {
+          showAlert('Technicien créé avec succès !', 'success');
+        } else {
+          showAlert('Technicien mis à jour avec succès !', 'success');
+        }
 
         closeModal();
         await loadTechniciens();
@@ -842,7 +873,7 @@
       }
 
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
         if (!session) {
           window.location.href = '/login.html';
           return;
@@ -860,10 +891,18 @@
           })
         });
 
-        const result = await response.json();
-
+        // ✅ Vérifier que la réponse est bien du JSON
         if (!response.ok) {
-          throw new Error(result.error || 'Erreur lors de la mise à jour');
+          let errorMsg = 'Erreur lors de la mise à jour';
+          try {
+            const result = await response.json();
+            errorMsg = result.error || errorMsg;
+          } catch (e) {
+            const text = await response.text();
+            console.error('Réponse non-JSON:', text);
+            errorMsg = `Erreur serveur (${response.status})`;
+          }
+          throw new Error(errorMsg);
         }
 
         showAlert(`Technicien ${actif ? 'activé' : 'désactivé'} avec succès !`, 'success');
@@ -888,7 +927,7 @@
 
     async function deleteTechnicien(technicienId) {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
         if (!session) {
           window.location.href = '/login.html';
           return;
@@ -905,10 +944,18 @@
           })
         });
 
-        const result = await response.json();
-
+        // ✅ Vérifier que la réponse est bien du JSON
         if (!response.ok) {
-          throw new Error(result.error || 'Erreur lors de la suppression');
+          let errorMsg = 'Erreur lors de la suppression';
+          try {
+            const result = await response.json();
+            errorMsg = result.error || errorMsg;
+          } catch (e) {
+            const text = await response.text();
+            console.error('Réponse non-JSON:', text);
+            errorMsg = `Erreur serveur (${response.status})`;
+          }
+          throw new Error(errorMsg);
         }
 
         showAlert('Technicien supprimé avec succès !', 'success');
@@ -923,7 +970,7 @@
     // =========================================
     // ALERTES
     // =========================================
-    function showAlert(message, type = 'success') {
+    function showAlert(message, type = 'success', duration = 5000) {
       const alertContainer = document.getElementById('alertContainer');
       const alert = document.createElement('div');
       alert.className = `alert alert-${type}`;
@@ -936,7 +983,7 @@
 
       setTimeout(() => {
         alert.remove();
-      }, 5000);
+      }, duration);
     }
 
     // =========================================

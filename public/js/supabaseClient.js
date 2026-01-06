@@ -29,10 +29,10 @@
     if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
       console.log('[SUPABASE] Initialisation client...');
       
-      // ⚠️ NE PAS ÉCRASER window.supabase (qui est la lib CDN)
-      // Créer un client séparé
+      // ✅ Ne PAS écraser window.supabase (lib CDN)
+      // Créer un nouveau client et le stocker dans supabaseClient
       const supabaseLib = window.supabase;
-      const supabaseClient = supabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      window.supabaseClient = supabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         auth: {
           autoRefreshToken: true,
           persistSession: true,
@@ -40,18 +40,15 @@
         }
       });
       
-      // Remplacer window.supabase par le client initialisé
-      window.supabase = supabaseClient;
-      
       // Guard de sécurité : vérifier que auth.getSession existe
-      if (!window.supabase?.auth?.getSession) {
+      if (!window.supabaseClient?.auth?.getSession) {
         console.error('[SUPABASE] ❌ Client mal initialisé : auth.getSession manquant');
-        window.supabase = null;
+        window.supabaseClient = null;
         return;
       }
       
       console.log('[SUPABASE] Client initialisé ✅');
-      console.log('[SUPABASE] auth.getSession disponible:', typeof window.supabase.auth.getSession);
+      console.log('[SUPABASE] auth.getSession disponible:', typeof window.supabaseClient.auth.getSession);
     } else {
       console.error('[SUPABASE] ❌ CDN non chargé - vérifier que <script src="...@supabase/supabase-js@2"></script> est présent');
     }

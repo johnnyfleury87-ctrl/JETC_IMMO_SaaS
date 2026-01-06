@@ -4,22 +4,47 @@
  * ======================================================
  * Crée un nouveau technicien lié à une entreprise
  * SÉCURISÉ : Uniquement entreprise propriétaire
+ * IMPORTANT : Génère un mot de passe temporaire
  * ======================================================
  */
 
 const { supabaseAdmin } = require('../_supabase');
 
+/**
+ * Génère un mot de passe temporaire sécurisé
+ * - 12 caractères minimum
+ * - Mélange lettres majuscules, minuscules, chiffres
+ */
+function generateTemporaryPassword() {
+  const length = 12;
+  const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let password = '';
+  
+  // S'assurer d'avoir au moins une majuscule, une minuscule et un chiffre
+  password += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)]; // Majuscule
+  password += 'abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)]; // Minuscule
+  password += '0123456789'[Math.floor(Math.random() * 10)]; // Chiffre
+  
+  // Compléter avec des caractères aléatoires
+  for (let i = password.length; i < length; i++) {
+    password += charset[Math.floor(Math.random() * charset.length)];
+  }
+  
+  // Mélanger les caractères
+  return password.split('').sort(() => Math.random() - 0.5).join('');
+}
+
 module.exports = async (req, res) => {
   // 1️⃣ Vérifier méthode HTTP
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
+    return res.status(405).json({ success: false, error: 'Method Not Allowed' });
   }
 
   try {
     // 2️⃣ Vérifier authentification
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Token manquant' });
+      return res.status(401).json({ success: false, error: 'Token manquant' });
     }
 
     const token = authHeader.replace('Bearer ', '');
@@ -27,7 +52,7 @@ module.exports = async (req, res) => {
 
     if (authError || !user) {
       console.error('[API /techniciens/create] Erreur auth:', authError);
-      return res.status(401).json({ error: 'Token invalide' });
+      return res.status(401).json({ success: false, error: 'Token invalide' });
     }
 
     // 3️⃣ Vérifier rôle entreprise
@@ -39,12 +64,12 @@ module.exports = async (req, res) => {
 
     if (profileError || !profile) {
       console.error('[API /techniciens/create] Profile introuvable:', profileError);
-      return res.status(403).json({ error: 'Profile introuvable' });
+      return res.status(403).json({ success: false, error: 'Profile introuvable' });
     }
 
     if (profile.role !== 'entreprise') {
       console.warn('[API /techniciens/create] Tentative non-entreprise:', profile.role);
-      return res.status(403).json({ error: 'Action réservée aux entreprises' });
+      return res.status(403).json({ success: false, error: 'Action réservée aux entreprises' });
     }
 
     // 🔍 Récupérer entreprise_id : essayer d'abord depuis profile.entreprise_id
@@ -70,7 +95,8 @@ module.exports = async (req, res) => {
         });
         
         return res.status(403).json({ 
-          error: 'Aucune entreprise liée à votre compte',
+          success: false,
+          error: 'Entreprise non liée au profil',
           debug: process.env.NODE_ENV === 'development' ? {
             user_id: user.id,
             profile_role: profile.role,
@@ -91,14 +117,21 @@ module.exports = async (req, res) => {
     // Validation
     if (!nom || !prenom || !email) {
       return res.status(400).json({ 
+        success: false,
         error: 'Champs obligatoires manquants',
         required: ['nom', 'prenom', 'email']
       });
     }
 
-    // 5️⃣ Créer user Auth
+    // 5️⃣ Mot de passe temporaire (provisoire pour démo/test)
+    // ⚠️ PRODUCTION: Utiliser TECHNICIEN_TEMP_PASSWORD ou générer aléatoire
+    const temporaryPassword = process.env.TECHNICIEN_TEMP_PASSWORD || 'Test1234!';
+    console.log('[API /techniciens/create] Mot de passe temporaire défini');
+
+    // 6️⃣ Créer user Auth AVEC MOT DE PASSE
     const { data: authUser, error: createAuthError } = await supabaseAdmin.auth.admin.createUser({
       email: email,
+      password: temporaryPassword, // ✅ Mot de passe temporaire
       email_confirm: true, // Auto-confirmer l'email
       user_metadata: {
         nom,
@@ -110,6 +143,7 @@ module.exports = async (req, res) => {
     if (createAuthError) {
       console.error('[API /techniciens/create] Erreur création auth:', createAuthError);
       return res.status(500).json({ 
+        success: false,
         error: 'Erreur création utilisateur Auth',
         details: createAuthError.message 
       });
@@ -117,7 +151,7 @@ module.exports = async (req, res) => {
 
     console.log('[API /techniciens/create] User auth créé:', authUser.user.id);
 
-    // 6️⃣ Créer profile avec role=technicien
+    // 7️⃣ Créer profile avec role=technicien
     const { error: createProfileError } = await supabaseAdmin
       .from('profiles')
       .insert({
@@ -133,6 +167,7 @@ module.exports = async (req, res) => {
       await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
       
       return res.status(500).json({ 
+        success: false,
         error: 'Erreur création profile',
         details: createProfileError.message 
       });
@@ -140,7 +175,7 @@ module.exports = async (req, res) => {
 
     console.log('[API /techniciens/create] Profile créé:', authUser.user.id);
 
-    // 7️⃣ Créer technicien lié à l'entreprise
+    // 8️⃣ Créer technicien lié à l'entreprise
     const { data: technicien, error: createTechError } = await supabaseAdmin
       .from('techniciens')
       .insert({
@@ -164,6 +199,7 @@ module.exports = async (req, res) => {
       await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
       
       return res.status(500).json({ 
+        success: false,
         error: 'Erreur création technicien',
         details: createTechError.message 
       });
@@ -171,9 +207,12 @@ module.exports = async (req, res) => {
 
     console.log('[API /techniciens/create] Technicien créé:', technicien.id);
 
-    // 8️⃣ Retourner succès
-    res.status(201).json({
+    // 9️⃣ Retourner succès AVEC MOT DE PASSE TEMPORAIRE
+    return res.status(201).json({
       success: true,
+      technicien_id: technicien.id,
+      user_id: authUser.user.id,
+      temporary_password: temporaryPassword, // ✅ Retourner le mot de passe temporaire
       technicien: {
         id: technicien.id,
         nom,
@@ -188,7 +227,8 @@ module.exports = async (req, res) => {
 
   } catch (error) {
     console.error('[API /techniciens/create] Erreur inattendue:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
+      success: false,
       error: 'Erreur serveur',
       details: error.message 
     });
