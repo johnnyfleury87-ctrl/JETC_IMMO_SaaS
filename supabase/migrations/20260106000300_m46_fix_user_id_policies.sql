@@ -136,7 +136,7 @@ USING (
   EXISTS (
     SELECT 1 FROM profiles p
     WHERE p.id = auth.uid()
-    AND p.role = 'admin'
+    AND p.role = 'admin_jtec'
   )
 );
 
@@ -229,7 +229,7 @@ USING (
   EXISTS (
     SELECT 1 FROM profiles p
     WHERE p.id = auth.uid()
-    AND p.role = 'admin'
+    AND p.role = 'admin_jtec'
   )
 );
 

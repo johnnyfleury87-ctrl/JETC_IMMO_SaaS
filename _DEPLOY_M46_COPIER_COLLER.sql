@@ -83,7 +83,7 @@ USING (EXISTS (SELECT 1 FROM regies r WHERE r.profile_id = auth.uid()));
 
 CREATE POLICY "Admin JTEC can view all techniciens"
 ON techniciens FOR SELECT
-USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role = 'admin'));
+USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role = 'admin_jtec'));
 
 -- =====================================================
 -- 3. CORRIGER POLICIES MISSIONS
@@ -142,7 +142,7 @@ USING (
 
 CREATE POLICY "Admin JTEC can view all missions"
 ON missions FOR SELECT
-USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role = 'admin'));
+USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role = 'admin_jtec'));
 
 CREATE POLICY "Technicien can view assigned missions"
 ON missions FOR SELECT
