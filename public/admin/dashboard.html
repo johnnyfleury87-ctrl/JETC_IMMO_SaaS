@@ -658,7 +658,7 @@
       
       try {
         // Charger les stats depuis la vue admin_dashboard (consolidée)
-        const { data: stats, error: statsError } = await supabase
+        const { data: stats, error: statsError } = await window.supabaseClient
           .from('admin_dashboard')
           .select('*')
           .single();
@@ -730,7 +730,7 @@
       
       try {
         // ✅ CORRECTION ERREUR FK : Pas de join profiles (ambiguïté profile_id vs admin_validateur_id)
-        const { data: regies, error: fetchError } = await supabase
+        const { data: regies, error: fetchError } = await window.supabaseClient
           .from('regies')
           .select('id, nom, email, nb_collaborateurs, nb_logements_geres, siret, created_at, statut_validation')
           .eq('statut_validation', 'en_attente')
@@ -778,8 +778,9 @@
       } catch (error) {
         loading.style.display = 'none';
         console.error('[REGIES][EXCEPTION]', error);
-        error.textContent = 'Erreur technique : ' + error.message;
-        error.style.display = 'block';
+        const errorElement = document.getElementById('regies-error');
+        errorElement.textContent = 'Erreur technique : ' + error.message;
+        errorElement.style.display = 'block';
       }
     }
     
