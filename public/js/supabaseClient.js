@@ -1,56 +1,35 @@
 /**
  * ======================================================
- * CLIENT SUPABASE FRONTEND (BROWSER) - CONFIGURATION DYNAMIQUE
+ * CLIENT SUPABASE FRONTEND (BROWSER)
  * ======================================================
  * Version browser-compatible (pas de module ES6)
- * Charge config depuis /api/config puis initialise Supabase
+ * Utilise les variables d'environnement injectées
  * ======================================================
  */
 
 (function() {
   'use strict';
 
-  // 1️⃣ Fonction pour charger configuration depuis API
-  async function loadConfig() {
-    try {
-      const response = await fetch('/api/config');
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      const config = await response.json();
-      return config;
-    } catch (error) {
-      console.error('[SUPABASE] Erreur chargement config depuis /api/config:', error);
-      return null;
-    }
+  // Configuration depuis variables d'environnement
+  const SUPABASE_URL = 'https://bwzyajsrmfhrxdmfpyqy.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3enlhanNybWZocnhkbWZweXF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwMzg2NTUsImV4cCI6MjA4MTYxNDY1NX0.sLB8N8PJ_vW2mS-0a_N6If6lcuOoF36YHNcolAL5KXs';
+
+  // Vérification
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.error('[SUPABASE] Configuration manquante');
+    return;
   }
+  
+  console.log('[SUPABASE] Configuration chargée');
 
-  // 2️⃣ Fonction d'initialisation Supabase
-  async function initSupabase() {
-    console.log('[SUPABASE] Chargement configuration...');
-    
-    // Charger config depuis API
-    const config = await loadConfig();
-    
-    if (!config || !config.supabaseUrl || !config.supabaseAnonKey) {
-      console.error('[SUPABASE] Configuration invalide ou manquante');
-      console.error('[SUPABASE] Config reçue:', config);
-      return;
-    }
-    
-    const SUPABASE_URL = config.supabaseUrl;
-    const SUPABASE_ANON_KEY = config.supabaseAnonKey;
-    
-    console.log('[SUPABASE] Configuration chargée:', SUPABASE_URL);
+  console.log('[SUPABASE] Configuration chargée');
 
-    // 3️⃣ Vérifier que le CDN Supabase est chargé
-    if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
-      console.error('[SUPABASE] CDN non chargé. Ajouter <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>');
-      return;
-    }
-
-    // 4️⃣ Créer le client Supabase
-    try {
+  // Attendre que Supabase CDN soit chargé
+  function initSupabase() {
+    if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+      console.log('[SUPABASE] Initialisation client...');
+      
+      // Créer le client Supabase
       window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         auth: {
           autoRefreshToken: true,
@@ -60,16 +39,12 @@
       });
       
       console.log('[SUPABASE] Client initialisé ✅');
-      
-      // Déclencher événement personnalisé pour notifier que Supabase est prêt
-      window.dispatchEvent(new Event('supabase:ready'));
-      
-    } catch (error) {
-      console.error('[SUPABASE] Erreur initialisation client:', error);
+    } else {
+      console.error('[SUPABASE] CDN non chargé');
     }
   }
 
-  // 5️⃣ Démarrer l'initialisation quand DOM est prêt
+  // Exécuter après chargement DOM
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initSupabase);
   } else {
