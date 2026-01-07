@@ -839,9 +839,23 @@
         
       } catch (error) {
         console.error('[REGIE][ERROR]', error);
-        console.log('[REGIE][REDIRECT] Raison: Exception', error.message);
-        alert('Erreur technique. Reconnexion requise.');
-        window.location.href = '/login.html';
+        // ❌ PAS de redirect automatique - afficher message UI
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('content').style.display = 'block';
+        
+        const errorDiv = document.createElement('div');
+        errorDiv.style.cssText = 'background:#fee2e2;border:2px solid#f87171;padding:20px;margin:20px;border-radius:8px;color:#991b1b;';
+        errorDiv.innerHTML = `
+          <strong>⚠️ Erreur technique</strong><br>
+          ${error.message}<br>
+          <small>Si le problème persiste, <a href="/login.html" style="color:#991b1b;text-decoration:underline;">reconnectez-vous</a></small>
+        `;
+        const content = document.getElementById('content');
+        if (content.firstChild) {
+          content.insertBefore(errorDiv, content.firstChild);
+        } else {
+          content.appendChild(errorDiv);
+        }
       }
     }
 
@@ -866,7 +880,22 @@
         if (error) {
           console.error('[REGIE][TICKETS] ❌ Erreur RPC:', error);
           document.getElementById('dashboardLoading').style.display = 'none';
-          alert('Erreur chargement tickets: ' + error.message);
+          
+          // Message UI non bloquant avec bouton réessayer
+          const errorMsg = error.message === 'Failed to fetch' ? 
+            'Le service de tickets est temporairement indisponible' : 
+            error.message;
+          
+          document.getElementById('messageAucunTicket').innerHTML = `
+            <div style="background:#fee2e2;padding:20px;border-radius:8px;border:2px solid #f87171;color:#991b1b;text-align:center;">
+              <strong>⚠️ Erreur chargement</strong><br>
+              ${errorMsg}<br>
+              <button onclick="loadDashboard()" style="margin-top:15px;background:#2563eb;color:white;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-weight:600;">
+                🔄 Réessayer
+              </button>
+            </div>
+          `;
+          document.getElementById('messageAucunTicket').style.display = 'block';
           return;
         }
         

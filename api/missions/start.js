@@ -24,11 +24,26 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function handleStartMission(req, res) {
+  console.log('[START_MISSION] 🚀 Nouvelle requête');
+  console.log('[START_MISSION] Method:', req.method);
+  console.log('[START_MISSION] Headers:', JSON.stringify({
+    authorization: req.headers.authorization ? 'Bearer ...' + req.headers.authorization.substring(req.headers.authorization.length - 20) : 'ABSENT',
+    Authorization: req.headers.Authorization ? 'Bearer ...' + req.headers.Authorization.substring(req.headers.Authorization.length - 20) : 'ABSENT',
+    'content-type': req.headers['content-type']
+  }));
+  
   // 1. Authentification
   const user = await authenticateUser(req);
+  
+  console.log('[START_MISSION] Auth result:', user ? `USER_ID: ${user.id}` : 'NULL (401)');
+  
   if (!user) {
+    console.error('[START_MISSION] ❌ Authentification échouée');
     res.writeHead(401, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ error: 'Non authentifié' }));
+    res.end(JSON.stringify({ 
+      error: 'Non authentifié',
+      debug: 'Token manquant ou invalide - Vérifiez Authorization header'
+    }));
     return;
   }
 

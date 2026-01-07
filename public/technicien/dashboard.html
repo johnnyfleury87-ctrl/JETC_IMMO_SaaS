@@ -1129,14 +1129,23 @@
         // Récupérer le token d'authentification
         const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
         
+        console.log('[TECH][START][SESSION]', {
+          hasSession: !!session,
+          hasToken: !!session?.access_token,
+          tokenLength: session?.access_token?.length,
+          error: sessionError
+        });
+        
         if (sessionError || !session) {
           showError('Session expirée, veuillez vous reconnecter');
-          window.location.href = '/login.html';
+          console.error('[TECH][START] Session invalide, redirect login');
+          setTimeout(() => window.location.href = '/login.html', 2000);
           return;
         }
         
         const payload = { mission_id: missionId };
         console.log('[TECH][START][PAYLOAD]', JSON.stringify(payload));
+        console.log('[TECH][START][TOKEN_PREVIEW]', session.access_token.substring(0, 50) + '...');
         
         const response = await fetch('/api/missions/start', {
           method: 'POST',
@@ -1150,9 +1159,18 @@
         console.log(`[TECH][START][RESP] status=${response.status} ${response.statusText}`);
         
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ error: 'Réponse non-JSON' }));
+          const errorText = await response.text();
+          console.error('[TECH][START][ERROR_BODY]', errorText);
+          
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { error: errorText || 'Réponse non-JSON' };
+          }
+          
           console.error('[TECH][START][ERROR]', errorData);
-          throw new Error(errorData.error || 'Erreur démarrage mission');
+          throw new Error(errorData.error || `Erreur HTTP ${response.status}`);
         }
         
         const data = await response.json();

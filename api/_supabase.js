@@ -32,14 +32,14 @@
  */
 
 const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config();
+require('dotenv').config({ path: '.env.local' });
 
 // ======================================================
 // CONFIGURATION - Lecture variables d'environnement
 // ======================================================
 
 // 1️⃣ URL du projet Supabase
-const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
 
 // 2️⃣ Clé SERVICE_ROLE (admin, bypass RLS)
 // ❌ Cette clé est SECRÈTE et ne doit JAMAIS être exposée

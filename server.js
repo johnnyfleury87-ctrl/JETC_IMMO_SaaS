@@ -5,7 +5,7 @@
  * En production, ce sera géré par Vercel
  */
 
-require('dotenv').config();
+require('dotenv').config({ path: '.env.local' });
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -18,6 +18,7 @@ console.log('  JETC_IMMO - Serveur de développement');
 console.log('========================================');
 console.log(`MODE: ${MODE}`);
 console.log(`PORT: ${PORT}`);
+console.log(`SUPABASE_URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || 'MANQUANT'}`);
 console.log('========================================\n');
 
 // Gestionnaire de requêtes
