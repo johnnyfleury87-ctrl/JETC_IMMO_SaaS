@@ -845,10 +845,30 @@
               categorie,
               sous_categorie,
               description,
-              locataire:locataires(nom, prenom, telephone),
+              piece,
+              photos,
+              locataire:locataires(
+                nom,
+                prenom,
+                telephone,
+                email
+              ),
               logement:logements(
                 adresse,
-                immeuble:immeubles(nom, adresse)
+                npa,
+                ville,
+                numero,
+                etage,
+                pays,
+                immeuble:immeubles(
+                  nom,
+                  adresse,
+                  npa,
+                  ville,
+                  digicode,
+                  interphone,
+                  ascenseur
+                )
               )
             )
           `)
@@ -862,7 +882,18 @@
         }
         
         allMissions = missions || [];
-        console.log(`[TECH][MISSIONS] Loaded ${allMissions.length} missions`);
+        console.log(`[TECH][MISSIONS] Loaded ${allMissions.length} missions (avec ticket+locataire+logement) OK`);
+        
+        // Log détaillé pour debug
+        if (allMissions.length > 0) {
+          const sample = allMissions[0];
+          console.log('[TECH][MISSIONS] Exemple structure:', {
+            hasTicket: !!sample.ticket,
+            hasLocataire: !!(sample.ticket?.locataire),
+            hasLogement: !!(sample.ticket?.logement),
+            hasImmeuble: !!(sample.ticket?.logement?.immeuble)
+          });
+        }
         
         renderMissions();
         calculateStats();
@@ -930,6 +961,43 @@
       const ticket = mission.ticket || {};
       const locataire = ticket.locataire || {};
       const logement = ticket.logement || {};
+      const immeuble = logement.immeuble || {};
+      
+      // Construction adresse complète
+      let adresseComplete = '';
+      if (logement.adresse) {
+        adresseComplete = logement.adresse;
+        if (logement.npa && logement.ville) {
+          adresseComplete += `, ${logement.npa} ${logement.ville}`;
+        }
+      } else if (immeuble.adresse) {
+        adresseComplete = immeuble.nom ? `${immeuble.nom} - ` : '';
+        adresseComplete += immeuble.adresse;
+        if (immeuble.npa && immeuble.ville) {
+          adresseComplete += `, ${immeuble.npa} ${immeuble.ville}`;
+        }
+      }
+      if (!adresseComplete) {
+        adresseComplete = 'Adresse non renseignée';
+      }
+      
+      // Info accès
+      let infoAcces = '';
+      if (immeuble.digicode) {
+        infoAcces = `🔑 Code: ${immeuble.digicode}`;
+      } else if (immeuble.interphone) {
+        infoAcces = '🔔 Interphone disponible';
+      } else {
+        infoAcces = '🔑 Accès: non renseigné';
+      }
+      
+      // Complément adresse (étage/numéro)
+      let complementAdresse = '';
+      if (logement.etage || logement.numero) {
+        const etageStr = logement.etage ? `Étage ${logement.etage}` : '';
+        const numeroStr = logement.numero ? `N° ${logement.numero}` : '';
+        complementAdresse = [etageStr, numeroStr].filter(Boolean).join(', ');
+      }
       
       card.innerHTML = `
         <div class="mission-header">
@@ -937,10 +1005,12 @@
           <span class="mission-ref">#${mission.id.substring(0, 8)}</span>
         </div>
         <div class="mission-body">
-          <h3>🔧 ${ticket.categorie || 'N/A'} - ${ticket.sous_categorie || 'N/A'}</h3>
-          <p>📍 ${logement.adresse || 'Adresse non renseignée'}</p>
-          ${mission.date_intervention_prevue ? `<p>📅 ${formatDate(mission.date_intervention_prevue)}</p>` : ''}
-          ${locataire.nom ? `<p>👤 ${locataire.nom} ${locataire.prenom || ''}</p>` : ''}
+          <h3>🔧 ${ticket.categorie || 'Non spécifié'} - ${ticket.sous_categorie || 'Non spécifié'}</h3>
+          <p>📍 ${adresseComplete}</p>
+          ${complementAdresse ? `<p style="font-size: 13px; color: var(--gray-600); margin-left: 20px;">${complementAdresse}</p>` : ''}
+          ${mission.date_intervention_prevue ? `<p>📅 ${formatDate(mission.date_intervention_prevue)}</p>` : '<p>📅 Date non planifiée</p>'}
+          ${locataire.nom ? `<p>👤 ${locataire.nom} ${locataire.prenom || ''}${locataire.telephone ? ` - ${locataire.telephone}` : ''}</p>` : '<p>👤 Locataire: non renseigné</p>'}
+          <p style="font-size: 13px; color: var(--gray-600);">${infoAcces}</p>
         </div>
         <div class="mission-actions">
           ${getActionButtons(mission)}
@@ -1061,6 +1131,8 @@
       const mission = allMissions.find(m => m.id === missionId);
       if (!mission) return;
       
+      console.log(`[TECH][DETAILS] Modal rendered for mission_id=${missionId}`);
+      
       currentMissionId = missionId;
       const ticket = mission.ticket || {};
       const locataire = ticket.locataire || {};
@@ -1068,6 +1140,24 @@
       const immeuble = logement.immeuble || {};
       
       const modalBody = document.getElementById('modalBody');
+      
+      // Construction infos complètes
+      let adresseCompleteDetail = '';
+      if (logement.adresse) {
+        adresseCompleteDetail = logement.adresse;
+        if (logement.npa && logement.ville) {
+          adresseCompleteDetail += `, ${logement.npa} ${logement.ville}`;
+        }
+        if (logement.pays && logement.pays !== 'Suisse') {
+          adresseCompleteDetail += `, ${logement.pays}`;
+        }
+      } else if (immeuble.adresse) {
+        adresseCompleteDetail = immeuble.adresse;
+        if (immeuble.npa && immeuble.ville) {
+          adresseCompleteDetail += `, ${immeuble.npa} ${immeuble.ville}`;
+        }
+      }
+      
       modalBody.innerHTML = `
         ${mission.locataire_absent ? `
         <div class="alert-absence">
@@ -1083,37 +1173,56 @@
         </div>
         
         <div class="modal-section">
-          <label>Type d'intervention</label>
-          <p>🔧 ${ticket.categorie || 'N/A'} - ${ticket.sous_categorie || 'N/A'}</p>
+          <label>🔧 Type d'intervention</label>
+          <p><strong>Catégorie:</strong> ${ticket.categorie || 'Non spécifié'}</p>
+          <p><strong>Sous-catégorie:</strong> ${ticket.sous_categorie || 'Non spécifié'}</p>
+          ${ticket.piece ? `<p><strong>Pièce concernée:</strong> ${ticket.piece}</p>` : ''}
         </div>
         
         ${ticket.description ? `
         <div class="modal-section">
-          <label>Description</label>
-          <p>${ticket.description}</p>
+          <label>📝 Description du problème / panne</label>
+          <p style="white-space: pre-wrap;">${ticket.description}</p>
         </div>
         ` : ''}
         
         <div class="modal-section">
-          <label>📍 Localisation</label>
-          <p><strong>Adresse:</strong> ${logement.adresse || 'N/A'}</p>
+          <label>👤 Locataire</label>
+          ${locataire.nom ? `
+            <p><strong>Nom:</strong> ${locataire.nom} ${locataire.prenom || ''}</p>
+            ${locataire.telephone ? `<p><strong>Téléphone:</strong> <a href="tel:${locataire.telephone}" style="color: var(--primary-blue);">${locataire.telephone}</a></p>` : '<p><strong>Téléphone:</strong> Non renseigné</p>'}
+            ${locataire.email ? `<p><strong>Email:</strong> <a href="mailto:${locataire.email}" style="color: var(--primary-blue);">${locataire.email}</a></p>` : ''}
+          ` : '<p>Informations locataire non disponibles</p>'}
+        </div>
+        
+        <div class="modal-section">
+          <label>📍 Adresse complète</label>
+          ${adresseCompleteDetail ? `<p><strong>Adresse:</strong> ${adresseCompleteDetail}</p>` : '<p>Adresse non renseignée</p>'}
           ${immeuble.nom ? `<p><strong>Immeuble:</strong> ${immeuble.nom}</p>` : ''}
+          ${logement.numero ? `<p><strong>Numéro/Référence:</strong> ${logement.numero}</p>` : ''}
+          ${logement.etage ? `<p><strong>Étage:</strong> ${logement.etage}</p>` : ''}
         </div>
         
-        ${locataire.nom ? `
         <div class="modal-section">
-          <label>👤 Contact locataire</label>
-          <p><strong>Nom:</strong> ${locataire.nom} ${locataire.prenom || ''}</p>
-          ${locataire.telephone ? `<p><strong>Téléphone:</strong> ${locataire.telephone}</p>` : ''}
+          <label>🔑 Accès / Entrée</label>
+          ${immeuble.digicode ? `
+            <p><strong>Code d'entrée:</strong> <span style="font-size: 18px; font-weight: 700; color: var(--primary-blue);">${immeuble.digicode}</span>
+            <button onclick="copyToClipboard('${immeuble.digicode}')" style="margin-left: 10px; padding: 4px 8px; font-size: 12px; background: var(--gray-100); border: 1px solid var(--gray-300); border-radius: 4px; cursor: pointer;">📋 Copier</button>
+            </p>
+          ` : ''}
+          ${immeuble.interphone ? `<p>🔔 <strong>Interphone:</strong> Disponible</p>` : ''}
+          ${immeuble.ascenseur ? `<p>🛗 <strong>Ascenseur:</strong> Disponible</p>` : ''}
+          ${!immeuble.digicode && !immeuble.interphone ? '<p style="color: var(--gray-500);">Informations d\'accès non renseignées</p>' : ''}
         </div>
-        ` : ''}
         
-        ${mission.date_intervention_prevue ? `
         <div class="modal-section">
-          <label>📅 Date prévue</label>
-          <p>${formatDate(mission.date_intervention_prevue)}</p>
+          <label>📅 Planification / Créneaux</label>
+          ${mission.date_intervention_prevue ? `
+            <p><strong>Date planifiée:</strong> ${formatDate(mission.date_intervention_prevue)}</p>
+            <p style="padding: 8px; background: var(--green-50); border-left: 3px solid var(--success-green); border-radius: 4px; margin-top: 8px;">✅ Créneau validé</p>
+          ` : '<p style="color: var(--orange-600);">⚠️ Date d\'intervention non encore planifiée</p>'}
+          ${mission.disponibilite_id ? `<p style="font-size: 12px; color: var(--gray-500); margin-top: 5px;">ID disponibilité: ${mission.disponibilite_id.substring(0, 8)}</p>` : ''}
         </div>
-        ` : ''}
         
         ${mission.started_at ? `
         <div class="modal-section">
@@ -1501,6 +1610,33 @@
         hour: '2-digit',
         minute: '2-digit'
       });
+    }
+
+    function copyToClipboard(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showSuccess('✅ Code copié dans le presse-papier');
+        }).catch(err => {
+          console.error('[TECH][COPY] Erreur:', err);
+          showError('Impossible de copier le code');
+        });
+      } else {
+        // Fallback pour anciens navigateurs
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          showSuccess('✅ Code copié dans le presse-papier');
+        } catch (err) {
+          console.error('[TECH][COPY] Erreur:', err);
+          showError('Impossible de copier le code');
+        }
+        document.body.removeChild(textarea);
+      }
     }
 
     function showSuccess(message) {
