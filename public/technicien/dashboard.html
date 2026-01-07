@@ -1182,18 +1182,6 @@
         showError('Impossible de terminer la mission: ' + error.message);
       }
     }
-          throw new Error('Erreur terminaison mission');
-        }
-        
-        console.log('[TECH][COMPLETE] mission_id=' + missionId + ' OK');
-        showSuccess('✅ Mission terminée');
-        await loadMissions();
-        
-      } catch (error) {
-        console.error('[TECH][COMPLETE] Erreur:', error);
-        showError('Impossible de terminer la mission');
-      }
-    }
 
     // =====================================================
     // FILTRAGE MISSIONS
