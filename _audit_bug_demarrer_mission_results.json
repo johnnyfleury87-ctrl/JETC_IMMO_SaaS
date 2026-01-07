@@ -1,0 +1,27 @@
+{
+  "structure_db": {
+    "error": "supabase.rpc(...).catch is not a function"
+  },
+  "rls_policies": {
+    "error": "Could not find the table 'public.pg_policies' in the schema cache"
+  },
+  "test_rpc": {
+    "error": "Could not find the function public.update_mission_statut(p_mission_id, p_nouveau_statut, p_role) in the schema cache"
+  },
+  "test_user_technicien": {
+    "technicien": {
+      "id": "3196179e-5258-457f-b31f-c88a4760ebe0",
+      "profile_id": "3196179e-5258-457f-b31f-c88a4760ebe0",
+      "nom": "Technicien",
+      "prenom": "Demo",
+      "entreprise_id": "6ff210bc-9985-457c-8851-4185123edb07"
+    },
+    "mission_test": {
+      "id": "2d84c11c-6415-4f49-ba33-8b53ae1ee22d",
+      "statut": "en_attente",
+      "ticket_id": "2106c14a-c755-4eb1-b440-c5fd3043ab88"
+    },
+    "ready_for_test": true
+  },
+  "recommendations": []
+}

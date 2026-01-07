@@ -67,21 +67,12 @@ async function handleCompleteMission(req, res) {
         return;
       }
 
-      // 4. Appeler la fonction centralisée de transition
+      // 4. Appeler la fonction complete_mission
       const { data: result, error: completeError } = await supabase
-        .rpc('update_mission_statut', {
+        .rpc('complete_mission', {
           p_mission_id: mission_id,
-          p_nouveau_statut: 'terminee',
-          p_role: profile.role
+          p_rapport_url: rapport_url
         });
-
-      // 5. Si succès et rapport fourni, mettre à jour le rapport
-      if (!completeError && result && result.success && rapport_url) {
-        await supabase
-          .from('missions')
-          .update({ rapport_url })
-          .eq('id', mission_id);
-      }
 
       if (completeError) {
         console.error('Erreur complétion:', completeError);

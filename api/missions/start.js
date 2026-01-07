@@ -67,12 +67,10 @@ async function handleStartMission(req, res) {
         return;
       }
 
-      // 4. Appeler la fonction centralisée de transition
+      // 4. Appeler la fonction start_mission
       const { data: result, error: startError } = await supabase
-        .rpc('update_mission_statut', {
-          p_mission_id: mission_id,
-          p_nouveau_statut: 'en_cours',
-          p_role: profile.role
+        .rpc('start_mission', {
+          p_mission_id: mission_id
         });
 
       if (startError) {

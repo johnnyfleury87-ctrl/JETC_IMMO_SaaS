@@ -1110,25 +1110,36 @@
       if (!confirm('Démarrer cette mission maintenant ?')) return;
       
       try {
-        console.log(`[TECH][START] mission_id=${missionId}`);
+        console.log(`[TECH][START][CLICK] mission_id=${missionId}`);
+        console.log(`[TECH][START][TIME] ${new Date().toISOString()}`);
+        
+        const payload = { mission_id: missionId };
+        console.log('[TECH][START][PAYLOAD]', JSON.stringify(payload));
         
         const response = await fetch('/api/missions/start', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mission_id: missionId })
+          body: JSON.stringify(payload)
         });
         
+        console.log(`[TECH][START][RESP] status=${response.status} ${response.statusText}`);
+        
         if (!response.ok) {
-          throw new Error('Erreur démarrage mission');
+          const errorData = await response.json().catch(() => ({ error: 'Réponse non-JSON' }));
+          console.error('[TECH][START][ERROR]', errorData);
+          throw new Error(errorData.error || 'Erreur démarrage mission');
         }
         
+        const data = await response.json();
+        console.log('[TECH][START][SUCCESS]', data);
         console.log('[TECH][START] mission_id=' + missionId + ' OK');
+        
         showSuccess('✅ Mission démarrée');
         await loadMissions();
         
       } catch (error) {
-        console.error('[TECH][START] Erreur:', error);
-        showError('Impossible de démarrer la mission');
+        console.error('[TECH][START][EXCEPTION]', error);
+        showError('Impossible de démarrer la mission: ' + error.message);
       }
     }
 
@@ -1139,15 +1150,38 @@
       if (!confirm('Terminer cette mission ?')) return;
       
       try {
-        console.log(`[TECH][COMPLETE] mission_id=${missionId}`);
+        console.log(`[TECH][COMPLETE][CLICK] mission_id=${missionId}`);
+        console.log(`[TECH][COMPLETE][TIME] ${new Date().toISOString()}`);
+        
+        const payload = { mission_id: missionId };
+        console.log('[TECH][COMPLETE][PAYLOAD]', JSON.stringify(payload));
         
         const response = await fetch('/api/missions/complete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mission_id: missionId })
+          body: JSON.stringify(payload)
         });
         
+        console.log(`[TECH][COMPLETE][RESP] status=${response.status} ${response.statusText}`);
+        
         if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Réponse non-JSON' }));
+          console.error('[TECH][COMPLETE][ERROR]', errorData);
+          throw new Error(errorData.error || 'Erreur terminaison mission');
+        }
+        
+        const data = await response.json();
+        console.log('[TECH][COMPLETE][SUCCESS]', data);
+        console.log('[TECH][COMPLETE] mission_id=' + missionId + ' OK');
+        
+        showSuccess('✅ Mission terminée');
+        await loadMissions();
+        
+      } catch (error) {
+        console.error('[TECH][COMPLETE][EXCEPTION]', error);
+        showError('Impossible de terminer la mission: ' + error.message);
+      }
+    }
           throw new Error('Erreur terminaison mission');
         }
         
