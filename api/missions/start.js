@@ -24,45 +24,88 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function handleStartMission(req, res) {
-  console.log('[START_MISSION] 🚀 Nouvelle requête');
-  console.log('[START_MISSION] Method:', req.method);
-  console.log('[START_MISSION] Headers:', JSON.stringify({
-    authorization: req.headers.authorization ? 'Bearer ...' + req.headers.authorization.substring(req.headers.authorization.length - 20) : 'ABSENT',
-    Authorization: req.headers.Authorization ? 'Bearer ...' + req.headers.Authorization.substring(req.headers.Authorization.length - 20) : 'ABSENT',
-    'content-type': req.headers['content-type']
-  }));
+  const timestamp = new Date().toISOString();
+  console.log(`\n${'='.repeat(80)}`);
+  console.log(`[START][${timestamp}] 🚀 NOUVELLE REQUÊTE DÉMARRAGE MISSION`);
+  console.log(`${'='.repeat(80)}`);
+  
+  // [START][REQ] method url
+  console.log('[START][REQ]', {
+    method: req.method,
+    url: req.url,
+    timestamp
+  });
+  
+  // [START][HEADERS] présence Authorization / cookie
+  console.log('[START][HEADERS]', {
+    hasAuthorization: !!req.headers.authorization,
+    authPreview: req.headers.authorization ? 'Bearer ...' + req.headers.authorization.slice(-20) : 'ABSENT',
+    hasCookie: !!req.headers.cookie,
+    contentType: req.headers['content-type']
+  });
   
   // 1. Authentification
+  console.log('[START][AUTH] Tentative authentification...');
   const user = await authenticateUser(req);
   
-  console.log('[START_MISSION] Auth result:', user ? `USER_ID: ${user.id}` : 'NULL (401)');
-  
+  // [START][AUTH] résultat vérification user (uid, role)
   if (!user) {
-    console.error('[START_MISSION] ❌ Authentification échouée');
+    console.error('[START][AUTH] ❌ ÉCHEC - Aucun utilisateur authentifié');
     res.writeHead(401, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ 
       error: 'Non authentifié',
-      debug: 'Token manquant ou invalide - Vérifiez Authorization header'
+      message: 'Token manquant ou invalide - Vérifiez Authorization header'
     }));
     return;
   }
+  
+  console.log('[START][AUTH] ✅ SUCCÈS', {
+    uid: user.id,
+    email: user.email || 'N/A'
+  });
 
-  // 2. Vérifier que l'utilisateur est entreprise ou technicien
+  // 2. Vérifier le rôle
+  console.log('[START][DB] Récupération profil utilisateur...');
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('role')
     .eq('id', user.id)
     .single();
 
-  if (profileError || !profile) {
+  if (profileError) {
+    console.error('[START][DB] ❌ ERREUR PROFIL', {
+      code: profileError.code,
+      message: profileError.message,
+      details: profileError.details,
+      hint: profileError.hint
+    });
     res.writeHead(500, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ error: 'Erreur lors de la récupération du profil' }));
+    res.end(JSON.stringify({ 
+      error: 'Erreur récupération profil',
+      code: profileError.code
+    }));
     return;
   }
 
+  if (!profile) {
+    console.error('[START][DB] ❌ PROFIL INTROUVABLE pour uid:', user.id);
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Profil introuvable' }));
+    return;
+  }
+
+  console.log('[START][AUTH] Rôle utilisateur:', profile.role);
+
   if (profile.role !== 'entreprise' && profile.role !== 'technicien') {
+    console.error('[START][AUTH] ❌ RÔLE INTERDIT', {
+      role: profile.role,
+      allowed: ['entreprise', 'technicien']
+    });
     res.writeHead(403, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ error: 'Accès réservé aux entreprises et techniciens' }));
+    res.end(JSON.stringify({ 
+      error: 'Accès interdit',
+      message: 'Réservé aux entreprises et techniciens'
+    }));
     return;
   }
 
@@ -74,35 +117,106 @@ async function handleStartMission(req, res) {
 
   req.on('end', async () => {
     try {
-      const { mission_id } = JSON.parse(body);
+      const parsed = JSON.parse(body);
+      
+      // [START][BODY] mission_id (sans données sensibles)
+      console.log('[START][BODY]', {
+        mission_id: parsed.mission_id,
+        hasOtherFields: Object.keys(parsed).filter(k => k !== 'mission_id').length > 0
+      });
+
+      const { mission_id } = parsed;
 
       if (!mission_id) {
+        console.error('[START][BODY] ❌ mission_id MANQUANT');
         res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'mission_id est requis' }));
+        res.end(JSON.stringify({ error: 'mission_id requis' }));
         return;
       }
 
-      // 4. Appeler la fonction start_mission
+      // 4. Vérifier que la mission existe et son état AVANT appel RPC
+      console.log('[START][DB] Vérification mission avant démarrage...');
+      const { data: missionCheck, error: checkError } = await supabase
+        .from('missions')
+        .select('id, statut, technicien_id, entreprise_id, started_at')
+        .eq('id', mission_id)
+        .single();
+      
+      if (checkError) {
+        console.error('[START][DB] ❌ ERREUR VÉRIFICATION MISSION', {
+          code: checkError.code,
+          message: checkError.message,
+          details: checkError.details
+        });
+      } else if (!missionCheck) {
+        console.error('[START][DB] ❌ MISSION INTROUVABLE', { mission_id });
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Mission introuvable' }));
+        return;
+      } else {
+        console.log('[START][DB] ✅ Mission trouvée:', {
+          id: missionCheck.id,
+          statut: missionCheck.statut,
+          technicien_id: missionCheck.technicien_id,
+          entreprise_id: missionCheck.entreprise_id,
+          started_at: missionCheck.started_at
+        });
+        
+        // Vérification statut
+        if (missionCheck.statut !== 'en_attente') {
+          console.error('[START][DB] ❌ STATUT INVALIDE', {
+            statut_actuel: missionCheck.statut,
+            statut_requis: 'en_attente'
+          });
+          res.writeHead(409, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ 
+            error: 'Mission déjà démarrée ou terminée',
+            statut_actuel: missionCheck.statut
+          }));
+          return;
+        }
+      }
+
+      // 5. Appeler la RPC start_mission
+      console.log('[START][DB] Appel RPC start_mission...');
       const { data: result, error: startError } = await supabase
         .rpc('start_mission', {
           p_mission_id: mission_id
         });
 
+      // [START][DB] error (message + code Postgres)
       if (startError) {
-        console.error('Erreur démarrage:', startError);
+        console.error('[START][DB] ❌ ERREUR RPC start_mission', {
+          code: startError.code,
+          message: startError.message,
+          details: startError.details,
+          hint: startError.hint
+        });
         res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Erreur lors du démarrage de la mission' }));
+        res.end(JSON.stringify({ 
+          error: 'Erreur démarrage mission',
+          code: startError.code,
+          message: startError.message
+        }));
         return;
       }
 
-      // 5. Vérifier le résultat
-      if (!result.success) {
+      console.log('[START][DB] ✅ Résultat RPC:', result);
+
+      // 6. Vérifier le résultat de la RPC
+      if (!result || !result.success) {
+        console.error('[START][DB] ❌ RPC retourne échec', result);
         res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: result.error }));
+        res.end(JSON.stringify({ 
+          error: result?.error || 'Échec démarrage mission'
+        }));
         return;
       }
 
-      // 6. Succès
+      // 7. Succès
+      console.log('[START][DB] ✅ MISSION DÉMARRÉE AVEC SUCCÈS');
+      console.log(`${'='.repeat(80)}\n`);
+      
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
         success: true,
@@ -110,9 +224,15 @@ async function handleStartMission(req, res) {
       }));
 
     } catch (error) {
-      console.error('Erreur parsing:', error);
-      res.writeHead(400, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'JSON invalide' }));
+      console.error('[START][ERROR] ❌ EXCEPTION NON GÉRÉE', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ 
+        error: 'Erreur serveur',
+        message: error.message
+      }));
     }
   });
 }

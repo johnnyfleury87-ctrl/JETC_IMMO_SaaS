@@ -631,6 +631,21 @@
         </div>
       </div>
 
+      <!-- Section Factures -->
+      <div id="facturesSection" class="factures-section" style="display: none;">
+        <h2>💳 Mes factures</h2>
+        <p style="color: var(--gray-600); margin-bottom: 20px;">
+          Factures générées pour les missions terminées.
+        </p>
+        
+        <div id="facturesListContainer">
+          <div class="loading-state">
+            <div style="font-size: 32px; margin-bottom: 10px;">⏳</div>
+            <p>Chargement de vos factures...</p>
+          </div>
+        </div>
+      </div>
+
       <!-- Modal Détails Ticket -->
       <div id="modalTicketDetails" class="modal-overlay" onclick="closeModalIfOverlay(event)">
         <div class="modal-content">
@@ -693,6 +708,158 @@
             <button class="btn btn-secondary" onclick="closeTicketDetailsModal()">Fermer</button>
             <button id="modalAccepterBtn" class="btn btn-primary" style="display: none;">
               ✅ Accepter ce ticket
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Détails Mission -->
+      <div id="modalMissionDetails" class="modal-overlay" onclick="closeModalIfOverlay(event)">
+        <div class="modal-content" style="max-width: 800px;">
+          <div class="modal-header">
+            <h3 id="modalMissionTitre">Détails de la mission</h3>
+            <button class="modal-close" onclick="closeMissionDetailsModal()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <!-- Statut et infos principales -->
+            <div class="modal-section">
+              <span id="modalMissionStatut" class="badge-statut"></span>
+              
+              <div class="modal-info-grid" style="margin-top: 15px;">
+                <div class="info-item">
+                  <span class="info-label">📅 Créée le</span>
+                  <span class="info-value" id="modalMissionDate"></span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">⏱️ Durée</span>
+                  <span class="info-value" id="modalMissionDuree"></span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">💰 Montant</span>
+                  <span class="info-value" id="modalMissionMontant"></span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">👤 Technicien</span>
+                  <span class="info-value" id="modalMissionTechnicien"></span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Rapport technicien -->
+            <div class="modal-section" id="modalMissionRapport">
+              <h4>📝 Rapport du technicien</h4>
+              <p id="modalMissionRapportTexte" style="white-space: pre-wrap; background: var(--bg-light); padding: 15px; border-radius: 8px; margin-top: 10px;"></p>
+              <a id="modalMissionRapportLink" href="#" target="_blank" class="btn btn-secondary" style="margin-top: 10px; display: none;">
+                📄 Télécharger le rapport PDF
+              </a>
+            </div>
+            
+            <!-- Photos -->
+            <div class="modal-section" id="modalMissionPhotos">
+              <h4>📷 Photos de l'intervention</h4>
+              <div id="modalMissionPhotosContainer" style="margin-top: 10px;"></div>
+            </div>
+            
+            <!-- Facture -->
+            <div class="modal-section" id="modalMissionFacture">
+              <h4>💳 Facture</h4>
+              <div class="modal-info-grid" style="margin-top: 10px;">
+                <div class="info-item">
+                  <span class="info-label">Numéro</span>
+                  <span class="info-value" id="modalFactureNumero"></span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Montant TTC</span>
+                  <span class="info-value" id="modalFactureMontant"></span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Statut</span>
+                  <span id="modalFactureStatut" class="badge-statut"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeMissionDetailsModal()">Fermer</button>
+            <button id="modalBtnCreerFacture" class="btn btn-primary" style="display: none;">
+              💳 Créer la facture
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Créer/Éditer Facture -->
+      <div id="modalCreerFacture" class="modal-overlay" onclick="closeModalIfOverlay(event)">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>💳 Créer une facture</h3>
+            <button class="modal-close" onclick="closeCreerFactureModal()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="modal-section">
+              <label for="inputFactureMontant">Montant HT (CHF) *</label>
+              <input 
+                type="number" 
+                id="inputFactureMontant" 
+                step="0.01" 
+                min="0"
+                placeholder="100.00"
+                required
+                style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: 6px; margin-top: 5px;"
+              >
+              <p style="font-size: 12px; color: var(--gray-600); margin-top: 5px;">
+                TVA 20% et commission JTEC 10% seront calculées automatiquement
+              </p>
+            </div>
+            
+            <div class="modal-section">
+              <label for="inputFactureDescription">Description</label>
+              <textarea 
+                id="inputFactureDescription" 
+                rows="4"
+                placeholder="Description des travaux effectués..."
+                style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: 6px; margin-top: 5px; resize: vertical;"
+              ></textarea>
+            </div>
+            
+            <div class="modal-section">
+              <label for="inputFactureIBAN">IBAN *</label>
+              <input 
+                type="text" 
+                id="inputFactureIBAN" 
+                placeholder="CH93 0076 2011 6238 5295 7"
+                required
+                style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: 6px; margin-top: 5px;"
+              >
+              <p style="font-size: 12px; color: var(--gray-600); margin-top: 5px;">
+                Votre IBAN pour recevoir le paiement
+              </p>
+            </div>
+            
+            <div class="modal-section" style="background: var(--bg-light); padding: 15px; border-radius: 8px;">
+              <h4 style="margin: 0 0 10px 0;">Récapitulatif</h4>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span>Montant HT :</span>
+                <span id="recapMontantHT">0.00 CHF</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span>TVA (20%) :</span>
+                <span id="recapTVA">0.00 CHF</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span>Commission JTEC (10%) :</span>
+                <span id="recapCommission">0.00 CHF</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 16px; padding-top: 10px; border-top: 2px solid var(--gray-300);">
+                <span>Montant TTC :</span>
+                <span id="recapMontantTTC">0.00 CHF</span>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeCreerFactureModal()">Annuler</button>
+            <button id="btnConfirmerFacture" class="btn btn-primary" onclick="confirmerCreerFacture()">
+              ✅ Créer la facture
             </button>
           </div>
         </div>
@@ -910,6 +1077,7 @@
       // Masquer toutes les sections
       document.getElementById('ticketsDisponiblesSection').style.display = 'none';
       document.getElementById('mesMissionsSection').style.display = 'none';
+      document.getElementById('facturesSection').style.display = 'none';
       
       // Retirer classe active des menu items
       document.querySelectorAll('.menu-item').forEach(item => {
@@ -925,6 +1093,10 @@
         document.getElementById('mesMissionsSection').style.display = 'block';
         document.querySelector('[data-view="missions"]').classList.add('active');
         loadMesMissions();
+      } else if (view === 'factures') {
+        document.getElementById('facturesSection').style.display = 'block';
+        document.querySelector('[data-view="factures"]').classList.add('active');
+        loadFactures();
       }
     }
 
@@ -1639,29 +1811,11 @@
       console.log('[MISSION] Ouverture modal détails:', missionId);
       
       try {
-        // Charger mission complète
+        // Charger mission complète via vue missions_factures_complet
         const { data: mission, error } = await window.supabaseClient
-          .from('missions')
-          .select(`
-            *,
-            tickets (
-              id,
-              titre,
-              description,
-              categorie,
-              sous_categorie,
-              priorite,
-              statut,
-              plafond_intervention_chf
-            ),
-            techniciens (
-              id,
-              nom,
-              prenom,
-              telephone
-            )
-          `)
-          .eq('id', missionId)
+          .from('missions_factures_complet')
+          .select('*')
+          .eq('mission_id', missionId)
           .eq('entreprise_id', window.currentEntreprise.id)
           .single();
         
@@ -1671,13 +1825,412 @@
           return;
         }
         
-        // Afficher détails (à implémenter selon besoins)
-        alert(`📋 Détails Mission\n\nTicket: ${mission.tickets.titre}\nStatut: ${getMissionStatutLabel(mission.statut)}\nTechnicien: ${mission.techniciens ? mission.techniciens.prenom + ' ' + mission.techniciens.nom : 'Non assigné'}\n\n(Interface détaillée à développer)`);
+        console.log('[MISSION] Données mission:', mission);
+        
+        // Remplir la modal
+        document.getElementById('modalMissionTitre').textContent = mission.ticket_titre || 'Mission sans titre';
+        document.getElementById('modalMissionStatut').textContent = getMissionStatutLabel(mission.mission_statut);
+        document.getElementById('modalMissionStatut').className = 'badge-statut badge-' + mission.mission_statut;
+        
+        // Informations de base
+        document.getElementById('modalMissionDate').textContent = new Date(mission.mission_created_at).toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        
+        document.getElementById('modalMissionDuree').textContent = mission.mission_duree_minutes 
+          ? `${mission.mission_duree_minutes} minutes (${Math.floor(mission.mission_duree_minutes / 60)}h${mission.mission_duree_minutes % 60})`
+          : 'N/A';
+        
+        document.getElementById('modalMissionMontant').textContent = mission.mission_montant 
+          ? `CHF ${mission.mission_montant.toFixed(2)}`
+          : 'Non renseigné';
+        
+        // Technicien
+        document.getElementById('modalMissionTechnicien').textContent = 
+          mission.technicien_nom && mission.technicien_prenom
+            ? `${mission.technicien_prenom} ${mission.technicien_nom}`
+            : 'Non assigné';
+        
+        // Rapport technicien
+        const rapportSection = document.getElementById('modalMissionRapport');
+        if (mission.mission_notes || mission.mission_rapport_url) {
+          rapportSection.style.display = 'block';
+          document.getElementById('modalMissionRapportTexte').textContent = mission.mission_notes || 'Aucune note';
+          
+          // Lien vers rapport PDF si existe
+          const rapportLink = document.getElementById('modalMissionRapportLink');
+          if (mission.mission_rapport_url) {
+            rapportLink.style.display = 'inline-block';
+            rapportLink.href = mission.mission_rapport_url;
+          } else {
+            rapportLink.style.display = 'none';
+          }
+        } else {
+          rapportSection.style.display = 'none';
+        }
+        
+        // Photos
+        const photosSection = document.getElementById('modalMissionPhotos');
+        const photosContainer = document.getElementById('modalMissionPhotosContainer');
+        
+        if (mission.mission_photos && mission.mission_photos.length > 0) {
+          photosSection.style.display = 'block';
+          photosContainer.innerHTML = mission.mission_photos.map(photoUrl => `
+            <a href="${photoUrl}" target="_blank" style="display: inline-block; margin: 5px;">
+              <img src="${photoUrl}" alt="Photo mission" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; cursor: pointer;">
+            </a>
+          `).join('');
+        } else {
+          photosSection.style.display = 'none';
+        }
+        
+        // Facture (si existe)
+        const factureSection = document.getElementById('modalMissionFacture');
+        const btnCreerFacture = document.getElementById('modalBtnCreerFacture');
+        
+        if (mission.facture_id) {
+          factureSection.style.display = 'block';
+          btnCreerFacture.style.display = 'none';
+          
+          document.getElementById('modalFactureNumero').textContent = mission.facture_numero || 'N/A';
+          document.getElementById('modalFactureMontant').textContent = mission.facture_montant_ttc 
+            ? `CHF ${mission.facture_montant_ttc.toFixed(2)}`
+            : 'N/A';
+          document.getElementById('modalFactureStatut').textContent = mission.facture_statut || 'N/A';
+          document.getElementById('modalFactureStatut').className = 'badge-statut badge-' + (mission.facture_statut || 'brouillon');
+        } else if (mission.mission_statut === 'terminee') {
+          factureSection.style.display = 'none';
+          btnCreerFacture.style.display = 'inline-block';
+          btnCreerFacture.onclick = () => openCreerFactureModal(missionId);
+        } else {
+          factureSection.style.display = 'none';
+          btnCreerFacture.style.display = 'none';
+        }
+        
+        // Afficher la modal
+        document.getElementById('modalMissionDetails').style.display = 'flex';
         
       } catch (error) {
         console.error('[MISSION] Exception:', error);
         alert('Erreur: ' + error.message);
       }
+    }
+    
+    function closeMissionDetailsModal() {
+      document.getElementById('modalMissionDetails').style.display = 'none';
+    }
+    
+    // ========== CRÉATION FACTURE ==========
+    let currentMissionIdForFacture = null;
+    
+    function openCreerFactureModal(missionId) {
+      currentMissionIdForFacture = missionId;
+      
+      // Pré-remplir avec montant mission si disponible
+      window.supabaseClient
+        .from('missions')
+        .select('montant_reel_chf')
+        .eq('id', missionId)
+        .single()
+        .then(({ data }) => {
+          if (data && data.montant_reel_chf) {
+            document.getElementById('inputFactureMontant').value = data.montant_reel_chf;
+            updateFactureRecap();
+          }
+        });
+      
+      // Afficher modal
+      document.getElementById('modalCreerFacture').style.display = 'flex';
+      closeMissionDetailsModal();
+    }
+    
+    function closeCreerFactureModal() {
+      document.getElementById('modalCreerFacture').style.display = 'none';
+      currentMissionIdForFacture = null;
+    }
+    
+    // Mise à jour du récapitulatif en temps réel
+    document.addEventListener('DOMContentLoaded', () => {
+      const inputMontant = document.getElementById('inputFactureMontant');
+      if (inputMontant) {
+        inputMontant.addEventListener('input', updateFactureRecap);
+      }
+    });
+    
+    function updateFactureRecap() {
+      const montantHT = parseFloat(document.getElementById('inputFactureMontant').value) || 0;
+      const tva = montantHT * 0.20;
+      const commission = montantHT * 0.10;
+      const montantTTC = montantHT + tva;
+      
+      document.getElementById('recapMontantHT').textContent = montantHT.toFixed(2) + ' CHF';
+      document.getElementById('recapTVA').textContent = tva.toFixed(2) + ' CHF';
+      document.getElementById('recapCommission').textContent = commission.toFixed(2) + ' CHF';
+      document.getElementById('recapMontantTTC').textContent = montantTTC.toFixed(2) + ' CHF';
+    }
+    
+    async function confirmerCreerFacture() {
+      const montantHT = parseFloat(document.getElementById('inputFactureMontant').value);
+      const description = document.getElementById('inputFactureDescription').value;
+      const iban = document.getElementById('inputFactureIBAN').value;
+      
+      // Validation
+      if (!montantHT || montantHT <= 0) {
+        alert('❌ Veuillez saisir un montant valide');
+        return;
+      }
+      
+      if (!iban || iban.trim().length < 10) {
+        alert('❌ Veuillez saisir un IBAN valide');
+        return;
+      }
+      
+      const btn = document.getElementById('btnConfirmerFacture');
+      btn.disabled = true;
+      btn.textContent = '⏳ Création...';
+      
+      try {
+        const { data, error } = await window.supabaseClient.rpc('generate_facture_from_mission', {
+          p_mission_id: currentMissionIdForFacture,
+          p_montant_ht: montantHT,
+          p_description: description || 'Facture pour intervention',
+          p_iban: iban.trim()
+        });
+        
+        if (error) {
+          console.error('[FACTURE] Erreur:', error);
+          alert('❌ Erreur: ' + error.message);
+          btn.disabled = false;
+          btn.textContent = '✅ Créer la facture';
+          return;
+        }
+        
+        console.log('[FACTURE] Créée:', data);
+        
+        alert('✅ Facture créée avec succès!\n\nNuméro: ' + data.numero + '\n\nLa facture est maintenant visible dans l\'onglet "Factures".');
+        
+        closeCreerFactureModal();
+        loadMesMissions(); // Recharger la liste
+        
+        // Ouvrir l'onglet factures
+        setTimeout(() => {
+          switchView('factures');
+        }, 500);
+        
+      } catch (error) {
+        console.error('[FACTURE] Exception:', error);
+        alert('Erreur: ' + error.message);
+        btn.disabled = false;
+        btn.textContent = '✅ Créer la facture';
+      }
+    }
+    
+    // ========== LISTE FACTURES ==========
+    async function loadFactures() {
+      console.log('[FACTURES] Chargement factures');
+      
+      const container = document.getElementById('facturesListContainer');
+      container.innerHTML = '<div class="loading-state"><div style="font-size: 32px; margin-bottom: 10px;">⏳</div><p>Chargement de vos factures...</p></div>';
+      
+      try {
+        if (!window.currentEntreprise?.id) {
+          container.innerHTML = '<div class="error-state"><h3>Erreur</h3><p>Aucune entreprise trouvée.</p></div>';
+          return;
+        }
+        
+        // Charger via vue missions_factures_complet
+        const { data: factures, error } = await window.supabaseClient
+          .from('missions_factures_complet')
+          .select('*')
+          .eq('entreprise_id', window.currentEntreprise.id)
+          .not('facture_id', 'is', null)
+          .order('mission_created_at', { ascending: false });
+        
+        if (error) {
+          console.error('[FACTURES] Erreur:', error);
+          container.innerHTML = `<div class="error-state"><h3>Erreur</h3><p>${error.message}</p></div>`;
+          return;
+        }
+        
+        console.log('[FACTURES] Factures chargées:', factures?.length || 0);
+        
+        if (!factures || factures.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">💳</div>
+              <h3>Aucune facture</h3>
+              <p>Les factures sont générées automatiquement quand une mission est terminée.</p>
+            </div>
+          `;
+          return;
+        }
+        
+        // Afficher factures
+        renderFacturesList(factures);
+        
+      } catch (error) {
+        console.error('[FACTURES] Exception:', error);
+        container.innerHTML = `<div class="error-state"><h3>Erreur</h3><p>${error.message}</p></div>`;
+      }
+    }
+    
+    function renderFacturesList(factures) {
+      const container = document.getElementById('facturesListContainer');
+      const html = `<div class="tickets-list">${factures.map(renderFactureCard).join('')}</div>`;
+      container.innerHTML = html;
+    }
+    
+    function renderFactureCard(facture) {
+      const dateEmission = new Date(facture.facture_date_emission).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+      
+      const canPay = facture.facture_statut === 'brouillon' || facture.facture_statut === 'envoyee';
+      const canRefuse = facture.facture_statut === 'brouillon' || facture.facture_statut === 'envoyee';
+      
+      return `
+        <div class="ticket-card">
+          <h3>${escapeHtml(facture.facture_numero)}</h3>
+          <p class="ticket-card-description">${escapeHtml(facture.ticket_titre || 'Mission')}</p>
+          
+          <div class="ticket-card-meta">
+            <span class="badge-statut badge-${facture.facture_statut}">${getFactureStatutLabel(facture.facture_statut)}</span>
+            ${facture.mission_statut ? `<span style="font-size: 12px; color: var(--gray-500);">Mission: ${getMissionStatutLabel(facture.mission_statut)}</span>` : ''}
+          </div>
+          
+          <div class="ticket-card-infos">
+            <div class="ticket-card-info-item">
+              <label>Montant HT</label>
+              <span>CHF ${facture.facture_montant_ht.toFixed(2)}</span>
+            </div>
+            <div class="ticket-card-info-item">
+              <label>Montant TTC</label>
+              <span style="font-weight: bold; color: var(--primary-blue);">CHF ${facture.facture_montant_ttc.toFixed(2)}</span>
+            </div>
+            <div class="ticket-card-info-item">
+              <label>Commission JTEC</label>
+              <span>CHF ${facture.facture_commission.toFixed(2)}</span>
+            </div>
+            <div class="ticket-card-info-item">
+              <label>Date émission</label>
+              <span>📅 ${dateEmission}</span>
+            </div>
+            ${facture.facture_iban ? `
+            <div class="ticket-card-info-item">
+              <label>IBAN</label>
+              <span style="font-family: monospace; font-size: 11px;">${escapeHtml(facture.facture_iban)}</span>
+            </div>
+            ` : ''}
+            ${facture.facture_date_paiement ? `
+            <div class="ticket-card-info-item">
+              <label>Date paiement</label>
+              <span>✅ ${new Date(facture.facture_date_paiement).toLocaleDateString('fr-FR')}</span>
+            </div>
+            ` : ''}
+          </div>
+          
+          <div class="ticket-card-footer">
+            <span style="font-size: 13px; color: var(--gray-500);">Mission #${facture.mission_id.substring(0, 8)}...</span>
+            <div class="ticket-card-actions">
+              <button class="btn btn-secondary" onclick="openMissionDetailsModal('${facture.mission_id}')">
+                📄 Voir mission
+              </button>
+              ${canPay ? `
+                <button class="btn btn-success" onclick="marquerFacturePayee('${facture.facture_id}', '${escapeHtml(facture.facture_numero)}')">
+                  🟢 Marquer payée
+                </button>
+              ` : ''}
+              ${canRefuse ? `
+                <button class="btn btn-danger" onclick="refuserFacture('${facture.facture_id}', '${escapeHtml(facture.facture_numero)}')">
+                  🔴 Refuser
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    function getFactureStatutLabel(statut) {
+      const labels = {
+        'brouillon': 'Brouillon',
+        'envoyee': 'Envoyée',
+        'payee': 'Payée',
+        'refusee': 'Refusée'
+      };
+      return labels[statut] || statut;
+    }
+    
+    // ========== ACTIONS FACTURE ==========
+    async function marquerFacturePayee(factureId, numero) {
+      if (!confirm(`Confirmer que la facture ${numero} a été payée ?\n\n⚠️ Cette action clôturera automatiquement la mission et le ticket associés.`)) {
+        return;
+      }
+      
+      try {
+        const { data, error } = await window.supabaseClient.rpc('update_facture_status', {
+          p_facture_id: factureId,
+          p_nouveau_statut: 'payee'
+        });
+        
+        if (error) {
+          console.error('[FACTURE] Erreur:', error);
+          alert('❌ Erreur: ' + error.message);
+          return;
+        }
+        
+        console.log('[FACTURE] Marquée payée:', data);
+        
+        alert('✅ Facture marquée comme payée!\n\n' + 
+              (data.cloture_auto ? '✅ La mission et le ticket ont été clôturés automatiquement.' : ''));
+        
+        loadFactures(); // Recharger
+        
+      } catch (error) {
+        console.error('[FACTURE] Exception:', error);
+        alert('Erreur: ' + error.message);
+      }
+    }
+    
+    async function refuserFacture(factureId, numero) {
+      const raison = prompt(`Refuser la facture ${numero}\n\nRaison du refus (optionnel) :`);
+      
+      if (raison === null) {
+        return; // Annulé
+      }
+      
+      try {
+        const { data, error } = await window.supabaseClient.rpc('update_facture_status', {
+          p_facture_id: factureId,
+          p_nouveau_statut: 'refusee'
+        });
+        
+        if (error) {
+          console.error('[FACTURE] Erreur:', error);
+          alert('❌ Erreur: ' + error.message);
+          return;
+        }
+        
+        console.log('[FACTURE] Refusée:', data);
+        
+        alert('✅ Facture refusée\n\n⚠️ La mission reste visible et peut être refacturée.');
+        
+        loadFactures(); // Recharger
+        
+      } catch (error) {
+        console.error('[FACTURE] Exception:', error);
+        alert('Erreur: ' + error.message);
+      }
+    }
+
+    function closeMissionDetailsModal() {
+      document.getElementById('modalMissionDetails').style.display = 'none';
     }
     
     function closeMissionDetailsModal() {

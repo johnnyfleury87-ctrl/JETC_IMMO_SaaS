@@ -1,0 +1,100 @@
+================================================================================
+🎯 GUIDE RAPIDE - APPLICATION MIGRATION M50
+================================================================================
+
+📌 ÉTAPE 1 : Ouvrir l'éditeur SQL Supabase
+--------------------------------------------------------------------------------
+
+URL : https://bwzyajsrmfhrxdmfpyqy.supabase.co/project/_/sql/new
+
+ou
+
+Dashboard → SQL Editor → New Query
+
+
+📌 ÉTAPE 2 : Copier le contenu du fichier de migration
+--------------------------------------------------------------------------------
+
+Fichier : /workspaces/JETC_IMMO_SaaS/supabase/migrations/20260107120000_m50_workflow_facturation_complet.sql
+
+Copier TOUT le contenu (575 lignes)
+
+
+📌 ÉTAPE 3 : Coller dans l'éditeur SQL Supabase
+--------------------------------------------------------------------------------
+
+Coller le contenu dans l'éditeur
+
+
+📌 ÉTAPE 4 : Exécuter
+--------------------------------------------------------------------------------
+
+Cliquer sur le bouton "Run" (en bas à droite)
+
+
+📌 ÉTAPE 5 : Vérifier les résultats
+--------------------------------------------------------------------------------
+
+✅ Ignorer les messages "already exists" (normaux)
+✅ Vérifier qu'il n'y a pas d'erreurs fatales (en rouge)
+
+
+📌 ÉTAPE 6 : Tester l'application
+--------------------------------------------------------------------------------
+
+Dans le terminal VSCode, exécuter :
+
+```bash
+node _test_workflow_facturation.js
+```
+
+Ce script va :
+  ✅ Vérifier que tous les RPC existent
+  ✅ Vérifier les colonnes ajoutées
+  ✅ Vérifier la vue missions_factures_complet
+  ✅ Tester la génération de facture (si mission disponible)
+
+
+================================================================================
+🎉 SI TOUT EST OK
+================================================================================
+
+Tous les tests doivent passer :
+  ✅ RPC (start_mission, complete_mission, etc.)
+  ✅ Colonnes (iban, duree_minutes)
+  ✅ Vue missions_factures_complet
+  ✅ Workflow complet
+
+→ Passer aux adaptations frontend (voir _FINALISATION_WORKFLOW_FACTURATION.md)
+
+
+================================================================================
+❌ SI ERREUR
+================================================================================
+
+Erreurs possibles :
+
+1. "permission denied" ou "access denied"
+   → Vérifier que vous êtes connecté avec compte admin Supabase
+
+2. "function already exists"
+   → Normal, ignorer (script inclut DROP IF EXISTS)
+
+3. "column already exists"
+   → Normal, ignorer (script inclut IF NOT EXISTS)
+
+4. "table does not exist"
+   → ERREUR CRITIQUE : Schéma de base manquant
+   → Vérifier que schema/13_missions.sql et 15_facturation.sql ont été appliqués
+
+
+================================================================================
+📞 AIDE
+================================================================================
+
+En cas de problème :
+1. Copier les logs d'erreur
+2. Vérifier dans Supabase Dashboard → Database → Tables si :
+   - Table "missions" existe
+   - Table "factures" existe
+3. Ré-exécuter le script de test : node _test_workflow_facturation.js
