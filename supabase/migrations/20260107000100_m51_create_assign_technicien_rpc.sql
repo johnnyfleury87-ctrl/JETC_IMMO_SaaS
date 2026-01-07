@@ -12,7 +12,13 @@
 -- =====================================================
 -- Permet à une entreprise d'assigner un de SES techniciens à UNE de SES missions
 
-CREATE OR REPLACE FUNCTION assign_technicien_to_mission(
+-- Supprimer toutes les versions existantes de la fonction
+DROP FUNCTION IF EXISTS assign_technicien_to_mission(UUID, UUID);
+DROP FUNCTION IF EXISTS assign_technicien_to_mission(UUID, UUID, UUID);
+DROP FUNCTION IF EXISTS public.assign_technicien_to_mission;
+
+-- Créer la fonction
+CREATE FUNCTION assign_technicien_to_mission(
   p_mission_id UUID,
   p_technicien_id UUID
 )
