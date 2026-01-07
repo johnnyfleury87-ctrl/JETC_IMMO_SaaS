@@ -1,0 +1,470 @@
+{
+  "timestamp": "2026-01-07T08:01:26.040Z",
+  "bugs": [],
+  "routes_api": [
+    {
+      "path": "/api/abonnements/access",
+      "file": "/api/abonnements/access.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/abonnements/create",
+      "file": "/api/abonnements/create.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/abonnements/list",
+      "file": "/api/abonnements/list.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/abonnements/upgrade",
+      "file": "/api/abonnements/upgrade.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/admin/factures-mensuelles-pdf",
+      "file": "/api/admin/factures-mensuelles-pdf.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/admin/factures-mensuelles",
+      "file": "/api/admin/factures-mensuelles.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/admin/stats",
+      "file": "/api/admin/stats.js",
+      "usesAuth": true,
+      "hasMiddleware": false,
+      "needsAuth": true
+    },
+    {
+      "path": "/api/admin/valider-agence",
+      "file": "/api/admin/valider-agence.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/auth/login",
+      "file": "/api/auth/login.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/auth/me",
+      "file": "/api/auth/me.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/auth/register",
+      "file": "/api/auth/register.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/auth/reset-password",
+      "file": "/api/auth/reset-password.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/config",
+      "file": "/api/config.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/factures/generate",
+      "file": "/api/factures/generate.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/factures/list",
+      "file": "/api/factures/list.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/factures/status",
+      "file": "/api/factures/status.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/healthcheck",
+      "file": "/api/healthcheck.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/install/create-admin",
+      "file": "/api/install/create-admin.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/lib/supabaseServer",
+      "file": "/api/lib/supabaseServer.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/locataires/create",
+      "file": "/api/locataires/create.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/messages/mission",
+      "file": "/api/messages/mission.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/messages/send",
+      "file": "/api/messages/send.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/middleware/auth",
+      "file": "/api/middleware/auth.js",
+      "usesAuth": true,
+      "hasMiddleware": false,
+      "needsAuth": true
+    },
+    {
+      "path": "/api/missions/assign-technicien",
+      "file": "/api/missions/assign-technicien.js",
+      "usesAuth": true,
+      "hasMiddleware": true,
+      "needsAuth": true
+    },
+    {
+      "path": "/api/missions/complete",
+      "file": "/api/missions/complete.js",
+      "usesAuth": true,
+      "hasMiddleware": true,
+      "needsAuth": true
+    },
+    {
+      "path": "/api/missions/retards",
+      "file": "/api/missions/retards.js",
+      "usesAuth": true,
+      "hasMiddleware": true,
+      "needsAuth": true
+    },
+    {
+      "path": "/api/missions/start",
+      "file": "/api/missions/start.js",
+      "usesAuth": true,
+      "hasMiddleware": true,
+      "needsAuth": true
+    },
+    {
+      "path": "/api/missions/validate",
+      "file": "/api/missions/validate.js",
+      "usesAuth": true,
+      "hasMiddleware": true,
+      "needsAuth": true
+    },
+    {
+      "path": "/api/notifications/list",
+      "file": "/api/notifications/list.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/notifications/read",
+      "file": "/api/notifications/read.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/regie/create-entreprise-account",
+      "file": "/api/regie/create-entreprise-account.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/services/emailService",
+      "file": "/api/services/emailService.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/services/passwordService",
+      "file": "/api/services/passwordService.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/storage/upload-immeuble",
+      "file": "/api/storage/upload-immeuble.js",
+      "usesAuth": true,
+      "hasMiddleware": false,
+      "needsAuth": true
+    },
+    {
+      "path": "/api/storage/upload-logement",
+      "file": "/api/storage/upload-logement.js",
+      "usesAuth": true,
+      "hasMiddleware": false,
+      "needsAuth": true
+    },
+    {
+      "path": "/api/storage/upload-signature",
+      "file": "/api/storage/upload-signature.js",
+      "usesAuth": true,
+      "hasMiddleware": false,
+      "needsAuth": true
+    },
+    {
+      "path": "/api/techniciens/create",
+      "file": "/api/techniciens/create.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/techniciens/delete",
+      "file": "/api/techniciens/delete.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/techniciens/list",
+      "file": "/api/techniciens/list.js",
+      "usesAuth": true,
+      "hasMiddleware": true,
+      "needsAuth": true
+    },
+    {
+      "path": "/api/techniciens/planning",
+      "file": "/api/techniciens/planning.js",
+      "usesAuth": true,
+      "hasMiddleware": true,
+      "needsAuth": true
+    },
+    {
+      "path": "/api/techniciens/update",
+      "file": "/api/techniciens/update.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/tickets/accept",
+      "file": "/api/tickets/accept.js",
+      "usesAuth": true,
+      "hasMiddleware": true,
+      "needsAuth": true
+    },
+    {
+      "path": "/api/tickets/create",
+      "file": "/api/tickets/create.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/tickets/create_old",
+      "file": "/api/tickets/create_old.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    },
+    {
+      "path": "/api/tickets/diffuser",
+      "file": "/api/tickets/diffuser.js",
+      "usesAuth": true,
+      "hasMiddleware": true,
+      "needsAuth": true
+    },
+    {
+      "path": "/api/tickets/entreprise",
+      "file": "/api/tickets/entreprise.js",
+      "usesAuth": false,
+      "hasMiddleware": false,
+      "needsAuth": false
+    }
+  ],
+  "frontend_calls": [
+    {
+      "file": "/public/admin/dashboard.html",
+      "apiPath": "/api/admin/valider-agence",
+      "hasAuthHeader": true,
+      "lineApprox": 807
+    },
+    {
+      "file": "/public/admin/dashboard.html",
+      "apiPath": "/api/admin/valider-agence",
+      "hasAuthHeader": true,
+      "lineApprox": 853
+    },
+    {
+      "file": "/public/admin/dashboard_backup_20251219_103645.html",
+      "apiPath": "/api/admin/valider-agence",
+      "hasAuthHeader": true,
+      "lineApprox": 517
+    },
+    {
+      "file": "/public/admin/dashboard_backup_20251219_103645.html",
+      "apiPath": "/api/admin/valider-agence",
+      "hasAuthHeader": true,
+      "lineApprox": 563
+    },
+    {
+      "file": "/public/entreprise/techniciens.html",
+      "apiPath": "/api/techniciens/list",
+      "hasAuthHeader": true,
+      "lineApprox": 599
+    },
+    {
+      "file": "/public/entreprise/techniciens.html",
+      "apiPath": "/api/techniciens/update",
+      "hasAuthHeader": true,
+      "lineApprox": 887
+    },
+    {
+      "file": "/public/entreprise/techniciens.html",
+      "apiPath": "/api/techniciens/delete",
+      "hasAuthHeader": true,
+      "lineApprox": 940
+    },
+    {
+      "file": "/public/exemple_config_dynamique.html",
+      "apiPath": "/api/config",
+      "hasAuthHeader": false,
+      "lineApprox": 11
+    },
+    {
+      "file": "/public/install-admin.html",
+      "apiPath": "/api/install/create-admin",
+      "hasAuthHeader": false,
+      "lineApprox": 207
+    },
+    {
+      "file": "/public/install-admin_backup_20251219_102723.html",
+      "apiPath": "/api/install/create-admin",
+      "hasAuthHeader": false,
+      "lineApprox": 262
+    },
+    {
+      "file": "/public/locataire/dashboard.html",
+      "apiPath": "/api/tickets/create",
+      "hasAuthHeader": true,
+      "lineApprox": 1649
+    },
+    {
+      "file": "/public/locataire/dashboard_backup_20251219_104127.html",
+      "apiPath": "/api/tickets/create",
+      "hasAuthHeader": false,
+      "lineApprox": 261
+    },
+    {
+      "file": "/public/regie/entreprises.html",
+      "apiPath": "/api/regie/create-entreprise-account",
+      "hasAuthHeader": true,
+      "lineApprox": 945
+    },
+    {
+      "file": "/public/regie/locataires.html",
+      "apiPath": "/api/locataires/create",
+      "hasAuthHeader": true,
+      "lineApprox": 1179
+    },
+    {
+      "file": "/public/regie/locataires.html",
+      "apiPath": "/api/auth/reset-password",
+      "hasAuthHeader": false,
+      "lineApprox": 1328
+    },
+    {
+      "file": "/public/register.html",
+      "apiPath": "/api/auth/register",
+      "hasAuthHeader": false,
+      "lineApprox": 497
+    },
+    {
+      "file": "/public/register_backup_20251219_101227.html",
+      "apiPath": "/api/auth/register",
+      "hasAuthHeader": false,
+      "lineApprox": 465
+    },
+    {
+      "file": "/public/register_old.html",
+      "apiPath": "/api/auth/register",
+      "hasAuthHeader": false,
+      "lineApprox": 385
+    },
+    {
+      "file": "/public/reset-password.html",
+      "apiPath": "/api/auth/reset-password",
+      "hasAuthHeader": false,
+      "lineApprox": 302
+    },
+    {
+      "file": "/public/technicien/dashboard.html",
+      "apiPath": "/api/missions/start",
+      "hasAuthHeader": true,
+      "lineApprox": 1128
+    },
+    {
+      "file": "/public/technicien/dashboard.html",
+      "apiPath": "/api/missions/complete",
+      "hasAuthHeader": true,
+      "lineApprox": 1180
+    },
+    {
+      "file": "/public/test_supabase_config.html",
+      "apiPath": "/api/config",
+      "hasAuthHeader": false,
+      "lineApprox": 79
+    }
+  ],
+  "summary": {
+    "total_routes_api": 46,
+    "routes_with_auth": 14,
+    "total_frontend_calls": 22,
+    "calls_with_auth_header": 12,
+    "calls_without_auth_header": 10,
+    "bugs_found": 0
+  }
+}

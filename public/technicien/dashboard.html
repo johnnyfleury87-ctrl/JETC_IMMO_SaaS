@@ -1113,12 +1113,24 @@
         console.log(`[TECH][START][CLICK] mission_id=${missionId}`);
         console.log(`[TECH][START][TIME] ${new Date().toISOString()}`);
         
+        // Récupérer le token d'authentification
+        const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
+        
+        if (sessionError || !session) {
+          showError('Session expirée, veuillez vous reconnecter');
+          window.location.href = '/login.html';
+          return;
+        }
+        
         const payload = { mission_id: missionId };
         console.log('[TECH][START][PAYLOAD]', JSON.stringify(payload));
         
         const response = await fetch('/api/missions/start', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
           body: JSON.stringify(payload)
         });
         
@@ -1153,12 +1165,24 @@
         console.log(`[TECH][COMPLETE][CLICK] mission_id=${missionId}`);
         console.log(`[TECH][COMPLETE][TIME] ${new Date().toISOString()}`);
         
+        // Récupérer le token d'authentification
+        const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
+        
+        if (sessionError || !session) {
+          showError('Session expirée, veuillez vous reconnecter');
+          window.location.href = '/login.html';
+          return;
+        }
+        
         const payload = { mission_id: missionId };
         console.log('[TECH][COMPLETE][PAYLOAD]', JSON.stringify(payload));
         
         const response = await fetch('/api/missions/complete', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
           body: JSON.stringify(payload)
         });
         

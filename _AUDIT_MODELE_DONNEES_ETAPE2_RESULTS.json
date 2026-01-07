@@ -1,0 +1,60 @@
+{
+  "timestamp": "2026-01-07T08:05:18.312Z",
+  "schema_check": {
+    "profiles": {
+      "exists": true,
+      "count": 8
+    },
+    "techniciens": {
+      "exists": true,
+      "count": 3
+    },
+    "entreprises": {
+      "exists": true,
+      "count": 1
+    },
+    "missions": {
+      "exists": true,
+      "count": 1
+    },
+    "tickets": {
+      "exists": true,
+      "count": 1
+    },
+    "logements": {
+      "exists": true,
+      "count": 4
+    },
+    "locataires": {
+      "exists": true,
+      "count": 2
+    },
+    "immeubles": {
+      "exists": true,
+      "count": 1
+    },
+    "regies": {
+      "exists": true,
+      "count": 1
+    }
+  },
+  "relations": {
+    "techniciens_without_profile": 0,
+    "missions_without_technicien": 0,
+    "missions_without_ticket": 0,
+    "tickets_without_logement": 0,
+    "logements_without_immeuble": 0
+  },
+  "orphans": {
+    "missions_invalid_technicien": 0,
+    "tickets_invalid_logement": 0
+  },
+  "inconsistencies": [],
+  "summary": {
+    "total_inconsistencies": 0,
+    "critical": 0,
+    "major": 0,
+    "tables_checked": 9,
+    "tables_ok": 9
+  }
+}

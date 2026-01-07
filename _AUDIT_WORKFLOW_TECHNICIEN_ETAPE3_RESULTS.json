@@ -1,0 +1,89 @@
+{
+  "timestamp": "2026-01-07T08:07:42.488Z",
+  "missions": [
+    {
+      "id": "2d84c11c-6415-4f49-ba33-8b53ae1ee22d",
+      "statut": "en_attente",
+      "started_at": null,
+      "completed_at": null,
+      "date_intervention_prevue": null,
+      "date_intervention_realisee": null,
+      "technicien_id": "3196179e-5258-457f-b31f-c88a4760ebe0",
+      "ticket": {
+        "id": "2106c14a-c755-4eb1-b440-c5fd3043ab88",
+        "logement": {
+          "id": "9111bff3-015b-4c35-a72a-47b8b0e03b37",
+          "numero": "Log 2",
+          "adresse": "12 Rue victor Hugo",
+          "locataire": [
+            {
+              "id": "8ae4ab22-47a4-475b-98af-eed18513b45d",
+              "nom": "lesage",
+              "prenom": "pauline"
+            }
+          ]
+        },
+        "categorie": "plomberie",
+        "description": "bonjour"
+      }
+    }
+  ],
+  "techniciens": [
+    {
+      "id": "3196179e-5258-457f-b31f-c88a4760ebe0",
+      "profile_id": "3196179e-5258-457f-b31f-c88a4760ebe0",
+      "entreprise_id": "6ff210bc-9985-457c-8851-4185123edb07",
+      "specialites": [],
+      "profile": {
+        "email": "demo.technicien@test.app",
+        "role": "technicien"
+      }
+    },
+    {
+      "id": "e5dc1c44-96b0-49fd-b18e-1b8f539df1a5",
+      "profile_id": "e5dc1c44-96b0-49fd-b18e-1b8f539df1a5",
+      "entreprise_id": "6ff210bc-9985-457c-8851-4185123edb07",
+      "specialites": [
+        "Serrurerie"
+      ],
+      "profile": {
+        "email": "tech@test.app",
+        "role": "technicien"
+      }
+    },
+    {
+      "id": "f4ca9426-73f9-4efa-850c-c660b5f86875",
+      "profile_id": "f4ca9426-73f9-4efa-850c-c660b5f86875",
+      "entreprise_id": "6ff210bc-9985-457c-8851-4185123edb07",
+      "specialites": [
+        "Chauffage"
+      ],
+      "profile": {
+        "email": "jean@test.app",
+        "role": "technicien"
+      }
+    }
+  ],
+  "rpc_functions": {
+    "start_mission": {
+      "exists": true,
+      "response": {
+        "error": "Mission non trouvée",
+        "success": false
+      }
+    },
+    "complete_mission": {
+      "exists": true,
+      "response": {
+        "error": "Mission non trouvée",
+        "success": false
+      }
+    },
+    "assign_mission_to_technicien": {
+      "exists": true,
+      "test_error": "Could not find the function public.assign_mission_to_technicien(p_mission_id) in the schema cache"
+    }
+  },
+  "workflow_tests": [],
+  "issues": []
+}
