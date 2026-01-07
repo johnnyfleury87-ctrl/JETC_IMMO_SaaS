@@ -1611,6 +1611,7 @@
     }
 
     function closeModalIfOverlay(event) {
+      // Fermer uniquement si on clique sur l'overlay (pas sur le contenu)
       if (event.target.id === 'modalTicketDetails') {
         closeTicketDetailsModal();
       }
@@ -2232,10 +2233,25 @@
     function closeMissionDetailsModal() {
       document.getElementById('modalMissionDetails').style.display = 'none';
     }
-    
-    function closeMissionDetailsModal() {
-      // À implémenter si modal complète créée
-    }
+
+    // Gestion touches clavier (ESC pour fermer modals)
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        // Fermer toutes les modals ouvertes
+        if (document.getElementById('modalTicketDetails')?.classList.contains('show')) {
+          closeTicketDetailsModal();
+        }
+        if (document.getElementById('modalAssignerTechnicien')?.classList.contains('show')) {
+          closeAssignerTechnicienModal();
+        }
+        if (document.getElementById('modalMissionDetails')?.style.display === 'flex') {
+          closeMissionDetailsModal();
+        }
+        if (document.getElementById('modalCreerFacture')?.classList.contains('show')) {
+          closeCreerFactureModal();
+        }
+      }
+    });
 
     // Initialisation
     document.addEventListener('DOMContentLoaded', () => {
