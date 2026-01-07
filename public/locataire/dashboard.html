@@ -8,6 +8,7 @@
   <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/bootstrapSupabase.js"></script>
+  <script src="/js/languageManager.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -1165,7 +1166,7 @@
         // Vérifier que c'est bien un locataire
         const { data: profile, error: profileError } = await window.supabaseClient
           .from('profiles')
-          .select('role, email')
+          .select('role, email, language')
           .eq('id', session.user.id)
           .single();
         
@@ -1183,6 +1184,12 @@
           return;
         }
         
+        // Synchroniser la langue depuis profiles.language
+        if (profile.language && typeof setLanguage === 'function') {
+          setLanguage(profile.language);
+          console.log(`[LOCATAIRE][I18N] Langue synchronisée: ${profile.language}`);
+        }
+        
         // Afficher email utilisateur
         const email = profile.email || session.user.email;
         document.getElementById('userEmail').textContent = email;
@@ -1190,6 +1197,12 @@
         document.getElementById('userAvatar').textContent = firstLetter;
         
         console.log('[DASHBOARD LOCATAIRE] ✅ Utilisateur connecté');
+        
+        // Appliquer traductions
+        if (typeof applyTranslations === 'function') {
+          applyTranslations();
+          console.log('[LOCATAIRE][I18N] Traductions appliquées');
+        }
         
         // Charger les données du locataire
         await loadLocataireData(session.user.id);

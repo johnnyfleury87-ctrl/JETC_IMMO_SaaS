@@ -1,0 +1,27 @@
+{
+  "timestamp": "2026-01-07T08:14:03.387Z",
+  "tables": {
+    "factures": {
+      "exists": true,
+      "count": 0
+    },
+    "factures_commissions_jetc": {
+      "exists": true,
+      "count": null
+    },
+    "factures_lignes": {
+      "exists": true,
+      "count": null
+    }
+  },
+  "workflow": {},
+  "issues": [
+    {
+      "type": "TABLE_ERROR",
+      "table": "factures_commissions_jetc",
+      "error": "Could not find the table 'public.factures_commissions_jetc' in the schema cache",
+      "severity": "CRITIQUE"
+    }
+  ],
+  "recommendations": []
+}

@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/css/design-system.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/bootstrapSupabase.js"></script>
+  <script src="/js/languageManager.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -684,14 +685,14 @@
       <div class="sidebar-header">
         <div class="logo-dashboard">
           <img src="/logo_moi.png" alt="JETC_IMMO Logo">
-          <h1>JETC_IMMO</h1>
+          <h1 data-i18n="appName">JETC_IMMO</h1>
         </div>
-        <div class="sidebar-subtitle">Technicien</div>
+        <div class="sidebar-subtitle" data-i18n="technicians">Technicien</div>
       </div>
       <nav class="sidebar-menu">
         <a href="#" class="menu-item active">
           <span class="menu-icon">🔧</span>
-          <span class="menu-label">Mes missions</span>
+          <span class="menu-label" data-i18n="myMissions">Mes missions</span>
         </a>
       </nav>
       <div class="sidebar-footer">
@@ -699,16 +700,16 @@
           <div class="user-avatar" id="userAvatar">T</div>
           <div class="user-details">
             <div class="user-email" id="userEmail">Chargement...</div>
-            <div class="user-role">Technicien</div>
+            <div class="user-role" data-i18n="technicians">Technicien</div>
           </div>
         </div>
-        <button class="btn-logout" onclick="logout()">Déconnexion</button>
+        <button class="btn-logout" onclick="logout()" data-i18n="logout">Déconnexion</button>
       </div>
     </aside>
 
     <!-- Main Content -->
     <main class="main-content">
-      <h1 style="margin-bottom: 30px; color: var(--gray-900);">Mes missions</h1>
+      <h1 style="margin-bottom: 30px; color: var(--gray-900);" data-i18n="myMissions">Mes missions</h1>
 
       <!-- Stats -->
       <section class="stats-section">
@@ -795,7 +796,7 @@
         
         const { data: profile, error: profileError } = await window.supabaseClient
           .from('profiles')
-          .select('role, email')
+          .select('role, email, language')
           .eq('id', session.user.id)
           .single();
         
@@ -813,12 +814,24 @@
           return;
         }
         
+        // Synchroniser la langue depuis profiles.language
+        if (profile.language && typeof setLanguage === 'function') {
+          setLanguage(profile.language);
+          console.log(`[TECH][I18N] Langue synchronisée: ${profile.language}`);
+        }
+        
         const email = profile.email || session.user.email;
         document.getElementById('userEmail').textContent = email;
         const firstLetter = email.charAt(0).toUpperCase();
         document.getElementById('userAvatar').textContent = firstLetter;
         
         console.log('[TECH][STEP 0] ✅ Authentification OK');
+        
+        // Appliquer traductions
+        if (typeof applyTranslations === 'function') {
+          applyTranslations();
+          console.log('[TECH][I18N] Traductions appliquées');
+        }
         
         await loadMissions();
         

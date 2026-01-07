@@ -1,0 +1,250 @@
+{
+  "timestamp": "2026-01-07T08:16:32.907Z",
+  "i18n_system": {
+    "public/js/i18n.js": {
+      "exists": false
+    },
+    "public/js/translations.js": {
+      "exists": false
+    },
+    "src/lib/i18n.js": {
+      "exists": true
+    },
+    "locales/fr.json": {
+      "exists": false
+    },
+    "locales/en.json": {
+      "exists": false
+    }
+  },
+  "pages_status": [
+    {
+      "file": "public/admin/dashboard.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/admin/dashboard_backup_20251219_103645.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/admin/facturation-mensuelle.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/demo-hub.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/demo-hub_backup_20251219_103450.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/entreprise/dashboard.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": true,
+      "status": "translated"
+    },
+    {
+      "file": "public/entreprise/dashboard_backup_20251219_104127.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/entreprise/techniciens.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": true,
+      "status": "translated"
+    },
+    {
+      "file": "public/exemple_config_dynamique.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/index.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/index_backup_20251219_100957.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/index_old.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/install-admin.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": true,
+      "status": "translated"
+    },
+    {
+      "file": "public/install-admin_backup_20251219_102723.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": true,
+      "status": "translated"
+    },
+    {
+      "file": "public/locataire/dashboard.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": true,
+      "status": "translated"
+    },
+    {
+      "file": "public/locataire/dashboard_backup_20251219_104127.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/login.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": true,
+      "status": "translated"
+    },
+    {
+      "file": "public/login_backup_20251219_102638.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": true,
+      "status": "translated"
+    },
+    {
+      "file": "public/proprietaire/dashboard.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/proprietaire/dashboard_backup_20251219_104127.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/regie/dashboard.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/regie/dashboard_backup_20251219_103917.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/regie/entreprises.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": true,
+      "status": "translated"
+    },
+    {
+      "file": "public/regie/immeubles.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": true,
+      "status": "translated"
+    },
+    {
+      "file": "public/regie/locataires.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/regie/logements.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": true,
+      "status": "translated"
+    },
+    {
+      "file": "public/regie/tickets.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/register.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/register_backup_20251219_101227.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/register_old.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/reset-password.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/technicien/dashboard.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": true,
+      "status": "translated"
+    },
+    {
+      "file": "public/technicien/dashboard_OLD_20260106_122639.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/technicien/dashboard_backup_20251219_104127.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    },
+    {
+      "file": "public/test_supabase_config.html",
+      "hasI18n": true,
+      "hasHardcodedFrench": false,
+      "status": "translated"
+    }
+  ],
+  "hardcoded_texts": [],
+  "missing_translations": [],
+  "issues": [
+    {
+      "type": "MISSING_COLUMN",
+      "table": "profiles",
+      "column": "language",
+      "severity": "MAJEUR"
+    }
+  ],
+  "summary": {
+    "total_pages": 35,
+    "translated_pages": 35,
+    "hardcoded_pages": 0,
+    "critical_issues": 0,
+    "major_issues": 1,
+    "translation_coverage": 100
+  }
+}

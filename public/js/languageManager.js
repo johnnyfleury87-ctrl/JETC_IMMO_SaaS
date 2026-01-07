@@ -117,7 +117,96 @@ const translations = {
     // Common
     loading: 'Chargement...',
     error: 'Erreur',
-    success: 'Succès'
+    success: 'Succès',
+    
+    // Dashboard commun
+    dashboard: 'Tableau de bord',
+    logout: 'Déconnexion',
+    profile: 'Profil',
+    settings: 'Paramètres',
+    search: 'Rechercher',
+    filter: 'Filtrer',
+    all: 'Tous',
+    save: 'Enregistrer',
+    cancel: 'Annuler',
+    confirm: 'Confirmer',
+    close: 'Fermer',
+    delete: 'Supprimer',
+    edit: 'Modifier',
+    view: 'Voir',
+    details: 'Détails',
+    
+    // Missions
+    missions: 'Missions',
+    myMissions: 'Mes missions',
+    availableMissions: 'Missions disponibles',
+    assignedMissions: 'Missions assignées',
+    missionDetails: 'Détails de la mission',
+    
+    // Statuts
+    statusWaiting: 'En attente',
+    statusInProgress: 'En cours',
+    statusCompleted: 'Terminée',
+    statusValidated: 'Validée',
+    statusCancelled: 'Annulée',
+    
+    // Actions missions
+    startMission: 'Démarrer la mission',
+    completeMission: 'Terminer la mission',
+    acceptMission: 'Accepter',
+    rejectMission: 'Refuser',
+    assignMission: 'Assigner',
+    
+    // Tickets
+    tickets: 'Tickets',
+    newTicket: 'Nouveau ticket',
+    ticketList: 'Liste des tickets',
+    createTicket: 'Créer un ticket',
+    
+    // Techniciens
+    technicians: 'Techniciens',
+    myTechnicians: 'Mes techniciens',
+    addTechnician: 'Ajouter un technicien',
+    
+    // Entreprises
+    companies: 'Entreprises',
+    myCompanies: 'Mes entreprises',
+    
+    // Immeubles/Logements
+    buildings: 'Immeubles',
+    apartments: 'Logements',
+    tenants: 'Locataires',
+    
+    // Stats
+    statistics: 'Statistiques',
+    total: 'Total',
+    today: 'Aujourd\'hui',
+    thisWeek: 'Cette semaine',
+    thisMonth: 'Ce mois',
+    
+    // Facturation
+    invoices: 'Factures',
+    billing: 'Facturation',
+    
+    // Informations
+    address: 'Adresse',
+    phone: 'Téléphone',
+    email: 'Email',
+    description: 'Description',
+    category: 'Catégorie',
+    date: 'Date',
+    time: 'Heure',
+    
+    // Messages
+    noData: 'Aucune donnée',
+    errorOccurred: 'Une erreur est survenue',
+    successSaved: 'Enregistré avec succès',
+    
+    // Navigation
+    home: 'Accueil',
+    back: 'Retour',
+    next: 'Suivant',
+    previous: 'Précédent'
   },
   
   en: {
@@ -220,7 +309,96 @@ const translations = {
     // Common
     loading: 'Loading...',
     error: 'Error',
-    success: 'Success'
+    success: 'Success',
+    
+    // Dashboard commun
+    dashboard: 'Dashboard',
+    logout: 'Logout',
+    profile: 'Profile',
+    settings: 'Settings',
+    search: 'Search',
+    filter: 'Filter',
+    all: 'All',
+    save: 'Save',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
+    close: 'Close',
+    delete: 'Delete',
+    edit: 'Edit',
+    view: 'View',
+    details: 'Details',
+    
+    // Missions
+    missions: 'Missions',
+    myMissions: 'My missions',
+    availableMissions: 'Available missions',
+    assignedMissions: 'Assigned missions',
+    missionDetails: 'Mission details',
+    
+    // Statuts
+    statusWaiting: 'Waiting',
+    statusInProgress: 'In progress',
+    statusCompleted: 'Completed',
+    statusValidated: 'Validated',
+    statusCancelled: 'Cancelled',
+    
+    // Actions missions
+    startMission: 'Start mission',
+    completeMission: 'Complete mission',
+    acceptMission: 'Accept',
+    rejectMission: 'Reject',
+    assignMission: 'Assign',
+    
+    // Tickets
+    tickets: 'Tickets',
+    newTicket: 'New ticket',
+    ticketList: 'Ticket list',
+    createTicket: 'Create ticket',
+    
+    // Techniciens
+    technicians: 'Technicians',
+    myTechnicians: 'My technicians',
+    addTechnician: 'Add technician',
+    
+    // Entreprises
+    companies: 'Companies',
+    myCompanies: 'My companies',
+    
+    // Immeubles/Logements
+    buildings: 'Buildings',
+    apartments: 'Apartments',
+    tenants: 'Tenants',
+    
+    // Stats
+    statistics: 'Statistics',
+    total: 'Total',
+    today: 'Today',
+    thisWeek: 'This week',
+    thisMonth: 'This month',
+    
+    // Facturation
+    invoices: 'Invoices',
+    billing: 'Billing',
+    
+    // Informations
+    address: 'Address',
+    phone: 'Phone',
+    email: 'Email',
+    description: 'Description',
+    category: 'Category',
+    date: 'Date',
+    time: 'Time',
+    
+    // Messages
+    noData: 'No data',
+    errorOccurred: 'An error occurred',
+    successSaved: 'Successfully saved',
+    
+    // Navigation
+    home: 'Home',
+    back: 'Back',
+    next: 'Next',
+    previous: 'Previous'
   },
   
   de: {
@@ -323,7 +501,96 @@ const translations = {
     // Common
     loading: 'Lädt...',
     error: 'Fehler',
-    success: 'Erfolg'
+    success: 'Erfolg',
+    
+    // Dashboard commun
+    dashboard: 'Dashboard',
+    logout: 'Abmelden',
+    profile: 'Profil',
+    settings: 'Einstellungen',
+    search: 'Suchen',
+    filter: 'Filtern',
+    all: 'Alle',
+    save: 'Speichern',
+    cancel: 'Abbrechen',
+    confirm: 'Bestätigen',
+    close: 'Schließen',
+    delete: 'Löschen',
+    edit: 'Bearbeiten',
+    view: 'Ansehen',
+    details: 'Details',
+    
+    // Missions
+    missions: 'Aufträge',
+    myMissions: 'Meine Aufträge',
+    availableMissions: 'Verfügbare Aufträge',
+    assignedMissions: 'Zugewiesene Aufträge',
+    missionDetails: 'Auftragsdetails',
+    
+    // Statuts
+    statusWaiting: 'Wartend',
+    statusInProgress: 'In Bearbeitung',
+    statusCompleted: 'Abgeschlossen',
+    statusValidated: 'Validiert',
+    statusCancelled: 'Storniert',
+    
+    // Actions missions
+    startMission: 'Auftrag starten',
+    completeMission: 'Auftrag beenden',
+    acceptMission: 'Annehmen',
+    rejectMission: 'Ablehnen',
+    assignMission: 'Zuweisen',
+    
+    // Tickets
+    tickets: 'Tickets',
+    newTicket: 'Neues Ticket',
+    ticketList: 'Ticket-Liste',
+    createTicket: 'Ticket erstellen',
+    
+    // Techniciens
+    technicians: 'Techniker',
+    myTechnicians: 'Meine Techniker',
+    addTechnician: 'Techniker hinzufügen',
+    
+    // Entreprises
+    companies: 'Unternehmen',
+    myCompanies: 'Meine Unternehmen',
+    
+    // Immeubles/Logements
+    buildings: 'Gebäude',
+    apartments: 'Wohnungen',
+    tenants: 'Mieter',
+    
+    // Stats
+    statistics: 'Statistiken',
+    total: 'Gesamt',
+    today: 'Heute',
+    thisWeek: 'Diese Woche',
+    thisMonth: 'Dieser Monat',
+    
+    // Facturation
+    invoices: 'Rechnungen',
+    billing: 'Abrechnung',
+    
+    // Informations
+    address: 'Adresse',
+    phone: 'Telefon',
+    email: 'E-Mail',
+    description: 'Beschreibung',
+    category: 'Kategorie',
+    date: 'Datum',
+    time: 'Uhrzeit',
+    
+    // Messages
+    noData: 'Keine Daten',
+    errorOccurred: 'Ein Fehler ist aufgetreten',
+    successSaved: 'Erfolgreich gespeichert',
+    
+    // Navigation
+    home: 'Startseite',
+    back: 'Zurück',
+    next: 'Weiter',
+    previous: 'Zurück'
   }
 };
 

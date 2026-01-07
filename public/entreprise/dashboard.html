@@ -8,6 +8,7 @@
   <!-- ✅ BOOTSTRAP SUPABASE UNIQUE -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/bootstrapSupabase.js"></script>
+  <script src="/js/languageManager.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -719,7 +720,7 @@
         // Vérifier que c'est bien une entreprise
         const { data: profile, error: profileError } = await window.supabaseClient
           .from('profiles')
-          .select('role, email')
+          .select('role, email, language')
           .eq('id', session.user.id)
           .single();
         
@@ -737,6 +738,12 @@
           return;
         }
         
+        // Synchroniser la langue depuis profiles.language
+        if (profile.language && typeof setLanguage === 'function') {
+          setLanguage(profile.language);
+          console.log(`[ENTREPRISE][I18N] Langue synchronisée: ${profile.language}`);
+        }
+        
         // Afficher email utilisateur
         const email = profile.email || session.user.email;
         document.getElementById('userEmail').textContent = email;
@@ -744,6 +751,12 @@
         document.getElementById('userAvatar').textContent = firstLetter;
         
         console.log('[DASHBOARD ENTREPRISE] ✅ Utilisateur connecté');
+        
+        // Appliquer traductions
+        if (typeof applyTranslations === 'function') {
+          applyTranslations();
+          console.log('[ENTREPRISE][I18N] Traductions appliquées');
+        }
         
         // Charger données entreprise
         await loadEntrepriseData(session.user.id);

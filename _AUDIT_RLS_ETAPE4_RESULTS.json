@@ -1,0 +1,122 @@
+{
+  "timestamp": "2026-01-07T08:09:59.626Z",
+  "tables": {
+    "missions": {
+      "name": "missions",
+      "policies": [],
+      "rls_enabled": false
+    },
+    "tickets": {
+      "name": "tickets",
+      "policies": [],
+      "rls_enabled": false
+    },
+    "techniciens": {
+      "name": "techniciens",
+      "policies": [],
+      "rls_enabled": false
+    },
+    "entreprises": {
+      "name": "entreprises",
+      "policies": [],
+      "rls_enabled": false
+    },
+    "regies": {
+      "name": "regies",
+      "policies": [],
+      "rls_enabled": false
+    },
+    "logements": {
+      "name": "logements",
+      "policies": [],
+      "rls_enabled": false
+    },
+    "locataires": {
+      "name": "locataires",
+      "policies": [],
+      "rls_enabled": false
+    },
+    "immeubles": {
+      "name": "immeubles",
+      "policies": [],
+      "rls_enabled": false
+    },
+    "factures": {
+      "name": "factures",
+      "policies": [],
+      "rls_enabled": false
+    },
+    "factures_commissions_jetc": {
+      "name": "factures_commissions_jetc",
+      "policies": [],
+      "rls_enabled": false
+    }
+  },
+  "policies": [],
+  "missing_policies": [
+    {
+      "table": "techniciens",
+      "severity": "CRITIQUE",
+      "note": "Pas de policies RLS détectées"
+    }
+  ],
+  "security_issues": [
+    {
+      "type": "RLS_NOT_ENABLED",
+      "table": "missions",
+      "severity": "CRITIQUE"
+    },
+    {
+      "type": "RLS_NOT_ENABLED",
+      "table": "tickets",
+      "severity": "CRITIQUE"
+    },
+    {
+      "type": "RLS_NOT_ENABLED",
+      "table": "techniciens",
+      "severity": "CRITIQUE"
+    },
+    {
+      "type": "RLS_NOT_ENABLED",
+      "table": "entreprises",
+      "severity": "CRITIQUE"
+    },
+    {
+      "type": "RLS_NOT_ENABLED",
+      "table": "regies",
+      "severity": "CRITIQUE"
+    },
+    {
+      "type": "RLS_NOT_ENABLED",
+      "table": "logements",
+      "severity": "CRITIQUE"
+    },
+    {
+      "type": "RLS_NOT_ENABLED",
+      "table": "locataires",
+      "severity": "CRITIQUE"
+    },
+    {
+      "type": "RLS_NOT_ENABLED",
+      "table": "immeubles",
+      "severity": "CRITIQUE"
+    },
+    {
+      "type": "RLS_NOT_ENABLED",
+      "table": "factures",
+      "severity": "CRITIQUE"
+    },
+    {
+      "type": "RLS_NOT_ENABLED",
+      "table": "factures_commissions_jetc",
+      "severity": "CRITIQUE"
+    }
+  ],
+  "recommendations": [
+    {
+      "priority": "CRITIQUE",
+      "action": "Activer RLS sur : missions, tickets, techniciens, entreprises, regies, logements, locataires, immeubles, factures, factures_commissions_jetc",
+      "sql": "ALTER TABLE missions ENABLE ROW LEVEL SECURITY;\nALTER TABLE tickets ENABLE ROW LEVEL SECURITY;\nALTER TABLE techniciens ENABLE ROW LEVEL SECURITY;\nALTER TABLE entreprises ENABLE ROW LEVEL SECURITY;\nALTER TABLE regies ENABLE ROW LEVEL SECURITY;\nALTER TABLE logements ENABLE ROW LEVEL SECURITY;\nALTER TABLE locataires ENABLE ROW LEVEL SECURITY;\nALTER TABLE immeubles ENABLE ROW LEVEL SECURITY;\nALTER TABLE factures ENABLE ROW LEVEL SECURITY;\nALTER TABLE factures_commissions_jetc ENABLE ROW LEVEL SECURITY;"
+    }
+  ]
+}

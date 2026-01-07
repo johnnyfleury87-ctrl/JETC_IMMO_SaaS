@@ -595,6 +595,7 @@
   <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/bootstrapSupabase.js"></script>
+  <script src="/js/languageManager.js"></script>
   
   <script>
     // ============================================
@@ -642,7 +643,7 @@
         
         const { data: profile, error: profileError } = await window.supabaseClient
           .from('profiles')
-          .select('id, email, role')
+          .select('id, email, role, language')
           .eq('id', session.user.id)
           .single();
         
@@ -690,6 +691,12 @@
           `;
           document.body.appendChild(errorMessage);
           return;
+        }
+        
+        // Synchroniser la langue depuis profiles.language
+        if (profile.language && typeof setLanguage === 'function') {
+          setLanguage(profile.language);
+          console.log(`[REGIE][I18N] Langue synchronisée: ${profile.language}`);
         }
         
         // 4️⃣ Récupérer les données régie (REQUÊTE SÉPARÉE pour éviter problèmes JOIN)
@@ -801,6 +808,12 @@
         }
         
         console.log('[REGIE][AUTH] ✅ Authentification validée - Régie:', regie.nom);
+        
+        // Appliquer traductions
+        if (typeof applyTranslations === 'function') {
+          applyTranslations();
+          console.log('[REGIE][I18N] Traductions appliquées');
+        }
         
         // 6️⃣ Afficher les infos utilisateur
         const email = profile.email;

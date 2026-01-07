@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-01-07T08:58:05.824Z",
+  "tests": [
+    {
+      "name": "profiles.language exists",
+      "status": "PASSED"
+    },
+    {
+      "name": "languageManager.js complete",
+      "status": "PASSED"
+    },
+    {
+      "name": "dashboards use i18n",
+      "status": "FAILED"
+    },
+    {
+      "name": "profiles.language sync",
+      "status": "PASSED"
+    },
+    {
+      "name": "translations complete",
+      "status": "WARNING",
+      "details": {
+        "fr_keys": 438,
+        "en_keys": 293,
+        "de_keys": 148,
+        "missing_en": 1,
+        "missing_de": 2
+      }
+    }
+  ],
+  "issues": [],
+  "summary": {
+    "total_tests": 5,
+    "passed": 3,
+    "failed": 1,
+    "warnings": 1,
+    "success_rate": 60
+  }
+}

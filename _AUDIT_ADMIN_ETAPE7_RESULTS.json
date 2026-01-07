@@ -1,0 +1,51 @@
+{
+  "timestamp": "2026-01-07T09:00:30.751Z",
+  "dashboard_exists": true,
+  "features": {
+    "stats_regies": true,
+    "stats_entreprises": true,
+    "stats_techniciens": false,
+    "stats_locataires": true,
+    "stats_proprietaires": false,
+    "interventions_par_regie": false,
+    "factures_mensuelles": true,
+    "commission_2pct": false,
+    "supabase_realtime": false,
+    "load_stats_function": true,
+    "realtime": false,
+    "validation_regies": true
+  },
+  "missing_features": [
+    "Régies immobilières",
+    "Entreprises de service",
+    "Techniciens",
+    "Propriétaires",
+    "Section interventions par régie",
+    "Factures mensuelles avec commission 2%"
+  ],
+  "issues": [
+    {
+      "type": "MISSING_COUNTERS",
+      "severity": "MAJEUR",
+      "description": "Compteurs manquants dans le dashboard admin"
+    },
+    {
+      "type": "MISSING_FEATURE",
+      "severity": "MAJEUR",
+      "feature": "Interventions par régie"
+    },
+    {
+      "type": "MISSING_FEATURE",
+      "severity": "MAJEUR",
+      "feature": "Factures mensuelles détaillées avec commission 2%"
+    }
+  ],
+  "summary": {
+    "dashboard_exists": true,
+    "total_features_checked": 12,
+    "features_present": 6,
+    "missing_features": 6,
+    "critical_issues": 0,
+    "major_issues": 3
+  }
+}

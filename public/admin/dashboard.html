@@ -516,6 +516,18 @@
           <div class="value" id="stat-entreprises">0</div>
           <div class="sub-value">+<span id="stat-entreprises-30j">0</span> ce mois</div>
         </div>
+
+        <div class="stat-card">
+          <h3>Techniciens</h3>
+          <div class="value" id="stat-techniciens">0</div>
+          <div class="sub-value">+<span id="stat-techniciens-30j">0</span> ce mois</div>
+        </div>
+
+        <div class="stat-card">
+          <h3>Propriétaires</h3>
+          <div class="value" id="stat-proprietaires">0</div>
+          <div class="sub-value">+<span id="stat-proprietaires-30j">0</span> ce mois</div>
+        </div>
       </div>
 
       <!-- Tickets par statut -->
@@ -557,6 +569,69 @@
           <tbody id="table-priorites"></tbody>
         </table>
       </div>
+
+      <!-- 🔴 NOUVELLE SECTION : Interventions par régie -->
+      <div class="chart-section">
+        <h2>🏢 Interventions par régie</h2>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Régie</th>
+                <th>Total missions</th>
+                <th>En attente</th>
+                <th>En cours</th>
+                <th>Terminées</th>
+                <th>Validées</th>
+              </tr>
+            </thead>
+            <tbody id="table-interventions-regie">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 30px; color: var(--gray-500);">
+                  Chargement des interventions...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 🔴 NOUVELLE SECTION : Factures mensuelles + Commission 2% -->
+      <div class="chart-section">
+        <h2>💰 Factures mensuelles - Commission JETC (2%)</h2>
+        <div class="stats-grid" style="margin-bottom: 20px;">
+          <div class="stat-card">
+            <h3>Total facturé ce mois</h3>
+            <div class="value" id="total-facture-mois">0 CHF</div>
+            <div class="sub-value">Toutes régies</div>
+          </div>
+          <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <h3>Commission JETC (2%)</h3>
+            <div class="value" id="commission-jetc-mois" style="color: white;">0 CHF</div>
+            <div class="sub-value" style="color: rgba(255,255,255,0.9);">2% du total</div>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Régie</th>
+                <th>Nb factures</th>
+                <th>Montant HT</th>
+                <th>Montant TTC</th>
+                <th>Commission (2%)</th>
+              </tr>
+            </thead>
+            <tbody id="table-factures-mensuelles">
+              <tr>
+                <td colspan="5" style="text-align: center; padding: 30px; color: var(--gray-500);">
+                  Chargement des factures...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
     </main>
   </div>
@@ -564,6 +639,7 @@
   <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/bootstrapSupabase.js"></script>
+  <script src="/js/languageManager.js"></script>
   
   <script>
     // ============================================
@@ -595,7 +671,7 @@
         // Récupérer le profil depuis Supabase
         const { data: profile, error: profileError } = await window.supabaseClient
           .from('profiles')
-          .select('id, email, role')
+          .select('id, email, role, language')
           .eq('id', session.user.id)
           .single();
         
@@ -624,7 +700,19 @@
           return;
         }
         
+        // Synchroniser la langue depuis profiles.language
+        if (profile.language && typeof setLanguage === 'function') {
+          setLanguage(profile.language);
+          console.log(`[ADMIN][I18N] Langue synchronisée: ${profile.language}`);
+        }
+        
         console.log('[DASHBOARD][AUTH] ✅ Authentification validée');
+        
+        // Appliquer traductions
+        if (typeof applyTranslations === 'function') {
+          applyTranslations();
+          console.log('[ADMIN][I18N] Traductions appliquées');
+        }
         
         // Afficher les infos utilisateur
         const email = profile.email;
@@ -643,6 +731,12 @@
         
         // 🔴 ACTION 2 : Charger les statistiques globales
         await loadStats();
+        
+        // 🔴 ACTION 3 : Charger interventions par régie
+        await loadInterventionsByRegie();
+        
+        // 🔴 ACTION 4 : Charger factures mensuelles + commission 2%
+        await loadFacturesMensuelles();
         
       } catch (error) {
         console.error('[DASHBOARD][ERROR]', error);
@@ -707,12 +801,222 @@
         document.getElementById('stat-entreprises').textContent = stats.total_entreprises || 0;
         document.getElementById('stat-entreprises-30j').textContent = stats.entreprises_30_jours || 0;
         
+        // Charger techniciens et propriétaires (non disponibles dans admin_dashboard)
+        const { count: totalTech } = await window.supabaseClient
+          .from('techniciens')
+          .select('*', { count: 'exact', head: true });
+        
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const { count: tech30j } = await window.supabaseClient
+          .from('techniciens')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', thirtyDaysAgo.toISOString());
+        
+        document.getElementById('stat-techniciens').textContent = totalTech || 0;
+        document.getElementById('stat-techniciens-30j').textContent = tech30j || 0;
+        
+        const { count: totalProp } = await window.supabaseClient
+          .from('profiles')
+          .select('*', { count: 'exact', head: true })
+          .eq('role', 'proprietaire');
+        
+        const { count: prop30j } = await window.supabaseClient
+          .from('profiles')
+          .select('*', { count: 'exact', head: true })
+          .eq('role', 'proprietaire')
+          .gte('created_at', thirtyDaysAgo.toISOString());
+        
+        document.getElementById('stat-proprietaires').textContent = totalProp || 0;
+        document.getElementById('stat-proprietaires-30j').textContent = prop30j || 0;
+        
         console.log('[STATS] ✅ Statistiques mises à jour');
         
       } catch (error) {
         console.error('[STATS][EXCEPTION]', error);
         document.getElementById('error').textContent = 'Erreur technique : ' + error.message;
         document.getElementById('error').style.display = 'block';
+      }
+    }
+
+    // ============================================
+    // CHARGEMENT INTERVENTIONS PAR RÉGIE
+    // ============================================
+    async function loadInterventionsByRegie() {
+      console.log('[INTERVENTIONS] Chargement des interventions par régie...');
+      
+      try {
+        const { data: interventions, error } = await window.supabaseClient
+          .from('missions')
+          .select(`
+            statut,
+            regie:regies(id, nom)
+          `);
+        
+        if (error) {
+          console.error('[INTERVENTIONS][ERROR]', error);
+          document.getElementById('table-interventions-regie').innerHTML = 
+            '<tr><td colspan="6" style="text-align:center;color:red;">Erreur chargement</td></tr>';
+          return;
+        }
+        
+        // Grouper par régie
+        const regiesMap = {};
+        interventions.forEach(mission => {
+          if (!mission.regie) return;
+          
+          const regieId = mission.regie.id;
+          if (!regiesMap[regieId]) {
+            regiesMap[regieId] = {
+              nom: mission.regie.nom,
+              total: 0,
+              en_attente: 0,
+              en_cours: 0,
+              terminee: 0,
+              validee: 0
+            };
+          }
+          
+          regiesMap[regieId].total++;
+          if (mission.statut === 'en_attente') regiesMap[regieId].en_attente++;
+          if (mission.statut === 'en_cours') regiesMap[regieId].en_cours++;
+          if (mission.statut === 'terminee') regiesMap[regieId].terminee++;
+          if (mission.statut === 'validee') regiesMap[regieId].validee++;
+        });
+        
+        // Trier par nombre total de missions
+        const regiesArray = Object.values(regiesMap).sort((a, b) => b.total - a.total);
+        
+        // Afficher dans le tableau
+        const tbody = document.getElementById('table-interventions-regie');
+        if (regiesArray.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:gray;">Aucune intervention</td></tr>';
+        } else {
+          tbody.innerHTML = regiesArray.map(regie => `
+            <tr>
+              <td><strong>${regie.nom}</strong></td>
+              <td style="text-align:center;"><strong>${regie.total}</strong></td>
+              <td style="text-align:center;">${regie.en_attente}</td>
+              <td style="text-align:center;">${regie.en_cours}</td>
+              <td style="text-align:center;">${regie.terminee}</td>
+              <td style="text-align:center;">${regie.validee}</td>
+            </tr>
+          `).join('');
+        }
+        
+        console.log('[INTERVENTIONS] ✅ Chargé', regiesArray.length, 'régies');
+        
+      } catch (error) {
+        console.error('[INTERVENTIONS][EXCEPTION]', error);
+      }
+    }
+
+    // ============================================
+    // CHARGEMENT FACTURES MENSUELLES + COMMISSION 2%
+    // ============================================
+    async function loadFacturesMensuelles() {
+      console.log('[FACTURES] Chargement des factures mensuelles...');
+      
+      try {
+        // Calculer début et fin du mois en cours
+        const now = new Date();
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        
+        const { data: factures, error } = await window.supabaseClient
+          .from('factures')
+          .select(`
+            montant_ht,
+            montant_ttc,
+            montant_commission,
+            mission:missions(
+              regie:regies(id, nom)
+            )
+          `)
+          .gte('created_at', firstDay.toISOString())
+          .lte('created_at', lastDay.toISOString());
+        
+        if (error) {
+          console.error('[FACTURES][ERROR]', error);
+          document.getElementById('table-factures-mensuelles').innerHTML = 
+            '<tr><td colspan="5" style="text-align:center;color:red;">Erreur chargement</td></tr>';
+          return;
+        }
+        
+        console.log('[FACTURES] Factures du mois:', factures);
+        
+        // Grouper par régie
+        const regiesMap = {};
+        let totalHT = 0;
+        let totalTTC = 0;
+        let totalCommission = 0;
+        
+        factures.forEach(facture => {
+          if (!facture.mission?.regie) return;
+          
+          const regieId = facture.mission.regie.id;
+          const regieNom = facture.mission.regie.nom;
+          
+          if (!regiesMap[regieId]) {
+            regiesMap[regieId] = {
+              nom: regieNom,
+              count: 0,
+              montant_ht: 0,
+              montant_ttc: 0,
+              commission: 0
+            };
+          }
+          
+          regiesMap[regieId].count++;
+          regiesMap[regieId].montant_ht += parseFloat(facture.montant_ht || 0);
+          regiesMap[regieId].montant_ttc += parseFloat(facture.montant_ttc || 0);
+          regiesMap[regieId].commission += parseFloat(facture.montant_commission || 0);
+          
+          totalHT += parseFloat(facture.montant_ht || 0);
+          totalTTC += parseFloat(facture.montant_ttc || 0);
+          totalCommission += parseFloat(facture.montant_commission || 0);
+        });
+        
+        // Afficher totaux
+        document.getElementById('total-facture-mois').textContent = 
+          totalTTC.toFixed(2) + ' CHF';
+        document.getElementById('commission-jetc-mois').textContent = 
+          totalCommission.toFixed(2) + ' CHF';
+        
+        // Afficher tableau
+        const regiesArray = Object.values(regiesMap).sort((a, b) => b.montant_ttc - a.montant_ttc);
+        
+        const tbody = document.getElementById('table-factures-mensuelles');
+        if (regiesArray.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:gray;">Aucune facture ce mois</td></tr>';
+        } else {
+          tbody.innerHTML = regiesArray.map(regie => `
+            <tr>
+              <td><strong>${regie.nom}</strong></td>
+              <td style="text-align:center;">${regie.count}</td>
+              <td style="text-align:right;">${regie.montant_ht.toFixed(2)} CHF</td>
+              <td style="text-align:right;">${regie.montant_ttc.toFixed(2)} CHF</td>
+              <td style="text-align:right;color:#667eea;font-weight:600;">${regie.commission.toFixed(2)} CHF</td>
+            </tr>
+          `).join('');
+          
+          // Ajouter ligne total
+          tbody.innerHTML += `
+            <tr style="background:#f3f4f6;font-weight:700;">
+              <td>TOTAL</td>
+              <td style="text-align:center;">${factures.length}</td>
+              <td style="text-align:right;">${totalHT.toFixed(2)} CHF</td>
+              <td style="text-align:right;">${totalTTC.toFixed(2)} CHF</td>
+              <td style="text-align:right;color:#667eea;">${totalCommission.toFixed(2)} CHF</td>
+            </tr>
+          `;
+        }
+        
+        console.log('[FACTURES] ✅ Chargé', factures.length, 'factures');
+        console.log('[FACTURES] Commission totale:', totalCommission.toFixed(2), 'CHF');
+        
+      } catch (error) {
+        console.error('[FACTURES][EXCEPTION]', error);
       }
     }
 
