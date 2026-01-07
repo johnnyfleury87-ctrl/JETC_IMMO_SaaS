@@ -768,6 +768,24 @@
 
   <script>
     // =====================================================
+    // 🔍 COMPTEURS GLOBAUX POUR DÉTECTION DE BOUCLES
+    // =====================================================
+    window.__APP_COUNTERS__ = window.__APP_COUNTERS__ || {
+      boot: 0,
+      auth: 0,
+      load: 0,
+      nav: 0
+    };
+
+    console.log(`[APP][BOOT] view=technicien count=${++window.__APP_COUNTERS__.boot} time=${new Date().toISOString()}`);
+
+    // =====================================================
+    // PROTECTION ANTI-BOUCLE
+    // =====================================================
+    let isAuthenticating = false;
+    let isLoadingData = false;
+
+    // =====================================================
     // VARIABLES GLOBALES
     // =====================================================
     let allMissions = [];
@@ -778,6 +796,15 @@
     // AUTHENTIFICATION
     // =====================================================
     async function checkAuth() {
+      console.log(`[APP][AUTH] enter count=${++window.__APP_COUNTERS__.auth}`);
+      
+      // Protection anti-boucle
+      if (isAuthenticating) {
+        console.warn('[TECH][AUTH] ⚠️ DÉJÀ EN COURS - IGNORÉ');
+        return;
+      }
+      isAuthenticating = true;
+      
       try {
         console.log('[TECH][STEP 0] Vérification authentification...');
         
@@ -785,9 +812,11 @@
         console.log('[TECH][STEP 0] Supabase client init OK');
         
         const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
+        console.log(`[APP][AUTH] session=${session ? 'present' : 'absent'}`);
         
         if (sessionError || !session) {
           console.log('[TECH][STEP 0] Non authentifié');
+          console.log(`[APP][NAV] redirect to /login.html reason=auth count=${++window.__APP_COUNTERS__.nav}`);
           window.location.href = '/login.html';
           return;
         }
@@ -802,6 +831,7 @@
         
         if (profileError || !profile) {
           console.error('[TECH][STEP 0] Erreur chargement profil:', profileError);
+          console.log(`[APP][NAV] redirect to /login.html reason=profile_error count=${++window.__APP_COUNTERS__.nav}`);
           alert('Erreur: impossible de charger votre profil');
           window.location.href = '/login.html';
           return;
@@ -809,6 +839,7 @@
         
         if (profile.role !== 'technicien') {
           console.error('[TECH][STEP 0] Accès refusé - rôle:', profile.role);
+          console.log(`[APP][NAV] redirect to /login.html reason=wrong_role count=${++window.__APP_COUNTERS__.nav}`);
           alert('Accès réservé aux techniciens');
           window.location.href = '/login.html';
           return;
@@ -837,6 +868,7 @@
         
       } catch (error) {
         console.error('[TECH][STEP 0] Exception:', error);
+        console.log(`[APP][NAV] redirect to /login.html reason=exception count=${++window.__APP_COUNTERS__.nav}`);
         alert('Erreur technique lors de la vérification');
         window.location.href = '/login.html';
       }
@@ -846,6 +878,16 @@
     // CHARGEMENT MISSIONS
     // =====================================================
     async function loadMissions() {
+      console.log(`[APP][LOAD] enter count=${++window.__APP_COUNTERS__.load}`);
+      
+      // Protection anti-boucle
+      if (isLoadingData) {
+        console.warn('[TECH][LOAD] ⚠️ DÉJÀ EN COURS - IGNORÉ');
+        return;
+      }
+      isLoadingData = true;
+      
+      console.log('[APP][LOAD] start');
       try {
         console.log('[TECH][MISSIONS] Début chargement missions...');
         
@@ -889,13 +931,28 @@
         
         if (error) {
           console.error('[TECH][MISSIONS] Erreur chargement:', error);
+          console.log(`[APP][LOAD] error=${error.message}`);
+          
+          // Afficher erreur avec bouton réessayer
+          document.getElementById('loadingState').innerHTML = `
+            <div style="background:#fee2e2;padding:20px;border-radius:8px;border:2px solid #f87171;color:#991b1b;text-align:center;max-width:500px;margin:20px auto;">
+              <strong>⚠️ Erreur de chargement</strong><br>
+              ${error.message}<br>
+              <button onclick="location.reload()" style="margin-top:15px;background:#2563eb;color:white;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-weight:600;">
+                🔄 Recharger la page
+              </button>
+            </div>
+          `;
+          
           showError('Impossible de charger les missions');
-          document.getElementById('loadingState').textContent = 'Erreur de chargement';
+          isLoadingData = false; // Libérer le flag
           return;
         }
         
         allMissions = missions || [];
         console.log(`[TECH][MISSIONS] Loaded ${allMissions.length} missions (avec ticket+locataire+logement) OK`);
+        console.log('[APP][LOAD] success');
+        isLoadingData = false; // Libérer le flag
         
         // Log détaillé pour debug
         if (allMissions.length > 0) {
@@ -1797,6 +1854,7 @@
       } catch (error) {
         console.error('[TECHNICIEN] Erreur déconnexion:', error);
       }
+      console.log(`[APP][NAV] redirect to /login.html reason=logout count=${++window.__APP_COUNTERS__.nav}`);
       window.location.href = '/login.html';
     }
 

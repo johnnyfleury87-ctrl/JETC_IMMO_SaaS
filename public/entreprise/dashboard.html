@@ -701,18 +701,47 @@
   </div>
 
   <script>
+    // =====================================================
+    // 🔍 COMPTEURS GLOBAUX POUR DÉTECTION DE BOUCLES
+    // =====================================================
+    window.__APP_COUNTERS__ = window.__APP_COUNTERS__ || {
+      boot: 0,
+      auth: 0,
+      load: 0,
+      nav: 0
+    };
+
+    console.log(`[APP][BOOT] view=entreprise count=${++window.__APP_COUNTERS__.boot} time=${new Date().toISOString()}`);
+
+    // =====================================================
+    // PROTECTION ANTI-BOUCLE
+    // =====================================================
+    let isAuthenticating = false;
+    let isLoadingData = false;
+
     console.log('[DASHBOARD ENTREPRISE] Script chargé');
     
     // ========== AUTHENTIFICATION ==========
     async function checkAuth() {
+      console.log(`[APP][AUTH] enter count=${++window.__APP_COUNTERS__.auth}`);
+      
+      // Protection anti-boucle
+      if (isAuthenticating) {
+        console.warn('[ENTREPRISE][AUTH] ⚠️ DÉJÀ EN COURS - IGNORÉ');
+        return;
+      }
+      isAuthenticating = true;
+      
       try {
         // Attendre bootstrap
         await window.__SUPABASE_READY__;
         
         const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
+        console.log(`[APP][AUTH] session=${session ? 'present' : 'absent'}`);
         
         if (sessionError || !session) {
           console.log('[DASHBOARD ENTREPRISE] Non authentifié');
+          console.log(`[APP][NAV] redirect to /login.html reason=auth count=${++window.__APP_COUNTERS__.nav}`);
           window.location.href = '/login.html';
           return;
         }
@@ -726,6 +755,7 @@
         
         if (profileError || !profile) {
           console.error('[DASHBOARD ENTREPRISE] Erreur chargement profil:', profileError);
+          console.log(`[APP][NAV] redirect to /login.html reason=profile_error count=${++window.__APP_COUNTERS__.nav}`);
           alert('Erreur: impossible de charger votre profil');
           window.location.href = '/login.html';
           return;
@@ -733,6 +763,7 @@
         
         if (profile.role !== 'entreprise') {
           console.error('[DASHBOARD ENTREPRISE] Accès refusé - rôle:', profile.role);
+          console.log(`[APP][NAV] redirect to /login.html reason=wrong_role count=${++window.__APP_COUNTERS__.nav}`);
           alert('Accès réservé aux entreprises');
           window.location.href = '/login.html';
           return;
@@ -766,6 +797,7 @@
         
       } catch (error) {
         console.error('[DASHBOARD ENTREPRISE] Exception:', error);
+        console.log(`[APP][NAV] redirect to /login.html reason=exception count=${++window.__APP_COUNTERS__.nav}`);
         alert('Erreur technique lors de la vérification');
         window.location.href = '/login.html';
       }
@@ -773,6 +805,16 @@
 
     // Charger données entreprise
     async function loadEntrepriseData(profileId) {
+      console.log(`[APP][LOAD] enter count=${++window.__APP_COUNTERS__.load}`);
+      
+      // Protection anti-boucle
+      if (isLoadingData) {
+        console.warn('[ENTREPRISE][LOAD] ⚠️ DÉJÀ EN COURS - IGNORÉ');
+        return;
+      }
+      isLoadingData = true;
+      
+      console.log('[APP][LOAD] start');
       try {
         console.log('[ENTREPRISE] Chargement données pour profile_id:', profileId);
         
@@ -784,24 +826,65 @@
         
         if (error) {
           console.error('[ENTREPRISE] Erreur SQL:', error);
-          alert('Erreur lors du chargement de vos données entreprise');
+          console.log(`[APP][LOAD] error=${error.message}`);
+          
+          // Afficher erreur UI non bloquante
+          const errorDiv = document.createElement('div');
+          errorDiv.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);max-width:500px;text-align:center;z-index:10000;border:2px solid #f87171;';
+          errorDiv.innerHTML = `
+            <h3 style="color:#ef4444;margin-bottom:15px;">⚠️ Erreur chargement données</h3>
+            <p style="color:#6b7280;margin-bottom:20px;">Impossible de charger les données de votre entreprise.</p>
+            <p style="color:#6b7280;font-size:14px;margin-bottom:20px;">${error.message}</p>
+            <button onclick="location.reload()" style="background:#2563eb;color:white;padding:12px 24px;border:none;border-radius:6px;cursor:pointer;font-weight:600;margin-right:10px;">🔄 Réessayer</button>
+            <button onclick="window.location.href='/login.html'" style="background:#6b7280;color:white;padding:12px 24px;border:none;border-radius:6px;cursor:pointer;font-weight:600;">← Déconnexion</button>
+          `;
+          document.body.appendChild(errorDiv);
+          isLoadingData = false; // Libérer le flag
           return;
         }
         
         if (!entreprise) {
           console.error('[ENTREPRISE] Aucune entreprise trouvée');
-          alert('Aucune donnée entreprise associée à votre compte');
+          console.log(`[APP][LOAD] error=no_entreprise`);
+          
+          // Afficher erreur UI non bloquante
+          const errorDiv = document.createElement('div');
+          errorDiv.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);max-width:500px;text-align:center;z-index:10000;border:2px solid #f87171;';
+          errorDiv.innerHTML = `
+            <h3 style="color:#ef4444;margin-bottom:15px;">⚠️ Données manquantes</h3>
+            <p style="color:#6b7280;margin-bottom:20px;">Aucune donnée entreprise associée à votre compte.</p>
+            <p style="color:#6b7280;font-size:14px;margin-bottom:20px;">Contactez l'administrateur si le problème persiste.</p>
+            <button onclick="location.reload()" style="background:#2563eb;color:white;padding:12px 24px;border:none;border-radius:6px;cursor:pointer;font-weight:600;margin-right:10px;">🔄 Réessayer</button>
+            <button onclick="window.location.href='/login.html'" style="background:#6b7280;color:white;padding:12px 24px;border:none;border-radius:6px;cursor:pointer;font-weight:600;">← Déconnexion</button>
+          `;
+          isLoadingData = false; // Libérer le flag
           return;
         }
         
         console.log('[ENTREPRISE] Données chargées:', entreprise);
+        console.log('[APP][LOAD] success');
+        isLoadingData = false; // Libérer le flaghargées:', entreprise);
+        console.log('[APP][LOAD] success');
         
         // Stocker dans window pour accès global
         window.currentEntreprise = entreprise;
         
       } catch (error) {
         console.error('[ENTREPRISE] Exception:', error);
-        alert('Erreur technique');
+        console.log(`[APP][LOAD] error=${error.message}`);
+        
+        // Afficher erreur UI non bloquante
+        const errorDiv = document.createElement('div');
+        errorDiv.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);max-width:500px;text-align:center;z-index:10000;border:2px solid #f87171;';
+        errorDiv.innerHTML = `
+          <h3 style="color:#ef4444;margin-bottom:15px;">⚠️ Erreur technique</h3>
+          <p style="color:#6b7280;margin-bottom:20px;">Une erreur s'est produite lors du chargement.</p>
+          <p style="color:#6b7280;font-size:14px;margin-bottom:20px;">${error.message}</p>
+          <button onclick="location.reload()" style="background:#2563eb;color:white;padding:12px 24px;border:none;border-radius:6px;cursor:pointer;font-weight:600;margin-right:10px;">🔄 Réessayer</button>
+          <button onclick="window.location.href='/login.html'" style="background:#6b7280;color:white;padding:12px 24px;border:none;border-radius:6px;cursor:pointer;font-weight:600;">← Déconnexion</button>
+        isLoadingData = false; // Libérer le flag
+        `;
+        document.body.appendChild(errorDiv);
       }
     }
 
@@ -816,6 +899,7 @@
       } catch (error) {
         console.error('[LOGOUT] Erreur:', error);
       }
+      console.log(`[APP][NAV] redirect to /login.html reason=logout count=${++window.__APP_COUNTERS__.nav}`);
       window.location.href = '/login.html';
     }
 

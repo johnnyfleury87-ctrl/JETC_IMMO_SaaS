@@ -599,6 +599,24 @@
   
   <script>
     // ============================================
+    // 🔍 COMPTEURS GLOBAUX POUR DÉTECTION DE BOUCLES
+    // ============================================
+    window.__APP_COUNTERS__ = window.__APP_COUNTERS__ || {
+      boot: 0,
+      auth: 0,
+      load: 0,
+      nav: 0
+    };
+
+    console.log(`[APP][BOOT] view=regie count=${++window.__APP_COUNTERS__.boot} time=${new Date().toISOString()}`);
+
+    // ============================================
+    // PROTECTION ANTI-BOUCLE
+    // ============================================
+    let isAuthenticating = false;
+    let isLoadingData = false;
+
+    // ============================================
     // DÉCONNEXION GLOBALE
     // ============================================
     async function logout() {
@@ -609,6 +627,7 @@
       } catch (error) {
         console.error('[LOGOUT] Erreur:', error);
       }
+      console.log(`[APP][NAV] redirect to /login.html reason=logout count=${++window.__APP_COUNTERS__.nav}`);
       window.location.href = '/login.html';
     }
 
@@ -616,6 +635,15 @@
     // 🔴 ACTION 2 : AUTHENTIFICATION SUPABASE UNIQUEMENT
     // ============================================
     async function checkAuth() {
+      console.log(`[APP][AUTH] enter count=${++window.__APP_COUNTERS__.auth}`);
+      
+      // Protection anti-boucle
+      if (isAuthenticating) {
+        console.warn('[REGIE][AUTH] ⚠️ DÉJÀ EN COURS - IGNORÉ');
+        return;
+      }
+      isAuthenticating = true;
+      
       console.log('[REGIE][AUTH] Démarrage vérification...');
       
       try {
@@ -631,9 +659,12 @@
           error: sessionError,
           userId: session?.user?.id
         });
+        console.log(`[APP][AUTH] session=${session ? 'present' : 'absent'}`);
         
         if (sessionError || !session) {
           console.log('[REGIE][REDIRECT] Raison: Pas de session Supabase valide');
+          console.log(`[APP][NAV] redirect to /login.html reason=auth count=${++window.__APP_COUNTERS__.nav}`);
+          isAuthenticating = false; // Libérer le flag
           window.location.href = '/login.html';
           return;
         }
@@ -865,6 +896,16 @@
     
     // Charger dashboard simple (alerte ou message)
     async function loadDashboard() {
+      console.log(`[APP][LOAD] enter count=${++window.__APP_COUNTERS__.load}`);
+      
+      // Protection anti-boucle
+      if (isLoadingData) {
+        console.warn('[REGIE][LOAD] ⚠️ DÉJÀ EN COURS - IGNORÉ');
+        return;
+      }
+      isLoadingData = true;
+      
+      console.log('[APP][LOAD] start');
       console.log('[REGIE][TICKETS] 🚀 Chargement dashboard via RPC M22...');
       
       document.getElementById('dashboardLoading').style.display = 'block';
@@ -879,6 +920,7 @@
         
         if (error) {
           console.error('[REGIE][TICKETS] ❌ Erreur RPC:', error);
+          console.log(`[APP][LOAD] error=${error.message}`);
           document.getElementById('dashboardLoading').style.display = 'none';
           
           // Message UI non bloquant avec bouton réessayer
@@ -896,12 +938,14 @@
             </div>
           `;
           document.getElementById('messageAucunTicket').style.display = 'block';
+          isLoadingData = false; // Libérer le flag
           return;
         }
         
         if (!data || data.length === 0) {
           console.warn('[REGIE][TICKETS] ⚠️ Aucune donnée retournée par RPC');
           document.getElementById('dashboardLoading').style.display = 'none';
+          isLoadingData = false; // Libérer le flag
           document.getElementById('messageAucunTicket').style.display = 'block';
           return;
         }
@@ -928,9 +972,14 @@
           console.log('[REGIE][TICKETS] ℹ️ Aucun ticket nouveau');
         }
         
+        isLoadingData = false; // Libérer le flag
+        
       } catch (error) {
         console.error('[REGIE][TICKETS] ❌ Exception:', error);
+        console.log(`[APP][LOAD] error=${error.message}`);
         document.getElementById('dashboardLoading').style.display = 'none';
+        alert('Erreur technique: ' + error.message);
+        isLoadingData = false; // Libérer le flagstyle.display = 'none';
         alert('Erreur technique: ' + error.message);
       }
     }

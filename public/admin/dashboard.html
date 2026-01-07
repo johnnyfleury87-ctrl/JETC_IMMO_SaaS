@@ -643,9 +643,36 @@
   
   <script>
     // ============================================
+    // 🔍 COMPTEURS GLOBAUX POUR DÉTECTION DE BOUCLES
+    // ============================================
+    window.__APP_COUNTERS__ = window.__APP_COUNTERS__ || {
+      boot: 0,
+      auth: 0,
+      load: 0,
+      nav: 0
+    };
+
+    console.log(`[APP][BOOT] view=admin count=${++window.__APP_COUNTERS__.boot} time=${new Date().toISOString()}`);
+
+    // ============================================
+    // PROTECTION ANTI-BOUCLE
+    // ============================================
+    let isAuthenticating = false;
+    let isLoadingData = false;
+
+    // ============================================
     // AUTHENTIFICATION SUPABASE UNIQUEMENT
     // ============================================
     async function checkAuth() {
+      console.log(`[APP][AUTH] enter count=${++window.__APP_COUNTERS__.auth}`);
+      
+      // Protection anti-boucle
+      if (isAuthenticating) {
+        console.warn('[ADMIN][AUTH] ⚠️ DÉJÀ EN COURS - IGNORÉ');
+        return;
+      }
+      isAuthenticating = true;
+      
       console.log('[DASHBOARD][AUTH] Démarrage vérification...');
       
       try {
@@ -661,9 +688,11 @@
           error: sessionError,
           userId: session?.user?.id
         });
+        console.log(`[APP][AUTH] session=${session ? 'present' : 'absent'}`);
         
         if (sessionError || !session) {
           console.log('[DASHBOARD][REDIRECT] Raison: Pas de session Supabase valide');
+          console.log(`[APP][NAV] redirect to /login.html reason=auth count=${++window.__APP_COUNTERS__.nav}`);
           window.location.href = '/login.html';
           return;
         }
@@ -682,6 +711,7 @@
         
         if (profileError || !profile) {
           console.log('[DASHBOARD][REDIRECT] Raison: Profil introuvable');
+          console.log(`[APP][NAV] redirect to /login.html reason=profile_error count=${++window.__APP_COUNTERS__.nav}`);
           alert('Erreur: Profil introuvable. Reconnexion requise.');
           window.location.href = '/login.html';
           return;
@@ -695,6 +725,7 @@
         // Vérifier le rôle admin_jtec
         if (profile.role !== 'admin_jtec') {
           console.log('[DASHBOARD][REDIRECT] Raison: Rôle incorrect', profile.role);
+          console.log(`[APP][NAV] redirect to /login.html reason=wrong_role count=${++window.__APP_COUNTERS__.nav}`);
           alert('Accès interdit : ce dashboard est réservé aux Administrateur JTEC');
           window.location.href = '/login.html';
           return;
@@ -726,6 +757,10 @@
         document.getElementById('loading').style.display = 'none';
         document.getElementById('content').style.display = 'block';
         
+        // 🔴 CHARGEMENT DES DONNÉES DASHBOARD
+        console.log(`[APP][LOAD] enter count=${++window.__APP_COUNTERS__.load}`);
+        console.log('[APP][LOAD] start');
+        
         // 🔴 ACTION 1 : Charger les régies en attente
         await loadRegiesEnAttente();
         
@@ -738,12 +773,30 @@
         // 🔴 ACTION 4 : Charger factures mensuelles + commission 2%
         await loadFacturesMensuelles();
         
+        console.log('[APP][LOAD] success');
+        
       } catch (error) {
         console.error('[DASHBOARD][ERROR]', error);
         console.error('[DASHBOARD][ERROR] Stack:', error.stack);
+        console.log(`[APP][LOAD] error=${error.message}`);
         console.log('[DASHBOARD][REDIRECT] Raison: Exception', error.message);
-        alert('❌ Erreur: ' + error.message + '\n\nVoir la console (F12) pour plus de détails.');
-        window.location.href = '/login.html';
+        
+        // ❌ NE PAS REDIRIGER AUTOMATIQUEMENT - Afficher erreur UI
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error').innerHTML = `
+          <div style="background:#fee2e2;padding:30px;border-radius:12px;border:2px solid #f87171;color:#991b1b;text-align:center;max-width:600px;margin:50px auto;">
+            <h2 style="margin-bottom:15px;">⚠️ Erreur de chargement</h2>
+            <p style="margin-bottom:15px;">${error.message}</p>
+            <p style="font-size:14px;margin-bottom:20px;">Vérifiez la console (F12) pour plus de détails.</p>
+            <button onclick="location.reload()" style="background:#2563eb;color:white;border:none;padding:12px 24px;border-radius:6px;cursor:pointer;font-weight:600;margin-right:10px;">
+              🔄 Recharger la page
+            </button>
+            <button onclick="window.location.href='/login.html'" style="background:#6b7280;color:white;border:none;padding:12px 24px;border-radius:6px;cursor:pointer;font-weight:600;">
+              ← Retour connexion
+            </button>
+          </div>
+        `;
+        document.getElementById('error').style.display = 'block';
       }
     }
 
@@ -1193,6 +1246,7 @@
       } catch (error) {
         console.error('[LOGOUT] Erreur:', error);
       }
+      console.log(`[APP][NAV] redirect to /login.html reason=logout count=${++window.__APP_COUNTERS__.nav}`);
       window.location.href = '/login.html';
     }
 
