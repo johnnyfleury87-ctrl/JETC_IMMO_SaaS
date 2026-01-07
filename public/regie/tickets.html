@@ -563,51 +563,62 @@
         <p style="color: var(--gray-600); margin-bottom: 20px;">Vérifier/corriger les informations avant diffusion</p>
         
         <!-- P1: Correction sous_categorie et piece -->
+        <!-- ⚠️ VALEURS ALIGNÉES SUR CONTRAINTE SQL check_sous_categorie_valide (M16) -->
         <div class="form-group">
           <label for="validation-sous-categorie">Sous-catégorie *</label>
           <select id="validation-sous-categorie">
             <option value="">-- Sélectionner --</option>
             <optgroup label="Plomberie">
-              <option value="fuite">Fuite</option>
-              <option value="robinet">Robinet</option>
-              <option value="chasse_eau">Chasse d'eau</option>
-              <option value="sanitaire">Sanitaire</option>
+              <option value="Fuite d'eau">Fuite d'eau</option>
+              <option value="WC bouché">WC bouché</option>
+              <option value="Chauffe-eau">Chauffe-eau</option>
+              <option value="Robinetterie">Robinetterie</option>
+              <option value="Autre plomberie">Autre plomberie</option>
             </optgroup>
             <optgroup label="Électricité">
-              <option value="panne">Panne</option>
-              <option value="interrupteur">Interrupteur</option>
-              <option value="prise">Prise</option>
-              <option value="lumiere">Lumière</option>
+              <option value="Panne générale">Panne générale</option>
+              <option value="Prise défectueuse">Prise défectueuse</option>
+              <option value="Interrupteur">Interrupteur</option>
+              <option value="Éclairage">Éclairage</option>
+              <option value="Autre électricité">Autre électricité</option>
             </optgroup>
             <optgroup label="Chauffage">
-              <option value="radiateur">Radiateur</option>
-              <option value="chaudiere">Chaudière</option>
-              <option value="regulation">Régulation</option>
+              <option value="Radiateur">Radiateur</option>
+              <option value="Chaudière">Chaudière</option>
+              <option value="Thermostat">Thermostat</option>
+              <option value="Autre chauffage">Autre chauffage</option>
+            </optgroup>
+            <optgroup label="Ventilation">
+              <option value="VMC défectueuse">VMC défectueuse</option>
+              <option value="Grille cassée">Grille cassée</option>
+              <option value="Bruit anormal">Bruit anormal</option>
+              <option value="Autre ventilation">Autre ventilation</option>
             </optgroup>
             <optgroup label="Serrurerie">
-              <option value="porte">Porte</option>
-              <option value="fenetre">Fenêtre</option>
-              <option value="serrure">Serrure</option>
+              <option value="Porte bloquée">Porte bloquée</option>
+              <option value="Clé perdue">Clé perdue</option>
+              <option value="Verrou défectueux">Verrou défectueux</option>
+              <option value="Autre serrurerie">Autre serrurerie</option>
             </optgroup>
             <optgroup label="Vitrerie">
-              <option value="vitre_cassee">Vitre cassée</option>
-              <option value="double_vitrage">Double vitrage</option>
+              <option value="Vitre cassée">Vitre cassée</option>
+              <option value="Double vitrage">Double vitrage</option>
+              <option value="Autre vitrerie">Autre vitrerie</option>
+            </optgroup>
+            <optgroup label="Menuiserie">
+              <option value="Porte">Porte</option>
+              <option value="Fenêtre">Fenêtre</option>
+              <option value="Parquet">Parquet</option>
+              <option value="Autre menuiserie">Autre menuiserie</option>
             </optgroup>
             <optgroup label="Peinture">
-              <option value="mur">Mur</option>
-              <option value="plafond">Plafond</option>
-              <option value="menuiserie">Menuiserie</option>
-            </optgroup>
-            <optgroup label="Maçonnerie">
-              <option value="facade">Façade</option>
-              <option value="cloison">Cloison</option>
-            </optgroup>
-            <optgroup label="Toiture">
-              <option value="tuile">Tuile</option>
-              <option value="gouttiere">Gouttière</option>
+              <option value="Murs">Murs</option>
+              <option value="Plafond">Plafond</option>
+              <option value="Boiseries">Boiseries</option>
+              <option value="Autre peinture">Autre peinture</option>
             </optgroup>
             <optgroup label="Autre">
-              <option value="autre">Autre</option>
+              <option value="Autre intervention">Autre intervention</option>
             </optgroup>
           </select>
           <small style="color: var(--gray-500);">Corrigez si nécessaire</small>
@@ -618,15 +629,15 @@
           <select id="validation-piece">
             <option value="">-- Sélectionner --</option>
             <option value="cuisine">Cuisine</option>
-            <option value="salon">Salon</option>
-            <option value="chambre">Chambre</option>
             <option value="salle_de_bain">Salle de bain</option>
+            <option value="chambre">Chambre</option>
+            <option value="salon">Salon</option>
             <option value="wc">WC</option>
             <option value="entree">Entrée</option>
             <option value="couloir">Couloir</option>
+            <option value="balcon">Balcon</option>
             <option value="cave">Cave</option>
             <option value="garage">Garage</option>
-            <option value="balcon">Balcon</option>
             <option value="parties_communes">Parties communes</option>
             <option value="exterieur">Extérieur</option>
             <option value="autre">Autre</option>
