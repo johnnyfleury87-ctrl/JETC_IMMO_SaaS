@@ -778,17 +778,20 @@
     // =====================================================
     async function checkAuth() {
       try {
-        console.log('[TECHNICIEN] Vérification authentification...');
+        console.log('[TECH][STEP 0] Vérification authentification...');
         
         await window.__SUPABASE_READY__;
+        console.log('[TECH][STEP 0] Supabase client init OK');
         
         const { data: { session }, error: sessionError } = await window.supabaseClient.auth.getSession();
         
         if (sessionError || !session) {
-          console.log('[TECHNICIEN] Non authentifié');
+          console.log('[TECH][STEP 0] Non authentifié');
           window.location.href = '/login.html';
           return;
         }
+        
+        console.log(`[TECH][STEP 0] Auth session OK / uid=${session.user.id}`);
         
         const { data: profile, error: profileError } = await window.supabaseClient
           .from('profiles')
@@ -797,14 +800,14 @@
           .single();
         
         if (profileError || !profile) {
-          console.error('[TECHNICIEN] Erreur chargement profil:', profileError);
+          console.error('[TECH][STEP 0] Erreur chargement profil:', profileError);
           alert('Erreur: impossible de charger votre profil');
           window.location.href = '/login.html';
           return;
         }
         
         if (profile.role !== 'technicien') {
-          console.error('[TECHNICIEN] Accès refusé - rôle:', profile.role);
+          console.error('[TECH][STEP 0] Accès refusé - rôle:', profile.role);
           alert('Accès réservé aux techniciens');
           window.location.href = '/login.html';
           return;
@@ -815,12 +818,12 @@
         const firstLetter = email.charAt(0).toUpperCase();
         document.getElementById('userAvatar').textContent = firstLetter;
         
-        console.log('[TECHNICIEN] ✅ Authentification OK');
+        console.log('[TECH][STEP 0] ✅ Authentification OK');
         
         await loadMissions();
         
       } catch (error) {
-        console.error('[TECHNICIEN] Exception:', error);
+        console.error('[TECH][STEP 0] Exception:', error);
         alert('Erreur technique lors de la vérification');
         window.location.href = '/login.html';
       }
@@ -831,7 +834,7 @@
     // =====================================================
     async function loadMissions() {
       try {
-        console.log('[TECHNICIEN][STEP 1] Début chargement missions...');
+        console.log('[TECH][MISSIONS] Début chargement missions...');
         
         const { data: missions, error } = await window.supabaseClient
           .from('missions')
@@ -852,14 +855,14 @@
           .order('date_intervention_prevue', { ascending: true });
         
         if (error) {
-          console.error('[TECHNICIEN] Erreur chargement missions:', error);
+          console.error('[TECH][MISSIONS] Erreur chargement:', error);
           showError('Impossible de charger les missions');
           document.getElementById('loadingState').textContent = 'Erreur de chargement';
           return;
         }
         
         allMissions = missions || [];
-        console.log(`[TECHNICIEN][STEP 1] ${allMissions.length} missions chargées`);
+        console.log(`[TECH][MISSIONS] Loaded ${allMissions.length} missions`);
         
         renderMissions();
         calculateStats();
@@ -867,10 +870,10 @@
         document.getElementById('loadingState').style.display = 'none';
         document.getElementById('missionsList').style.display = 'grid';
         
-        console.log('[TECHNICIEN][STEP 1] ✅ Dashboard rendu + missions chargées');
+        console.log('[TECH][MISSIONS] Render OK');
         
       } catch (error) {
-        console.error('[TECHNICIEN] Exception:', error);
+        console.error('[TECH][MISSIONS] Exception:', error);
         showError('Erreur technique lors du chargement');
       }
     }
@@ -985,7 +988,7 @@
       if (!confirm('Démarrer cette mission maintenant ?')) return;
       
       try {
-        console.log('[TECHNICIEN][START] Démarrage mission:', missionId);
+        console.log(`[TECH][START] mission_id=${missionId}`);
         
         const response = await fetch('/api/missions/start', {
           method: 'POST',
@@ -997,12 +1000,12 @@
           throw new Error('Erreur démarrage mission');
         }
         
-        console.log('[TECHNICIEN][START] ✅ Mission démarrée');
+        console.log('[TECH][START] mission_id=' + missionId + ' OK');
         showSuccess('✅ Mission démarrée');
         await loadMissions();
         
       } catch (error) {
-        console.error('[TECHNICIEN][START] Erreur:', error);
+        console.error('[TECH][START] Erreur:', error);
         showError('Impossible de démarrer la mission');
       }
     }
@@ -1014,7 +1017,7 @@
       if (!confirm('Terminer cette mission ?')) return;
       
       try {
-        console.log('[TECHNICIEN][COMPLETE] Terminaison mission:', missionId);
+        console.log(`[TECH][COMPLETE] mission_id=${missionId}`);
         
         const response = await fetch('/api/missions/complete', {
           method: 'POST',
@@ -1026,12 +1029,12 @@
           throw new Error('Erreur terminaison mission');
         }
         
-        console.log('[TECHNICIEN][COMPLETE] ✅ Mission terminée');
+        console.log('[TECH][COMPLETE] mission_id=' + missionId + ' OK');
         showSuccess('✅ Mission terminée');
         await loadMissions();
         
       } catch (error) {
-        console.error('[TECHNICIEN][COMPLETE] Erreur:', error);
+        console.error('[TECH][COMPLETE] Erreur:', error);
         showError('Impossible de terminer la mission');
       }
     }
@@ -1136,6 +1139,29 @@
           </div>
         </div>
 
+        ${mission.statut === 'en_cours' || mission.statut === 'en_attente' ? `
+        <div class="modal-section">
+          <label>⚠️ Signaler un problème / incident</label>
+          <select id="typeSignalement" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid var(--gray-300); border-radius: 8px;">
+            <option value="">-- Choisir un type --</option>
+            <option value="probleme_technique">🔧 Problème technique (panne, outil cassé)</option>
+            <option value="piece_manquante">📦 Pièce manquante / non disponible</option>
+            <option value="situation_dangereuse">⚡ Situation dangereuse</option>
+            <option value="acces_impossible">🚪 Accès impossible au lieu</option>
+            <option value="autre">💬 Autre</option>
+          </select>
+          <textarea 
+            id="descriptionSignalement" 
+            placeholder="Décrivez le problème rencontré en détail..."
+            style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid var(--gray-300); border-radius: 8px; min-height: 80px;"></textarea>
+          <div class="modal-actions">
+            <button class="btn-warning" onclick="creerSignalement()" style="width: 100%;">
+              📢 Créer signalement
+            </button>
+          </div>
+        </div>
+        ` : ''}
+
         <div class="modal-section">
           <label>📷 Photos d'intervention</label>
           ${mission.photos_urls && mission.photos_urls.length > 0 ? `
@@ -1196,7 +1222,7 @@
       
       const notes = notesTextarea.value.trim();
       
-      console.log(`[NOTES] Sauvegarde notes mission ${currentMissionId}`);
+      console.log(`[TECH][NOTES] Sauvegarde mission_id=${currentMissionId}`);
       
       try {
         const { error } = await window.supabaseClient
@@ -1205,18 +1231,18 @@
           .eq('id', currentMissionId);
           
         if (error) {
-          console.error('[NOTES] Erreur sauvegarde:', error);
+          console.error('[TECH][NOTES] Erreur sauvegarde:', error);
           showError('Erreur lors de la sauvegarde des notes');
           return;
         }
         
-        console.log('[NOTES] Notes sauvegardées avec succès');
+        console.log(`[TECH][NOTES] Saved OK mission_id=${currentMissionId}`);
         showSuccess('✅ Notes sauvegardées');
         
         // Rafraîchir les missions pour mettre à jour la liste
         await loadMissions();
       } catch (error) {
-        console.error('[NOTES] Erreur:', error);
+        console.error('[TECH][NOTES] Erreur:', error);
         showError('Impossible de sauvegarder les notes');
       }
     }
@@ -1227,7 +1253,7 @@
       const raison = prompt('Motif de l\'absence du locataire :');
       if (!raison || raison.trim() === '') return;
       
-      console.log(`[ABSENCE] Signalement absence mission ${currentMissionId}`);
+      console.log(`[TECH][ABSENCE] mission_id=${currentMissionId}`);
       
       try {
         const { error } = await window.supabaseClient
@@ -1240,20 +1266,85 @@
           .eq('id', currentMissionId);
           
         if (error) {
-          console.error('[ABSENCE] Erreur signalement:', error);
+          console.error('[TECH][ABSENCE] Erreur signalement:', error);
           showError('Erreur lors du signalement');
           return;
         }
         
-        console.log('[ABSENCE] Absence signalée avec succès');
+        console.log(`[TECH][ABSENCE] Flagged OK mission_id=${currentMissionId}`);
         showSuccess('⚠️ Absence locataire signalée');
         
         // Fermer modal et rafraîchir
         closeModal();
         await loadMissions();
       } catch (error) {
-        console.error('[ABSENCE] Erreur:', error);
+        console.error('[TECH][ABSENCE] Erreur:', error);
         showError('Impossible de signaler l\'absence');
+      }
+    }
+
+    // =====================================================
+    // SIGNALEMENT INCIDENTS (ÉTAPE 4)
+    // =====================================================
+    async function creerSignalement() {
+      if (!currentMissionId) return;
+      
+      const typeSelect = document.getElementById('typeSignalement');
+      const descriptionTextarea = document.getElementById('descriptionSignalement');
+      
+      if (!typeSelect || !descriptionTextarea) return;
+      
+      const type = typeSelect.value;
+      const description = descriptionTextarea.value.trim();
+      
+      if (!type) {
+        showError('Veuillez choisir un type de signalement');
+        return;
+      }
+      
+      if (!description) {
+        showError('Veuillez décrire le problème');
+        return;
+      }
+      
+      console.log(`[TECH][SIGNALEMENT] Creating type=${type} mission_id=${currentMissionId}`);
+      
+      try {
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        
+        const { data, error } = await window.supabaseClient
+          .from('mission_signalements')
+          .insert({
+            mission_id: currentMissionId,
+            type_signalement: type,
+            description: description,
+            signale_par: user.id,
+            signale_at: new Date().toISOString(),
+            resolu: false
+          })
+          .select()
+          .single();
+          
+        if (error) {
+          console.error('[TECH][SIGNALEMENT] Erreur création:', error);
+          showError('Erreur lors de la création du signalement');
+          return;
+        }
+        
+        console.log(`[TECH][SIGNALEMENT] Created OK id=${data.id}`);
+        showSuccess('✅ Signalement créé avec succès');
+        
+        // Reset formulaire
+        typeSelect.value = '';
+        descriptionTextarea.value = '';
+        
+        // Fermer modal et rafraîchir
+        closeModal();
+        await loadMissions();
+        
+      } catch (error) {
+        console.error('[TECH][SIGNALEMENT] Erreur:', error);
+        showError('Impossible de créer le signalement');
       }
     }
 
@@ -1268,7 +1359,7 @@
       
       if (!files || files.length === 0) return;
       
-      console.log(`[PHOTOS] Upload de ${files.length} photo(s) pour mission ${currentMissionId}`);
+      console.log(`[TECH][UPLOAD] Uploading ${files.length} file(s) mission_id=${currentMissionId}`);
       
       const progressDiv = document.getElementById('uploadProgress');
       const progressText = document.getElementById('uploadText');
@@ -1286,7 +1377,7 @@
           const fileName = `${timestamp}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
           const filePath = `missions/${currentMissionId}/${fileName}`;
           
-          console.log(`[PHOTOS] Upload fichier: ${filePath}`);
+          console.log(`[TECH][UPLOAD] File: ${filePath}`);
           
           // Upload vers Supabase Storage
           const { data: uploadData, error: uploadError } = await window.supabaseClient.storage
@@ -1297,7 +1388,7 @@
             });
           
           if (uploadError) {
-            console.error(`[PHOTOS] Erreur upload ${file.name}:`, uploadError);
+            console.error(`[TECH][UPLOAD] Error ${file.name}:`, uploadError);
             continue;
           }
           
@@ -1308,7 +1399,7 @@
           
           if (urlData && urlData.publicUrl) {
             uploadedUrls.push(urlData.publicUrl);
-            console.log(`[PHOTOS] URL publique: ${urlData.publicUrl}`);
+            console.log(`[TECH][UPLOAD] URL: ${urlData.publicUrl}`);
           }
         }
         
@@ -1326,7 +1417,7 @@
           .single();
         
         if (fetchError) {
-          console.error('[PHOTOS] Erreur récupération mission:', fetchError);
+          console.error('[TECH][UPLOAD] Erreur récupération mission:', fetchError);
         }
         
         const existingPhotos = mission?.photos_urls || [];
@@ -1339,13 +1430,14 @@
           .eq('id', currentMissionId);
         
         if (updateError) {
-          console.error('[PHOTOS] Erreur sauvegarde URLs:', updateError);
+          console.error('[TECH][UPLOAD] Erreur sauvegarde URLs:', updateError);
           showError('Photos uploadées mais erreur sauvegarde');
           progressDiv.style.display = 'none';
           return;
         }
         
-        console.log(`[PHOTOS] ${uploadedUrls.length} photo(s) sauvegardée(s)`);
+        console.log(`[TECH][UPLOAD] Uploaded ${uploadedUrls.length} files mission_id=${currentMissionId}`);
+        console.log(`[TECH][UPLOAD] photos_urls updated OK`);
         showSuccess(`✅ ${uploadedUrls.length} photo(s) ajoutée(s)`);
         
         // Rafraîchir et rouvrir modal
@@ -1357,7 +1449,7 @@
         progressDiv.style.display = 'none';
         
       } catch (error) {
-        console.error('[PHOTOS] Erreur:', error);
+        console.error('[TECH][UPLOAD] Erreur:', error);
         showError('Impossible d\'uploader les photos');
         progressDiv.style.display = 'none';
       }

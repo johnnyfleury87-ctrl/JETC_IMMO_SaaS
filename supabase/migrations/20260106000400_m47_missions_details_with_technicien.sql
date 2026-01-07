@@ -59,16 +59,13 @@ SELECT
   t.titre AS ticket_titre,
   t.description AS ticket_description,
   t.categorie AS ticket_categorie,
-  t.sous_categorie AS ticket_sous_categorie,
-  t.piece AS ticket_piece,
   t.priorite AS ticket_priorite,
   t.statut AS ticket_statut,
   t.urgence AS ticket_urgence,
   t.locked_at AS ticket_locked_at,
-  t.plafond_intervention_chf,
   t.date_creation AS ticket_date_creation,
-  t.type_ticket,
-  t.visibilite,
+  t.date_cloture AS ticket_date_cloture,
+  t.date_limite AS ticket_date_limite,
   
   -- ============================================================
   -- ENTREPRISE
@@ -76,6 +73,9 @@ SELECT
   e.id AS entreprise_id_full,
   e.nom AS entreprise_nom,
   e.siret AS entreprise_siret,
+  e.adresse AS entreprise_adresse,
+  e.code_postal AS entreprise_code_postal,
+  e.ville AS entreprise_ville,
   e.telephone AS entreprise_telephone,
   e.email AS entreprise_email,
   e.profile_id AS entreprise_profile_id,
@@ -95,8 +95,8 @@ SELECT
   log.id AS logement_id,
   log.numero AS logement_numero,
   log.etage AS logement_etage,
-  log.surface_m2 AS logement_surface,
-  log.nb_pieces AS logement_nb_pieces,
+  log.superficie AS logement_surface,
+  log.nombre_pieces AS logement_nb_pieces,
   
   -- ============================================================
   -- IMMEUBLE
@@ -104,7 +104,7 @@ SELECT
   imm.id AS immeuble_id,
   imm.nom AS immeuble_nom,
   imm.adresse AS immeuble_adresse,
-  imm.code_postal AS immeuble_code_postal,
+  imm.npa AS immeuble_code_postal,
   imm.ville AS immeuble_ville,
   
   -- ============================================================
@@ -112,6 +112,9 @@ SELECT
   -- ============================================================
   r.id AS regie_id,
   r.nom AS regie_nom,
+  r.adresse AS regie_adresse,
+  r.code_postal AS regie_code_postal,
+  r.ville AS regie_ville,
   r.telephone AS regie_telephone,
   r.email AS regie_email
 

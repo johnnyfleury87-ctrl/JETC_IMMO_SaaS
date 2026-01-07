@@ -4,7 +4,7 @@
 -- Référence: ÉTAPE 5 REPORT_FIX_VUE_TECHNICIEN.md
 
 -- =====================================================
--- CRÉER BUCKET STORAGE
+-- PARTIE 1: CRÉER BUCKET STORAGE (via SQL)
 -- =====================================================
 
 -- Créer bucket mission-photos (public pour affichage direct)
@@ -22,61 +22,70 @@ ON CONFLICT (id) DO UPDATE SET
   allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/heic'];
 
 -- =====================================================
--- POLICIES RLS STORAGE
+-- PARTIE 2: POLICIES RLS STORAGE (via UI Supabase)
 -- =====================================================
 
--- Policy 1: Techniciens peuvent uploader photos dans leurs missions
--- Path format: missions/{mission_id}/{filename}
-CREATE POLICY "Techniciens can upload mission photos"
-ON storage.objects
-FOR INSERT
-TO authenticated
-WITH CHECK (
-  bucket_id = 'mission-photos'
-  AND auth.role() = 'authenticated'
-  AND EXISTS (
-    SELECT 1 
-    FROM techniciens t
-    INNER JOIN missions m ON m.technicien_id = t.id
-    WHERE t.profile_id = auth.uid()
-      AND (storage.foldername(name))[1] = 'missions'
-      AND (storage.foldername(name))[2] = m.id::text
-  )
-);
+-- ⚠️  IMPORTANT: Les policies storage.objects NE PEUVENT PAS être créées via SQL
+-- Elles doivent être configurées manuellement dans l'interface Supabase :
+--
+-- 1. Aller sur : https://supabase.com/dashboard/project/bwzyajsrmfhrxdmfpyqy/storage/buckets/mission-photos
+-- 2. Cliquer sur "Policies" puis "New Policy"
+-- 3. Créer les 3 policies suivantes :
 
--- Policy 2: Lecture publique des photos (pour affichage dans dashboard)
-CREATE POLICY "Anyone can view mission photos"
-ON storage.objects
-FOR SELECT
-USING (bucket_id = 'mission-photos');
+-- ┌─────────────────────────────────────────────────────────────────────┐
+-- │ POLICY 1: Techniciens can upload mission photos                    │
+-- ├─────────────────────────────────────────────────────────────────────┤
+-- │ Policy Name: Techniciens can upload mission photos                 │
+-- │ Allowed operation: INSERT                                           │
+-- │ Target roles: authenticated                                         │
+-- │ WITH CHECK expression:                                              │
+-- │                                                                     │
+-- │ bucket_id = 'mission-photos'                                        │
+-- │ AND EXISTS (                                                        │
+-- │   SELECT 1                                                          │
+-- │   FROM techniciens t                                                │
+-- │   INNER JOIN missions m ON m.technicien_id = t.id                   │
+-- │   WHERE t.profile_id = auth.uid()                                   │
+-- │     AND (storage.foldername(name))[1] = 'missions'                  │
+-- │     AND (storage.foldername(name))[2] = m.id::text                  │
+-- │ )                                                                   │
+-- └─────────────────────────────────────────────────────────────────────┘
 
--- Policy 3: Techniciens peuvent supprimer leurs propres photos
-CREATE POLICY "Techniciens can delete their mission photos"
-ON storage.objects
-FOR DELETE
-TO authenticated
-USING (
-  bucket_id = 'mission-photos'
-  AND auth.role() = 'authenticated'
-  AND EXISTS (
-    SELECT 1 
-    FROM techniciens t
-    INNER JOIN missions m ON m.technicien_id = t.id
-    WHERE t.profile_id = auth.uid()
-      AND (storage.foldername(name))[1] = 'missions'
-      AND (storage.foldername(name))[2] = m.id::text
-  )
-);
+-- ┌─────────────────────────────────────────────────────────────────────┐
+-- │ POLICY 2: Anyone can view mission photos                           │
+-- ├─────────────────────────────────────────────────────────────────────┤
+-- │ Policy Name: Anyone can view mission photos                         │
+-- │ Allowed operation: SELECT                                           │
+-- │ Target roles: public                                                │
+-- │ USING expression:                                                   │
+-- │                                                                     │
+-- │ bucket_id = 'mission-photos'                                        │
+-- └─────────────────────────────────────────────────────────────────────┘
+
+-- ┌─────────────────────────────────────────────────────────────────────┐
+-- │ POLICY 3: Techniciens can delete their mission photos              │
+-- ├─────────────────────────────────────────────────────────────────────┤
+-- │ Policy Name: Techniciens can delete their mission photos            │
+-- │ Allowed operation: DELETE                                           │
+-- │ Target roles: authenticated                                         │
+-- │ USING expression:                                                   │
+-- │                                                                     │
+-- │ bucket_id = 'mission-photos'                                        │
+-- │ AND EXISTS (                                                        │
+-- │   SELECT 1                                                          │
+-- │   FROM techniciens t                                                │
+-- │   INNER JOIN missions m ON m.technicien_id = t.id                   │
+-- │   WHERE t.profile_id = auth.uid()                                   │
+-- │     AND (storage.foldername(name))[1] = 'missions'                  │
+-- │     AND (storage.foldername(name))[2] = m.id::text                  │
+-- │ )                                                                   │
+-- └─────────────────────────────────────────────────────────────────────┘
 
 -- =====================================================
--- COMMENTAIRES
+-- VALIDATION
 -- =====================================================
 
-COMMENT ON POLICY "Techniciens can upload mission photos" ON storage.objects IS 
-'Permet aux techniciens d''uploader des photos uniquement dans les dossiers de leurs missions assignées';
-
-COMMENT ON POLICY "Anyone can view mission photos" ON storage.objects IS 
-'Lecture publique des photos pour affichage dans les dashboards (bucket public)';
-
-COMMENT ON POLICY "Techniciens can delete their mission photos" ON storage.objects IS 
-'Permet aux techniciens de supprimer leurs propres photos si erreur';
+-- Vérifier que le bucket a été créé
+SELECT id, name, public, file_size_limit, allowed_mime_types
+FROM storage.buckets
+WHERE id = 'mission-photos';
