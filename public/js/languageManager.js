@@ -622,6 +622,7 @@ function getCurrentLanguage() {
 
 /**
  * Change la langue active
+ * ⚠️ NE FAIT PAS DE RELOAD - Applique les traductions immédiatement
  */
 function setLanguage(lang) {
   if (!SUPPORTED_LANGUAGES.includes(lang)) {
@@ -629,11 +630,20 @@ function setLanguage(lang) {
     return;
   }
   
-  localStorage.setItem(STORAGE_KEY, lang);
-  console.log(`[LANG] Langue changée: ${lang}`);
+  const oldLang = localStorage.getItem(STORAGE_KEY);
   
-  if (typeof window !== 'undefined') {
-    window.location.reload();
+  // Si la langue n'a pas changé, ne rien faire
+  if (oldLang === lang) {
+    console.log(`[LANG] Langue déjà définie: ${lang}`);
+    return;
+  }
+  
+  localStorage.setItem(STORAGE_KEY, lang);
+  console.log(`[LANG] Langue changée: ${oldLang} → ${lang}`);
+  
+  // ✅ APPLIQUE LES TRADUCTIONS IMMÉDIATEMENT (pas de reload)
+  if (typeof window !== 'undefined' && typeof applyTranslations === 'function') {
+    applyTranslations();
   }
 }
 
@@ -677,10 +687,27 @@ function applyTranslations() {
 }
 
 /**
- * Change la langue et met à jour l'UI
+ * Change la langue et recharge la page (pour sélecteur utilisateur)
+ * ⚠️ À utiliser UNIQUEMENT pour changement manuel par l'utilisateur
+ */
+function changeLanguageWithReload(lang) {
+  console.log('[LANG] Changement manuel vers:', lang);
+  
+  if (!SUPPORTED_LANGUAGES.includes(lang)) {
+    console.error(`[LANG] Langue non supportée: ${lang}`);
+    return;
+  }
+  
+  localStorage.setItem(STORAGE_KEY, lang);
+  window.location.reload();
+}
+
+/**
+ * Change la langue et met à jour l'UI (SANS reload - DÉPRÉCIÉ, utiliser setLanguage)
+ * @deprecated Utiliser setLanguage() à la place
  */
 function changeLanguage(lang) {
-  console.log('[LANG] Changement vers:', lang);
+  console.warn('[LANG] changeLanguage() est déprécié, utiliser setLanguage()');
   setLanguage(lang);
 }
 
@@ -692,6 +719,7 @@ if (typeof module !== 'undefined' && module.exports) {
     getCurrentLanguage,
     setLanguage,
     changeLanguage,
+    changeLanguageWithReload,
     t,
     getAllTranslations,
     applyTranslations,
