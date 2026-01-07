@@ -905,6 +905,10 @@
             console.log('[TECH][DEBUG] ticket.logement:', sample.ticket.logement);
           } else {
             console.error('[TECH][DEBUG] ❌ TICKET IS NULL/UNDEFINED');
+            console.error('[TECH][DEBUG] → RLS bloque probablement l\'accès aux tickets');
+            console.error('[TECH][DEBUG] → Appliquer migration: _migration_rls_techniciens_tickets.sql');
+            console.error('[TECH][DEBUG] → Mission ID:', sample.id);
+            console.error('[TECH][DEBUG] → Ticket ID:', sample.ticket_id);
           }
           
           console.log('[TECH][MISSIONS] Exemple structure:', {
@@ -978,7 +982,35 @@
       const card = document.createElement('div');
       card.className = `mission-card mission-${mission.statut}`;
       
-      const ticket = mission.ticket || {};
+      // ⚠️ ROBUSTESSE: Vérifier que ticket n'est pas null (RLS peut bloquer le JOIN)
+      if (!mission.ticket) {
+        console.warn('[TECH][CARD] Mission sans ticket (RLS bloque):', {
+          mission_id: mission.id,
+          ticket_id: mission.ticket_id
+        });
+        
+        card.innerHTML = `
+          <div class="mission-header">
+            <span class="badge badge-${mission.statut}">${getStatutLabel(mission.statut)}</span>
+            <span class="mission-ref">#${mission.id.substring(0, 8)}</span>
+          </div>
+          <div class="mission-body">
+            <h3>⚠️ Ticket inaccessible (RLS)</h3>
+            <p style="color: var(--red-500);">Les informations du ticket ne sont pas disponibles.</p>
+            <p style="font-size: 13px; color: var(--gray-600);">Ticket ID: ${mission.ticket_id?.substring(0, 8) || 'N/A'}</p>
+            <p style="font-size: 13px; color: var(--gray-600);">Cause probable: Policies RLS manquantes pour techniciens</p>
+          </div>
+          <div class="mission-actions">
+            <button class="btn-secondary" onclick="alert('Contacter l\\'administrateur: Les policies RLS doivent être ajoutées pour les techniciens')">
+              ⚠️ Signaler
+            </button>
+          </div>
+        `;
+        
+        return card;
+      }
+      
+      const ticket = mission.ticket;
       const locataire = ticket.locataire || {};
       const logement = ticket.logement || {};
       const immeuble = logement.immeuble || {};
