@@ -887,6 +887,26 @@
         // Log détaillé pour debug
         if (allMissions.length > 0) {
           const sample = allMissions[0];
+          console.log('[TECH][DEBUG] ========== MISSION RAW ==========');
+          console.log('[TECH][DEBUG] mission.id:', sample.id);
+          console.log('[TECH][DEBUG] mission.ticket_id:', sample.ticket_id);
+          console.log('[TECH][DEBUG] mission.disponibilite_id:', sample.disponibilite_id);
+          console.log('[TECH][DEBUG] mission.statut:', sample.statut);
+          console.log('[TECH][DEBUG] mission.date_intervention_prevue:', sample.date_intervention_prevue);
+          console.log('[TECH][DEBUG] All mission keys:', Object.keys(sample));
+          console.log('[TECH][DEBUG] ========== TICKET OBJECT ==========');
+          console.log('[TECH][DEBUG] ticket:', sample.ticket);
+          
+          if (sample.ticket) {
+            console.log('[TECH][DEBUG] ticket.id:', sample.ticket.id);
+            console.log('[TECH][DEBUG] ticket.categorie:', sample.ticket.categorie);
+            console.log('[TECH][DEBUG] ticket.sous_categorie:', sample.ticket.sous_categorie);
+            console.log('[TECH][DEBUG] ticket.locataire:', sample.ticket.locataire);
+            console.log('[TECH][DEBUG] ticket.logement:', sample.ticket.logement);
+          } else {
+            console.error('[TECH][DEBUG] ❌ TICKET IS NULL/UNDEFINED');
+          }
+          
           console.log('[TECH][MISSIONS] Exemple structure:', {
             hasTicket: !!sample.ticket,
             hasLocataire: !!(sample.ticket?.locataire),

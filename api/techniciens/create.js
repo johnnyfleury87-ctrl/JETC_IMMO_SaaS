@@ -176,9 +176,11 @@ module.exports = async (req, res) => {
     console.log('[API /techniciens/create] Profile créé:', authUser.user.id);
 
     // 8️⃣ Créer technicien lié à l'entreprise
+    // ⚠️ IMPORTANT: id DOIT être égal à profile_id pour cohérence avec RLS
     const { data: technicien, error: createTechError } = await supabaseAdmin
       .from('techniciens')
       .insert({
+        id: authUser.user.id,         // ✅ FIX: Forcer id = profile_id
         profile_id: authUser.user.id,
         entreprise_id: entrepriseId, // Utiliser la variable récupérée
         nom,
