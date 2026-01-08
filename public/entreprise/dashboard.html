@@ -777,6 +777,16 @@
                   <span id="modalFactureStatut" class="badge-statut"></span>
                 </div>
               </div>
+              
+              <!-- Actions sur la facture -->
+              <div id="modalFactureActions" style="margin-top: 15px; display: none;">
+                <button id="modalBtnEditerFacture" class="btn btn-primary" style="display: none;">
+                  ✏️ Éditer la facture
+                </button>
+                <button id="modalBtnEnvoyerFacture" class="btn btn-success" style="display: none;">
+                  📤 Envoyer à la régie
+                </button>
+              </div>
             </div>
           </div>
           <div class="modal-footer">
@@ -1892,6 +1902,9 @@
         // Facture (si existe)
         const factureSection = document.getElementById('modalMissionFacture');
         const btnCreerFacture = document.getElementById('modalBtnCreerFacture');
+        const factureActionsDiv = document.getElementById('modalFactureActions');
+        const btnEditerFacture = document.getElementById('modalBtnEditerFacture');
+        const btnEnvoyerFacture = document.getElementById('modalBtnEnvoyerFacture');
         
         if (mission.facture_id) {
           factureSection.style.display = 'block';
@@ -1900,9 +1913,38 @@
           document.getElementById('modalFactureNumero').textContent = mission.facture_numero || 'N/A';
           document.getElementById('modalFactureMontant').textContent = mission.facture_montant_ttc 
             ? `CHF ${mission.facture_montant_ttc.toFixed(2)}`
-            : 'N/A';
+            : 'Non renseigné';
           document.getElementById('modalFactureStatut').textContent = mission.facture_statut || 'N/A';
           document.getElementById('modalFactureStatut').className = 'badge-statut badge-' + (mission.facture_statut || 'brouillon');
+          
+          // Afficher les actions selon le statut
+          const isBrouillon = mission.facture_statut === 'brouillon';
+          const isComplete = mission.facture_montant_ttc && mission.facture_iban;
+          
+          if (isBrouillon) {
+            factureActionsDiv.style.display = 'block';
+            
+            // Bouton Éditer (toujours visible si brouillon)
+            btnEditerFacture.style.display = 'inline-block';
+            btnEditerFacture.onclick = () => {
+              closeMissionDetailsModal();
+              editerFacture(mission.facture_id);
+            };
+            
+            // Bouton Envoyer (visible si facture complète)
+            if (isComplete) {
+              btnEnvoyerFacture.style.display = 'inline-block';
+              btnEnvoyerFacture.onclick = () => {
+                closeMissionDetailsModal();
+                envoyerFactureRegie(mission.facture_id, mission.facture_numero);
+              };
+            } else {
+              btnEnvoyerFacture.style.display = 'none';
+            }
+          } else {
+            factureActionsDiv.style.display = 'none';
+          }
+          
         } else if (mission.mission_statut === 'terminee') {
           factureSection.style.display = 'none';
           btnCreerFacture.style.display = 'inline-block';
