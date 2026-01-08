@@ -94,32 +94,28 @@ BEGIN
   RAISE NOTICE '  ✅ Technicien appartient à l''entreprise';
   
   -- Vérification 4: Mission en statut compatible
-  IF v_mission_statut NOT IN ('en_attente', 'planifiee') THEN
+  IF v_mission_statut NOT IN ('en_attente') THEN
     RETURN jsonb_build_object(
       'success', false,
-      'error', 'Impossible d''assigner un technicien à une mission en cours ou terminée'
+      'error', 'Impossible d''assigner un technicien à une mission déjà démarrée ou terminée'
     );
   END IF;
   
-  -- Assignation
+  -- Assignation (statut reste 'en_attente', technicien assigné)
   UPDATE missions
   SET 
     technicien_id = p_technicien_id,
-    statut = CASE 
-      WHEN statut = 'en_attente' THEN 'planifiee'
-      ELSE statut 
-    END,
     updated_at = NOW()
   WHERE id = p_mission_id;
   
-  RAISE NOTICE '  ✅ Technicien assigné (statut changé en planifiee si nécessaire)';
+  RAISE NOTICE '  ✅ Technicien assigné (statut reste en_attente)';
   
   -- Historique (optionnel - si table historique_statuts existe)
   INSERT INTO historique_statuts (mission_id, ancien_statut, nouveau_statut, auteur, details)
   VALUES (
     p_mission_id,
     v_mission_statut,
-    'planifiee',
+    'en_attente',
     v_entreprise_id::text,
     'Technicien assigné'
   )
@@ -189,4 +185,4 @@ GRANT EXECUTE ON FUNCTION assign_technicien_to_mission TO authenticated;
 COMMENT ON FUNCTION assign_technicien_to_mission IS 
 'Permet à une entreprise d''assigner un technicien à une mission. 
 Vérifie que la mission et le technicien appartiennent bien à l''entreprise connectée.
-Change automatiquement le statut de la mission en "planifiee".';
+Le statut reste "en_attente" après assignation (prêt à démarrer).';
