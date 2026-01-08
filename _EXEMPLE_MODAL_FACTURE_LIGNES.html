@@ -1,0 +1,486 @@
+<!-- 
+  MODAL ÉDITION FACTURE AVEC LIGNES - VERSION SUISSE
+  À intégrer dans public/entreprise/dashboard.html
+-->
+
+<div id="modalEditerFacture" class="modal" style="display:none;">
+  <div class="modal-content" style="max-width: 900px;">
+    <span class="close" onclick="closeModalEditerFacture()">&times;</span>
+    <h2>✏️ Éditer Facture <span id="modalFactureNumero"></span></h2>
+    
+    <!-- Infos facture -->
+    <div class="facture-infos">
+      <div class="form-group">
+        <label>IBAN (Suisse)</label>
+        <input type="text" id="editIban" placeholder="CH93 0076 2011 6238 5295 7" maxlength="21">
+      </div>
+      
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="editNotes" rows="3" placeholder="Informations complémentaires..."></textarea>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>TVA Suisse (%)</label>
+          <input type="number" id="editTauxTva" value="8.1" step="0.1" min="0" max="100">
+        </div>
+        <div class="form-group">
+          <label>Commission JETC (%)</label>
+          <input type="number" id="editTauxCommission" value="2.0" step="0.1" min="0" max="100" readonly>
+          <small>2% standard JETC</small>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Lignes de facture -->
+    <div class="facture-lignes">
+      <h3>📋 Lignes de facturation</h3>
+      
+      <div id="lignesList"></div>
+      
+      <button class="btn-secondary" onclick="ajouterNouvelleLigne()">
+        ➕ Ajouter ligne
+      </button>
+    </div>
+    
+    <!-- Totaux -->
+    <div class="facture-totaux">
+      <table>
+        <tr>
+          <td><strong>Total HT</strong></td>
+          <td id="totalHT" class="text-right">0.00 CHF</td>
+        </tr>
+        <tr>
+          <td>TVA <span id="displayTauxTva">8.1</span>%</td>
+          <td id="totalTVA" class="text-right">0.00 CHF</td>
+        </tr>
+        <tr>
+          <td>Commission JETC 2%</td>
+          <td id="totalCommission" class="text-right">0.00 CHF</td>
+        </tr>
+        <tr class="total-ttc">
+          <td><strong>TOTAL TTC</strong></td>
+          <td id="totalTTC" class="text-right"><strong>0.00 CHF</strong></td>
+        </tr>
+      </table>
+    </div>
+    
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="sauvegarderFacture()">💾 Enregistrer</button>
+      <button class="btn-secondary" onclick="closeModalEditerFacture()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.modal {
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+  background-color: white;
+  margin: 2% auto;
+  padding: 30px;
+  border-radius: 8px;
+  max-width: 900px;
+}
+
+.close {
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close:hover {
+  color: #e74c3c;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.ligne-item {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  border-left: 4px solid #3498db;
+}
+
+.ligne-item.type-main_oeuvre { border-left-color: #2ecc71; }
+.ligne-item.type-materiel { border-left-color: #3498db; }
+.ligne-item.type-deplacement { border-left-color: #f39c12; }
+.ligne-item.type-remise { border-left-color: #e74c3c; }
+
+.ligne-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.ligne-content {
+  display: grid;
+  grid-template-columns: 3fr 1fr 1fr 1fr 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.ligne-content input,
+.ligne-content select {
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.ligne-total {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.btn-delete {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-delete:hover {
+  background: #c0392b;
+}
+
+.facture-totaux {
+  margin-top: 20px;
+  padding: 20px;
+  background: #ecf0f1;
+  border-radius: 4px;
+}
+
+.facture-totaux table {
+  width: 100%;
+}
+
+.facture-totaux td {
+  padding: 8px;
+}
+
+.facture-totaux .text-right {
+  text-align: right;
+}
+
+.facture-totaux .total-ttc {
+  border-top: 2px solid #2c3e50;
+  font-size: 1.2em;
+}
+
+.modal-actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btn-primary {
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.btn-primary:hover {
+  background: #2980b9;
+}
+
+.btn-secondary {
+  background: #95a5a6;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.btn-secondary:hover {
+  background: #7f8c8d;
+}
+</style>
+
+<script>
+// État global
+let currentFactureId = null;
+let lignesFacture = [];
+
+// Types de lignes disponibles
+const TYPES_LIGNES = [
+  { value: 'main_oeuvre', label: '👷 Main d\'oeuvre', unite: 'h' },
+  { value: 'materiel', label: '🔧 Matériel', unite: 'pcs' },
+  { value: 'deplacement', label: '🚗 Déplacement', unite: 'km' },
+  { value: 'forfait', label: '💼 Forfait', unite: 'forfait' },
+  { value: 'frais_divers', label: '💰 Frais divers', unite: 'pcs' },
+  { value: 'remise', label: '🎁 Remise', unite: 'forfait' },
+  { value: 'autre', label: '📌 Autre', unite: 'pcs' }
+];
+
+// Ouvrir modal édition
+async function openModalEditerFacture(factureId) {
+  currentFactureId = factureId;
+  
+  // Récupérer facture + lignes
+  const { data: facture, error } = await supabase
+    .from('factures_avec_lignes')
+    .select('*')
+    .eq('id', factureId)
+    .single();
+  
+  if (error) {
+    alert('Erreur: ' + error.message);
+    return;
+  }
+  
+  // Remplir le formulaire
+  document.getElementById('modalFactureNumero').textContent = facture.numero_facture;
+  document.getElementById('editIban').value = facture.iban || '';
+  document.getElementById('editNotes').value = facture.notes || '';
+  document.getElementById('editTauxTva').value = facture.taux_tva || 8.1;
+  document.getElementById('editTauxCommission').value = facture.taux_commission || 2.0;
+  
+  // Charger les lignes
+  lignesFacture = typeof facture.lignes === 'string' 
+    ? JSON.parse(facture.lignes) 
+    : (facture.lignes || []);
+  
+  afficherLignes();
+  calculerTotaux();
+  
+  document.getElementById('modalEditerFacture').style.display = 'block';
+}
+
+// Fermer modal
+function closeModalEditerFacture() {
+  document.getElementById('modalEditerFacture').style.display = 'none';
+  currentFactureId = null;
+  lignesFacture = [];
+}
+
+// Afficher les lignes
+function afficherLignes() {
+  const container = document.getElementById('lignesList');
+  
+  if (lignesFacture.length === 0) {
+    container.innerHTML = '<p style="color: #7f8c8d; text-align: center; padding: 20px;">Aucune ligne. Cliquez sur "Ajouter ligne"</p>';
+    return;
+  }
+  
+  container.innerHTML = lignesFacture.map((ligne, index) => {
+    const typeInfo = TYPES_LIGNES.find(t => t.value === ligne.type) || TYPES_LIGNES[0];
+    return `
+      <div class="ligne-item type-${ligne.type}" data-index="${index}">
+        <div class="ligne-header">
+          <select onchange="updateLigneType(${index}, this.value)">
+            ${TYPES_LIGNES.map(t => `
+              <option value="${t.value}" ${t.value === ligne.type ? 'selected' : ''}>
+                ${t.label}
+              </option>
+            `).join('')}
+          </select>
+          <button class="btn-delete" onclick="supprimerLigne(${index})">🗑️ Supprimer</button>
+        </div>
+        
+        <div class="ligne-content">
+          <input type="text" placeholder="Description" 
+                 value="${ligne.description || ''}" 
+                 onchange="updateLigne(${index}, 'description', this.value)">
+          
+          <input type="number" placeholder="Qté" step="0.1"
+                 value="${ligne.quantite || 1}" 
+                 onchange="updateLigne(${index}, 'quantite', parseFloat(this.value))">
+          
+          <select onchange="updateLigne(${index}, 'unite', this.value)">
+            <option value="h" ${ligne.unite === 'h' ? 'selected' : ''}>h</option>
+            <option value="pcs" ${ligne.unite === 'pcs' ? 'selected' : ''}>pcs</option>
+            <option value="km" ${ligne.unite === 'km' ? 'selected' : ''}>km</option>
+            <option value="forfait" ${ligne.unite === 'forfait' ? 'selected' : ''}>forfait</option>
+            <option value="jour" ${ligne.unite === 'jour' ? 'selected' : ''}>jour</option>
+          </select>
+          
+          <input type="number" placeholder="Prix CHF" step="0.01"
+                 value="${ligne.prix_unitaire_ht || 0}" 
+                 onchange="updateLigne(${index}, 'prix_unitaire_ht', parseFloat(this.value))">
+          
+          <div class="ligne-total">
+            ${((ligne.quantite || 1) * (ligne.prix_unitaire_ht || 0)).toFixed(2)} CHF
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Ajouter nouvelle ligne
+function ajouterNouvelleLigne() {
+  lignesFacture.push({
+    id: null, // Nouveau, sera créé en DB
+    type: 'main_oeuvre',
+    description: '',
+    quantite: 1,
+    unite: 'h',
+    prix_unitaire_ht: 0,
+    ordre: lignesFacture.length
+  });
+  
+  afficherLignes();
+  calculerTotaux();
+}
+
+// Mettre à jour type de ligne
+function updateLigneType(index, type) {
+  lignesFacture[index].type = type;
+  const typeInfo = TYPES_LIGNES.find(t => t.value === type);
+  if (typeInfo) {
+    lignesFacture[index].unite = typeInfo.unite;
+  }
+  afficherLignes();
+}
+
+// Mettre à jour ligne
+function updateLigne(index, field, value) {
+  lignesFacture[index][field] = value;
+  afficherLignes();
+  calculerTotaux();
+}
+
+// Supprimer ligne
+function supprimerLigne(index) {
+  if (confirm('Supprimer cette ligne ?')) {
+    lignesFacture.splice(index, 1);
+    afficherLignes();
+    calculerTotaux();
+  }
+}
+
+// Calculer totaux
+function calculerTotaux() {
+  const tauxTva = parseFloat(document.getElementById('editTauxTva').value) || 8.1;
+  const tauxCommission = parseFloat(document.getElementById('editTauxCommission').value) || 2.0;
+  
+  // Calculer HT
+  const totalHT = lignesFacture.reduce((sum, ligne) => {
+    return sum + ((ligne.quantite || 1) * (ligne.prix_unitaire_ht || 0));
+  }, 0);
+  
+  // Calculer TVA et Commission
+  const totalTVA = totalHT * (tauxTva / 100);
+  const totalCommission = totalHT * (tauxCommission / 100);
+  const totalTTC = totalHT + totalTVA + totalCommission;
+  
+  // Afficher
+  document.getElementById('totalHT').textContent = totalHT.toFixed(2) + ' CHF';
+  document.getElementById('totalTVA').textContent = totalTVA.toFixed(2) + ' CHF';
+  document.getElementById('totalCommission').textContent = totalCommission.toFixed(2) + ' CHF';
+  document.getElementById('totalTTC').textContent = totalTTC.toFixed(2) + ' CHF';
+  document.getElementById('displayTauxTva').textContent = tauxTva.toFixed(1);
+}
+
+// Sauvegarder facture
+async function sauvegarderFacture() {
+  try {
+    const iban = document.getElementById('editIban').value;
+    const notes = document.getElementById('editNotes').value;
+    const tauxTva = parseFloat(document.getElementById('editTauxTva').value);
+    const tauxCommission = parseFloat(document.getElementById('editTauxCommission').value);
+    
+    // 1. Supprimer anciennes lignes
+    const { data: oldLignes } = await supabase
+      .from('facture_lignes')
+      .select('id')
+      .eq('facture_id', currentFactureId);
+    
+    if (oldLignes && oldLignes.length > 0) {
+      for (const ligne of oldLignes) {
+        await supabase.rpc('supprimer_ligne_facture', {
+          p_ligne_id: ligne.id
+        });
+      }
+    }
+    
+    // 2. Ajouter nouvelles lignes
+    for (const ligne of lignesFacture) {
+      const { error: errorLigne } = await supabase.rpc('ajouter_ligne_facture', {
+        p_facture_id: currentFactureId,
+        p_type: ligne.type,
+        p_description: ligne.description,
+        p_quantite: ligne.quantite,
+        p_unite: ligne.unite,
+        p_prix_unitaire_ht: ligne.prix_unitaire_ht
+      });
+      
+      if (errorLigne) {
+        throw new Error('Erreur ajout ligne: ' + errorLigne.message);
+      }
+    }
+    
+    // 3. Mettre à jour infos facture (iban, notes, taux)
+    const { error: errorEdit } = await supabase.rpc('editer_facture', {
+      p_facture_id: currentFactureId,
+      p_montant_ht: 0, // Sera recalculé auto par les triggers
+      p_notes: notes,
+      p_iban: iban,
+      p_taux_tva: tauxTva,
+      p_taux_commission: tauxCommission
+    });
+    
+    if (errorEdit) {
+      throw new Error('Erreur édition: ' + errorEdit.message);
+    }
+    
+    alert('✅ Facture enregistrée avec succès !');
+    closeModalEditerFacture();
+    
+    // Recharger la page ou les données
+    location.reload();
+    
+  } catch (err) {
+    console.error('Erreur sauvegarde:', err);
+    alert('❌ Erreur: ' + err.message);
+  }
+}
+
+// Écouter changement taux TVA pour recalcul
+document.getElementById('editTauxTva')?.addEventListener('input', calculerTotaux);
+</script>
