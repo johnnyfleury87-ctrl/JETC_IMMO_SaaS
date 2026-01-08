@@ -91,7 +91,7 @@ module.exports = async (req, res) => {
       .from('missions')
       .select('id, statut')
       .eq('technicien_id', technicien_id)
-      .in('statut', ['a_planifier', 'planifiee', 'en_cours']);
+      .in('statut', ['en_attente', 'en_cours']);
 
     if (missionsError) {
       console.error('[API /techniciens/delete] Erreur vérif missions:', missionsError);
