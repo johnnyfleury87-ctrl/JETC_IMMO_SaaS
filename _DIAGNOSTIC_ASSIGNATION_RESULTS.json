@@ -1,0 +1,11 @@
+{
+  "policies": {
+    "missions_ok": true,
+    "techniciens_ok": true
+  },
+  "rpc_function": {},
+  "test_data": {
+    "no_missions": true
+  },
+  "test_workflow": {}
+}
