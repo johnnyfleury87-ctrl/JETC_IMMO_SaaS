@@ -383,4 +383,44 @@ GROUP BY f.id;
 
 GRANT SELECT ON factures_avec_lignes TO authenticated;
 
+-- ========================================
+-- PARTIE 9: RECRÉER VUE MISSIONS_FACTURES_COMPLET
+-- ========================================
+-- Cette vue a été supprimée par DROP CASCADE, on la recrée
+
+DROP VIEW IF EXISTS missions_factures_complet CASCADE;
+
+CREATE VIEW missions_factures_complet AS
+SELECT
+  m.id AS mission_id, m.statut AS mission_statut,
+  m.created_at AS mission_created_at, m.started_at AS mission_started_at,
+  m.completed_at AS mission_completed_at, m.validated_at AS mission_validated_at,
+  m.duree_minutes AS mission_duree_minutes, m.notes AS mission_notes,
+  m.rapport_url AS mission_rapport_url, m.montant_reel_chf AS mission_montant,
+  m.photos_urls AS mission_photos,
+  t.id AS ticket_id, t.titre AS ticket_titre, t.description AS ticket_description,
+  t.categorie AS ticket_categorie, t.statut AS ticket_statut,
+  e.id AS entreprise_id, e.nom AS entreprise_nom, e.siret AS entreprise_siret,
+  tech.id AS technicien_id, tech.nom AS technicien_nom, tech.prenom AS technicien_prenom,
+  loc.id AS locataire_id, loc.nom AS locataire_nom, loc.prenom AS locataire_prenom,
+  log.id AS logement_id, log.numero AS logement_numero,
+  imm.id AS immeuble_id, imm.nom AS immeuble_nom, imm.adresse AS immeuble_adresse,
+  r.id AS regie_id, r.nom AS regie_nom,
+  f.id AS facture_id, f.numero AS facture_numero,
+  f.montant_ht AS facture_montant_ht, f.montant_ttc AS facture_montant_ttc,
+  f.montant_commission AS facture_commission,
+  f.statut AS facture_statut, f.date_emission AS facture_date_emission,
+  f.date_paiement AS facture_date_paiement, f.iban AS facture_iban
+FROM missions m
+JOIN tickets t ON m.ticket_id = t.id
+JOIN entreprises e ON m.entreprise_id = e.id
+LEFT JOIN techniciens tech ON m.technicien_id = tech.id
+JOIN locataires loc ON t.locataire_id = loc.id
+JOIN logements log ON t.logement_id = log.id
+JOIN immeubles imm ON log.immeuble_id = imm.id
+JOIN regies r ON imm.regie_id = r.id
+LEFT JOIN factures f ON f.mission_id = m.id;
+
+GRANT SELECT ON missions_factures_complet TO authenticated;
+
 -- FIN M55
