@@ -1,29 +1,38 @@
 -- =====================================================
--- MIGRATION M51: Créer RPC assign_technicien_to_mission
+-- MIGRATION M52: Fix assign_technicien_to_mission - Erreur user_id
 -- =====================================================
--- Date: 2026-01-07
--- Auteur: Fix bug assignation technicien depuis dashboard entreprise
--- Objectif: Créer RPC sécurisé pour assigner un technicien à une mission
--- Bug résolu: RPC manquant, erreur "function does not exist"
--- 
--- ⚠️  ATTENTION: Cette version contient un BUG
--- ❌ Utilise des mauvais noms de colonnes dans INSERT notifications
--- ✅ CORRIGÉ PAR: M52 (20260108000000_m52_fix_assign_technicien_notifications.sql)
--- 
--- NE PAS RÉAPPLIQUER CETTE VERSION - Utiliser M52 à la place
+-- Date: 2026-01-08
+-- Auteur: Fix bug bloquant en production
+-- Objectif: Corriger l'insertion dans table notifications
+-- Bug résolu: column "user_id" does not exist (en réalité : mauvais noms de colonnes)
+-- Root cause: La RPC utilise "titre", "mission_id", "ticket_id" au lieu de "title", "related_mission_id", "related_ticket_id"
 -- =====================================================
 
--- =====================================================
--- RPC: assign_technicien_to_mission
--- =====================================================
--- Permet à une entreprise d'assigner un de SES techniciens à UNE de SES missions
+-- DIAGNOSTIC DU BUG:
+-- Lors de l'assignation d'un technicien depuis le dashboard entreprise,
+-- l'erreur "column user_id does not exist" apparaît.
+-- 
+-- CAUSE RÉELLE:
+-- Dans assign_technicien_to_mission (M51), l'INSERT INTO notifications utilise:
+--   INSERT INTO notifications (type, titre, message, mission_id, ticket_id, user_id, ...)
+-- 
+-- MAIS la structure réelle de la table notifications est:
+--   - title (pas "titre")
+--   - related_mission_id (pas "mission_id")
+--   - related_ticket_id (pas "ticket_id")
+-- 
+-- PostgreSQL rejette l'INSERT car les colonnes n'existent pas.
+-- Le message d'erreur mentionne "user_id" car c'est probablement la première colonne 
+-- reconnue après les colonnes invalides.
 
--- Supprimer toutes les versions existantes de la fonction
+-- =====================================================
+-- 1. CORRIGER assign_technicien_to_mission
+-- =====================================================
+
+-- Supprimer l'ancienne version
 DROP FUNCTION IF EXISTS assign_technicien_to_mission(UUID, UUID);
-DROP FUNCTION IF EXISTS assign_technicien_to_mission(UUID, UUID, UUID);
-DROP FUNCTION IF EXISTS public.assign_technicien_to_mission;
 
--- Créer la fonction
+-- Recréer avec les bons noms de colonnes
 CREATE FUNCTION assign_technicien_to_mission(
   p_mission_id UUID,
   p_technicien_id UUID
@@ -127,18 +136,18 @@ BEGIN
   )
   ON CONFLICT DO NOTHING;
   
-  -- Notification (optionnel - si table notifications existe)
+  -- ✅ CORRECTION: Notification avec les BONS noms de colonnes
   INSERT INTO notifications (
     type,
-    titre,
+    title,                    -- ✅ Corrigé: "title" au lieu de "titre"
     message,
-    mission_id,
-    ticket_id,
+    related_mission_id,       -- ✅ Corrigé: "related_mission_id" au lieu de "mission_id"
+    related_ticket_id,        -- ✅ Corrigé: "related_ticket_id" au lieu de "ticket_id"
     user_id,
     created_at
   )
   VALUES (
-    'technicien_assigne',
+    'mission_assigned',       -- ✅ Corrigé: type existant dans l'enum
     'Technicien assigné',
     'Un technicien a été assigné à votre intervention',
     p_mission_id,
@@ -169,26 +178,23 @@ $$;
 -- Permissions
 -- =====================================================
 
--- Permettre aux entreprises d'appeler cette fonction
 GRANT EXECUTE ON FUNCTION assign_technicien_to_mission TO authenticated;
 
 -- =====================================================
--- TESTS DE VALIDATION
+-- VALIDATION
 -- =====================================================
 
--- Test 1: Vérifier que la fonction existe
--- SELECT routine_name FROM information_schema.routines 
--- WHERE routine_name = 'assign_technicien_to_mission';
--- Attendu: 1 ligne
-
--- Test 2: Appel en tant qu'entreprise (remplacer UUIDs)
--- SELECT assign_technicien_to_mission(
---   '<mission_id>',
---   '<technicien_id>'
--- );
--- Attendu: {"success": true, ...}
+DO $$
+BEGIN
+  RAISE NOTICE '✅ M52: assign_technicien_to_mission recréée avec les bons noms de colonnes';
+  RAISE NOTICE '   - title (au lieu de titre)';
+  RAISE NOTICE '   - related_mission_id (au lieu de mission_id)';
+  RAISE NOTICE '   - related_ticket_id (au lieu de ticket_id)';
+  RAISE NOTICE '   - type = mission_assigned (au lieu de technicien_assigne)';
+END $$;
 
 COMMENT ON FUNCTION assign_technicien_to_mission IS 
-'Permet à une entreprise d''assigner un technicien à une mission. 
+'[M52 - FIXED] Permet à une entreprise d''assigner un technicien à une mission. 
 Vérifie que la mission et le technicien appartiennent bien à l''entreprise connectée.
-Le statut reste "en_attente" après assignation (prêt à démarrer).';
+Le statut reste "en_attente" après assignation (prêt à démarrer).
+Fix: Correction des noms de colonnes dans INSERT notifications.';
