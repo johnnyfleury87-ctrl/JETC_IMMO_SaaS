@@ -24,47 +24,80 @@ column "user_id" does not exist
 
 ## 🔍 DIAGNOSTIC - ROOT CAUSE IDENTIFIÉE
 
+### ⚠️ MISE À JOUR: VRAIE SOURCE DU BUG
+
+**Première investigation (M52):** Bug trouvé dans RPC assign_technicien_to_mission  
+**Investigation finale (M53):** ✅ **Vrai bug = Fonction trigger `notify_technicien_assignment`**
+
 ### Investigation menée
 
 1. ✅ **Vérification table missions** : Aucune colonne `user_id` (c'est normal)
 2. ✅ **Audit policies RLS** : Toutes correctes (M46 appliquée correctement)
-3. ✅ **Audit RPC assign_technicien_to_mission** : **BUG TROUVÉ** ici
+3. ✅ **Audit RPC assign_technicien_to_mission** : Bug trouvé (M52 créée)
+4. ✅ **Audit TRIGGERS sur missions** : **🎯 VRAIE SOURCE = notify_technicien_assignment**
 
-### Cause racine
+### Cause racine (MISE À JOUR - DIAGNOSTIC FINAL)
 
-Dans la fonction `assign_technicien_to_mission` (migration M51), l'insertion dans la table `notifications` utilisait **des noms de colonnes incorrects** :
+#### 🎯 Vraie source: Fonction trigger `notify_technicien_assignment`
 
-#### ❌ Code bugué (M51)
+**Triggers impactés:**
+- `technicien_assignment_notification` (sur table missions)
+- `trigger_mission_technicien_assignment` (sur table missions)
+
+**Fonction appelée:** `public.notify_technicien_assignment` (OID 41819)
+
+Cette fonction se déclenche automatiquement lors d'un UPDATE sur `missions.technicien_id`.
+
+#### ❌ Bugs dans la fonction (schéma original)
+
+**Bug 1 - Ligne 372:**
 ```sql
-INSERT INTO notifications (
-  type,
-  titre,         -- ❌ N'EXISTE PAS
-  message,
-  mission_id,    -- ❌ N'EXISTE PAS
-  ticket_id,     -- ❌ N'EXISTE PAS
-  user_id,
-  created_at
-)
+SELECT user_id, nom FROM techniciens WHERE id = NEW.technicien_id;
 ```
+❌ La colonne `user_id` **N'EXISTE PAS** dans la table `techniciens`  
+✅ Doit être: `SELECT profile_id, nom FROM techniciens`
 
-#### ✅ Structure réelle de la table notifications
+**Bug 2 - Ligne 378:**
 ```sql
-- title (PAS "titre")
-- message (OK)
-- related_mission_id (PAS "mission_id")
-- related_ticket_id (PAS "ticket_id")
-- user_id (OK)
-- created_at (OK)
+v_mission_ref := NEW.reference;
 ```
-
-### Pourquoi l'erreur mentionne "user_id" ?
-
-PostgreSQL rejette l'INSERT car les colonnes `titre`, `mission_id`, `ticket_id` n'existent pas. Le message d'erreur fait référence à `user_id` car c'est probablement la première colonne valide reconnue après les colonnes invalides.
+❌ La colonne `reference` **N'EXISTE PAS** dans la table `missions`  
+✅ Doit récupérer `tickets.reference` via JOIN sur `NEW.ticket_id`
 
 ---
 
-## ✅ CORRECTION APPLIQUÉE
+#### 📝 Bug secondaire (M52): RPC assign_technicien_to_mission
 
+La fonction RPC avait aussi des noms de colonnes incorrects dans l'INSERT notifications, mais ce n'était **pas la cause de l'erreur en PROD** car le trigger se déclenche AVANT que la RPC insère la notification.
+S APPLIQUÉES
+
+### ⚠️ DEUX MIGRATIONS CRÉÉES
+
+#### Migration M53 (CRITIQUE - À APPLIQUER EN PRIORITÉ)
+
+**Fichier:** `supabase/migrations/20260108000100_m53_fix_notify_technicien_assignment.sql`  
+**Version PROD urgente:** `supabase/migrations/_APPLY_M53_PROD_URGENT.sql`
+
+**Corrige:** Fonction trigger `notify_technicien_assignment`
+
+**Changements:**
+```sql
+-- ❌ AVANT (bugué)
+SELECT user_id, nom FROM techniciens WHERE id = NEW.technicien_id;
+v_mission_ref := NEW.reference;
+
+-- ✅ APRÈS (corrigé)
+SELECT profile_id, nom FROM techniciens WHERE id = NEW.technicien_id;
+SELECT t.reference INTO v_ticket_ref FROM tickets t WHERE t.id = NEW.ticket_id;
+```
+
+---
+
+#### Migration M52 (Secondaire - Optionnelle)
+
+**Fichier:** `supabase/migrations/20260108000000_m52_fix_assign_technicien_notifications.sql`
+
+**Corrige:** RPC `assign_technicien_to_mission`
 ### Migration M52 créée
 
 **Fichier:** `supabase/migrations/20260108000000_m52_fix_assign_technicien_notifications.sql`
@@ -83,29 +116,44 @@ INSERT INTO notifications (
   user_id,
   created_at
 )
-VALUES (
-  'mission_assigned',       -- ✅ Type enum correct
-  'Technicien assigné',
-  'Un technicien a été assigné à votre intervention',
-  p_mission_id,
-  v_ticket_id,
-  (SELECT profile_id FROM techniciens WHERE id = p_technicien_id),
-  NOW()
-)
-```
+VALU🚨 PRIORITÉ 1: Appliquer M53 (CRITIQUE)
 
-### Autres fonctions vérifiées
+#### Via Dashboard Supabase (RECOMMANDÉ)
 
-✅ **M48** (`demarrer_mission`) : Utilise déjà les bons noms de colonnes  
-✅ **M22** (`notify_new_ticket`) : Utilise déjà les bons noms de colonnes
+1. Aller sur https://supabase.com/dashboard/project/bwzyajsrmfhrxdmfpyqy/sql
+2. Ouvrir le fichier **`supabase/migrations/_APPLY_M53_PROD_URGENT.sql`**
+3. Copier tout le contenu
+4. Coller dans l'éditeur SQL Supabase
+5. Cliquer sur **"RUN"**
+6. ✅ Devrait voir "Success"
 
-**Seule M51 était affectée.**
+**Temps estimé:** 30 secondes
 
 ---
 
-## 🚀 INSTRUCTIONS D'APPLICATION
+### 📝 Optionnel: Appliquer M52
 
-### Option 1 : Via Dashboard Supabase (RECOMMANDÉ)
+Si vous voulez aussi corriger la RPC (recommandé mais pas bloquant) :
+
+1. Aller sur https://supabase.com/dashboard/project/bwzyajsrmfhrxdmfpyqy/sql
+2. Ouvrir le fichier `supabase/migrations/_APPLY_M52_MANUAL.sql`
+3. Copier tout le contenu
+4. Coller dans l'éditeur SQL Supabase
+5. Cliquer sur **"RUN"**
+
+---
+
+### Option CLI Supabase
+
+```bash
+cd /workspaces/JETC_IMMO_SaaS
+supabase db push --db-url "$DATABASE_URL"
+```
+
+### Fichiers complets
+
+- **M53 (critique):** `20260108000100_m53_fix_notify_technicien_assignment.sql`
+- **M52 (optionnel):** `20260108000000_m52_fix_assign_technicien_notifications.sql` Via Dashboard Supabase (RECOMMANDÉ)
 
 1. Aller sur https://supabase.com/dashboard/project/bwzyajsrmfhrxdmfpyqy/sql
 2. Ouvrir le fichier `supabase/migrations/_APPLY_M52_MANUAL.sql`

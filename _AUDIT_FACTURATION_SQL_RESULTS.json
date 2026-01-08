@@ -1,0 +1,26 @@
+{
+  "timestamp": "2026-01-08T10:47:12.156Z",
+  "checks": {
+    "factures": {
+      "error": "Could not find the function public.exec_sql(sql) in the schema cache"
+    },
+    "missions_terminees": {
+      "error": "Could not find the function public.exec_sql(sql) in the schema cache"
+    },
+    "relation_mission_facture": {
+      "error": "Could not find the function public.exec_sql(sql) in the schema cache"
+    },
+    "rls_policies": {
+      "error": "Could not find the function public.exec_sql(sql) in the schema cache"
+    },
+    "rpc_functions": {
+      "error": "Could not find the function public.exec_sql(sql) in the schema cache"
+    },
+    "rls_enabled": {
+      "error": "Could not find the function public.exec_sql(sql) in the schema cache"
+    },
+    "triggers": {
+      "error": "Could not find the function public.exec_sql(sql) in the schema cache"
+    }
+  }
+}

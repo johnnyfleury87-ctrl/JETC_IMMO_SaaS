@@ -792,7 +792,7 @@
       <div id="modalCreerFacture" class="modal-overlay" onclick="closeModalIfOverlay(event)">
         <div class="modal-content">
           <div class="modal-header">
-            <h3>💳 Créer une facture</h3>
+            <h3 id="modalFactureTitle">💳 Créer une facture</h3>
             <button class="modal-close" onclick="closeCreerFactureModal()">&times;</button>
           </div>
           <div class="modal-body">
@@ -1949,9 +1949,18 @@
       closeMissionDetailsModal();
     }
     
+    let currentFactureIdForEdit = null;
+    
     function closeCreerFactureModal() {
       document.getElementById('modalCreerFacture').style.display = 'none';
       currentMissionIdForFacture = null;
+      currentFactureIdForEdit = null;
+      // Réinitialiser le formulaire
+      document.getElementById('inputFactureMontant').value = '';
+      document.getElementById('inputFactureDescription').value = '';
+      document.getElementById('inputFactureIBAN').value = '';
+      document.getElementById('modalFactureTitle').textContent = '💳 Créer une facture';
+      updateFactureRecap();
     }
     
     // Mise à jour du récapitulatif en temps réel
@@ -1991,42 +2000,124 @@
       }
       
       const btn = document.getElementById('btnConfirmerFacture');
+      const isEdit = currentFactureIdForEdit !== null;
+      
       btn.disabled = true;
-      btn.textContent = '⏳ Création...';
+      btn.textContent = isEdit ? '⏳ Mise à jour...' : '⏳ Création...';
       
       try {
-        const { data, error } = await window.supabaseClient.rpc('generate_facture_from_mission', {
-          p_mission_id: currentMissionIdForFacture,
-          p_montant_ht: montantHT,
-          p_description: description || 'Facture pour intervention',
-          p_iban: iban.trim()
-        });
+        if (isEdit) {
+          // Mode édition
+          const { data, error } = await window.supabaseClient.rpc('editer_facture', {
+            p_facture_id: currentFactureIdForEdit,
+            p_montant_ht: montantHT,
+            p_notes: description,
+            p_iban: iban
+          });
+          
+          if (error) throw error;
+          
+          alert('✅ Facture mise à jour avec succès');
+          closeCreerFactureModal();
+          await loadFactures();
+        } else {
+          // Mode création
+          const { data, error } = await window.supabaseClient.rpc('generate_facture_from_mission', {
+            p_mission_id: currentMissionIdForFacture,
+            p_montant_ht: montantHT,
+            p_description: description || 'Facture pour intervention',
+            p_iban: iban.trim()
+          });
         
-        if (error) {
-          console.error('[FACTURE] Erreur:', error);
-          alert('❌ Erreur: ' + error.message);
-          btn.disabled = false;
-          btn.textContent = '✅ Créer la facture';
+          if (error) {
+            console.error('[FACTURE] Erreur:', error);
+            alert('❌ Erreur: ' + error.message);
+            btn.disabled = false;
+            btn.textContent = '✅ Créer la facture';
+            return;
+          }
+        
+          console.log('[FACTURE] Créée:', data);
+        
+          alert('✅ Facture créée avec succès!\n\nNuméro: ' + data.numero + '\n\nLa facture est maintenant visible dans l\'onglet "Factures".');
+        
+          closeCreerFactureModal();
+          loadMesMissions(); // Recharger la liste
+        }
+      } catch (err) {
+        console.error('[FACTURE] Exception:', err);
+        alert('❌ Erreur: ' + err.message);
+        btn.disabled = false;
+        btn.textContent = isEdit ? '✅ Mettre à jour' : '✅ Créer la facture';
+      }
+    }
+    
+    // ========== ÉDITER UNE FACTURE ==========
+    async function editerFacture(factureId) {
+      console.log('[FACTURE] Édition facture:', factureId);
+      
+      try {
+        // Charger les données de la facture
+        const { data: facture, error } = await window.supabaseClient
+          .from('factures')
+          .select('*')
+          .eq('id', factureId)
+          .single();
+        
+        if (error) throw error;
+        
+        // Vérifier que c'est bien un brouillon
+        if (facture.statut !== 'brouillon') {
+          alert('⚠️ Seules les factures en brouillon peuvent être éditées');
           return;
         }
         
-        console.log('[FACTURE] Créée:', data);
+        // Pré-remplir le formulaire
+        document.getElementById('inputFactureMontant').value = facture.montant_ht || '';
+        document.getElementById('inputFactureDescription').value = facture.notes || '';
+        document.getElementById('inputFactureIBAN').value = facture.iban || '';
         
-        alert('✅ Facture créée avec succès!\n\nNuméro: ' + data.numero + '\n\nLa facture est maintenant visible dans l\'onglet "Factures".');
+        // Mettre à jour le récapitulatif
+        updateFactureRecap();
         
-        closeCreerFactureModal();
-        loadMesMissions(); // Recharger la liste
+        // Modifier le titre du modal
+        document.getElementById('modalFactureTitle').textContent = '✏️ Éditer la facture ' + facture.numero;
         
-        // Ouvrir l'onglet factures
-        setTimeout(() => {
-          switchView('factures');
-        }, 500);
+        // Stocker l'ID pour l'édition
+        currentFactureIdForEdit = factureId;
         
-      } catch (error) {
-        console.error('[FACTURE] Exception:', error);
-        alert('Erreur: ' + error.message);
-        btn.disabled = false;
-        btn.textContent = '✅ Créer la facture';
+        // Ouvrir le modal
+        document.getElementById('modalCreerFacture').style.display = 'flex';
+        
+      } catch (err) {
+        console.error('[FACTURE] Erreur édition:', err);
+        alert('❌ Erreur lors du chargement de la facture: ' + err.message);
+      }
+    }
+    
+    // ========== ENVOYER FACTURE À LA RÉGIE ==========
+    async function envoyerFactureRegie(factureId, numero) {
+      if (!confirm(`Êtes-vous sûr de vouloir envoyer la facture ${numero} à la régie?\n\nUne fois envoyée, vous ne pourrez plus la modifier.`)) {
+        return;
+      }
+      
+      console.log('[FACTURE] Envoi à la régie:', factureId);
+      
+      try {
+        const { data, error } = await window.supabaseClient.rpc('envoyer_facture', {
+          p_facture_id: factureId
+        });
+        
+        if (error) throw error;
+        
+        alert('✅ Facture envoyée à la régie avec succès!\n\nLa régie va maintenant pouvoir la traiter.');
+        
+        // Recharger la liste
+        await loadFactures();
+        
+      } catch (err) {
+        console.error('[FACTURE] Erreur envoi:', err);
+        alert('❌ Erreur lors de l\'envoi: ' + err.message);
       }
     }
     
@@ -2142,6 +2233,16 @@
               <button class="btn btn-secondary" onclick="openMissionDetailsModal('${facture.mission_id}')">
                 📄 Voir mission
               </button>
+              ${facture.facture_statut === 'brouillon' ? `
+                <button class="btn btn-primary" onclick="editerFacture('${facture.facture_id}')">
+                  ✏️ Éditer
+                </button>
+              ` : ''}
+              ${facture.facture_statut === 'brouillon' && facture.facture_montant_ttc && facture.facture_iban ? `
+                <button class="btn btn-success" onclick="envoyerFactureRegie('${facture.facture_id}', '${escapeHtml(facture.facture_numero)}')">
+                  📤 Envoyer à la régie
+                </button>
+              ` : ''}
               ${canPay ? `
                 <button class="btn btn-success" onclick="marquerFacturePayee('${facture.facture_id}', '${escapeHtml(facture.facture_numero)}')">
                   🟢 Marquer payée

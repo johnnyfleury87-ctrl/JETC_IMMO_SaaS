@@ -1,0 +1,146 @@
+{
+  "timestamp": "2026-01-08T10:48:09.797Z",
+  "diagnostics": [
+    {
+      "type": "DATA_MISSING",
+      "severity": "MEDIUM",
+      "message": "Facture FAC-2026-0002 sans montant",
+      "facture_id": "cb2a162c-b385-44db-b4cf-de6a90dac7b5"
+    },
+    {
+      "type": "RLS_TEST",
+      "severity": "HIGH",
+      "message": "Impossible de tester RLS automatiquement - test manuel requis",
+      "test_needed": "Connexion entreprise → lecture/édition facture brouillon"
+    },
+    {
+      "type": "UI_MISSING",
+      "severity": "HIGH",
+      "message": "Fichier UI manquant: app/entreprise/factures/page.tsx",
+      "file": "app/entreprise/factures/page.tsx"
+    },
+    {
+      "type": "UI_MISSING",
+      "severity": "HIGH",
+      "message": "Fichier UI manquant: app/entreprise/factures/[id]/page.tsx",
+      "file": "app/entreprise/factures/[id]/page.tsx"
+    },
+    {
+      "type": "UI_MISSING",
+      "severity": "HIGH",
+      "message": "Fichier UI manquant: components/factures/FactureForm.tsx",
+      "file": "components/factures/FactureForm.tsx"
+    },
+    {
+      "type": "UI_MISSING",
+      "severity": "HIGH",
+      "message": "Fichier UI manquant: components/factures/FactureDetail.tsx",
+      "file": "components/factures/FactureDetail.tsx"
+    }
+  ],
+  "fixes_needed": [],
+  "factures": [
+    {
+      "id": "cb2a162c-b385-44db-b4cf-de6a90dac7b5",
+      "mission_id": "7bd639a5-a4a3-4133-9f1a-903b611bd464",
+      "entreprise_id": "6ff210bc-9985-457c-8851-4185123edb07",
+      "regie_id": "ec0ad50b-7b27-45b3-aa6c-ab31d061e38f",
+      "numero": "FAC-2026-0002",
+      "montant_ht": 0,
+      "taux_tva": 20,
+      "montant_tva": 0,
+      "montant_ttc": 0,
+      "taux_commission": 10,
+      "montant_commission": 0,
+      "statut": "brouillon",
+      "date_emission": "2026-01-08",
+      "date_echeance": "2026-02-07",
+      "date_envoi": null,
+      "date_paiement": null,
+      "notes": "Facture générée automatiquement suite à la fin de mission",
+      "created_at": "2026-01-08T10:37:40.621946+00:00",
+      "updated_at": "2026-01-08T10:37:40.621946+00:00",
+      "iban": null
+    },
+    {
+      "id": "8a4cde73-d1eb-4518-bb23-5438fee59eae",
+      "mission_id": "2d84c11c-6415-4f49-ba33-8b53ae1ee22d",
+      "entreprise_id": "6ff210bc-9985-457c-8851-4185123edb07",
+      "regie_id": "ec0ad50b-7b27-45b3-aa6c-ab31d061e38f",
+      "numero": "FAC-2026-0001",
+      "montant_ht": 100,
+      "taux_tva": 20,
+      "montant_tva": 20,
+      "montant_ttc": 120,
+      "taux_commission": 10,
+      "montant_commission": 10,
+      "statut": "brouillon",
+      "date_emission": "2026-01-07",
+      "date_echeance": "2026-02-06",
+      "date_envoi": null,
+      "date_paiement": null,
+      "notes": "Facture test générée automatiquement",
+      "created_at": "2026-01-07T13:51:07.323623+00:00",
+      "updated_at": "2026-01-07T13:51:07.323623+00:00",
+      "iban": "CH93 0076 2011 6238 5295 7"
+    }
+  ],
+  "missions": [
+    {
+      "id": "7bd639a5-a4a3-4133-9f1a-903b611bd464",
+      "ticket_id": "6797fee3-46d4-47b6-b0fc-4b085060076f",
+      "entreprise_id": "6ff210bc-9985-457c-8851-4185123edb07",
+      "technicien_id": "3196179e-5258-457f-b31f-c88a4760ebe0",
+      "date_intervention_prevue": null,
+      "date_intervention_realisee": null,
+      "statut": "terminee",
+      "created_at": "2026-01-07T14:16:38.927024+00:00",
+      "started_at": "2026-01-08T10:37:02.962197+00:00",
+      "completed_at": "2026-01-08T10:37:40.621946+00:00",
+      "validated_at": null,
+      "notes": "Verrou Change : Ref 3455 cylindre métallique",
+      "devis_url": null,
+      "facture_url": null,
+      "montant_reel_chf": null,
+      "updated_at": "2026-01-08T10:37:40.621946+00:00",
+      "rapport_url": null,
+      "signature_locataire_url": null,
+      "signature_technicien_url": null,
+      "devise": "CHF",
+      "disponibilite_id": "96f05df8-2ac7-4001-b010-a0c1084c061f",
+      "locataire_absent": false,
+      "absence_signalement_at": null,
+      "absence_raison": null,
+      "photos_urls": [],
+      "duree_minutes": 1
+    },
+    {
+      "id": "2d84c11c-6415-4f49-ba33-8b53ae1ee22d",
+      "ticket_id": "2106c14a-c755-4eb1-b440-c5fd3043ab88",
+      "entreprise_id": "6ff210bc-9985-457c-8851-4185123edb07",
+      "technicien_id": "3196179e-5258-457f-b31f-c88a4760ebe0",
+      "date_intervention_prevue": null,
+      "date_intervention_realisee": "2026-01-07T10:27:36.950057+00:00",
+      "statut": "terminee",
+      "created_at": "2026-01-04T17:03:22.442838+00:00",
+      "started_at": "2026-01-07T10:25:50.261416+00:00",
+      "completed_at": "2026-01-07T10:27:36.950057+00:00",
+      "validated_at": null,
+      "notes": "Test audit trigger 2026-01-07T06:27:18.297Z",
+      "devis_url": null,
+      "facture_url": null,
+      "montant_reel_chf": null,
+      "updated_at": "2026-01-07T10:27:36.950057+00:00",
+      "rapport_url": null,
+      "signature_locataire_url": null,
+      "signature_technicien_url": null,
+      "devise": "CHF",
+      "disponibilite_id": "a6856871-f466-41be-8593-9b2d77e62829",
+      "locataire_absent": false,
+      "absence_signalement_at": null,
+      "absence_raison": null,
+      "photos_urls": [],
+      "duree_minutes": 2
+    }
+  ]
+}

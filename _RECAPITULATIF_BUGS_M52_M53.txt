@@ -1,0 +1,203 @@
+================================================================================
+📊 RÉCAPITULATIF COMPLET - BUG "user_id does not exist"
+================================================================================
+
+Date: 8 janvier 2026
+Impact: Assignation technicien BLOQUÉE en production
+
+================================================================================
+🎯 DIAGNOSTIC FINAL
+================================================================================
+
+ERREUR EN PROD:
+  column "user_id" does not exist
+
+INVESTIGATION:
+  Deux bugs trouvés (mais un seul bloquant en PROD)
+
+================================================================================
+🐛 BUG #1 - CRITIQUE (BLOQUANT EN PROD)
+================================================================================
+
+SOURCE: Fonction trigger notify_technicien_assignment
+FICHIER SCHÉMA: supabase/schema/16_messagerie.sql (lignes 360-410)
+TRIGGERS: technicien_assignment_notification, trigger_mission_technicien_assignment
+
+PROBLÈME:
+  La fonction se déclenche automatiquement lors de l'UPDATE de missions.technicien_id
+  Elle contient 2 bugs:
+
+  BUG 1.1 - Ligne 372:
+    ❌ SELECT user_id, nom FROM techniciens WHERE id = NEW.technicien_id
+    ✅ DOIT ÊTRE: SELECT profile_id, nom FROM techniciens
+
+  BUG 1.2 - Ligne 378:
+    ❌ v_mission_ref := NEW.reference
+    ✅ DOIT ÊTRE: SELECT t.reference FROM tickets t WHERE t.id = NEW.ticket_id
+
+IMPACT:
+  🚨 BLOQUE l'assignation technicien en PROD
+  L'UPDATE sur missions.technicien_id déclenche le trigger qui échoue
+
+CORRECTION:
+  ✅ Migration M53 créée
+  📄 Fichier PROD: _APPLY_M53_PROD_URGENT.sql
+  ⏱️ Application: 30 secondes
+
+================================================================================
+🐛 BUG #2 - SECONDAIRE (NON BLOQUANT)
+================================================================================
+
+SOURCE: RPC assign_technicien_to_mission
+FICHIER: supabase/migrations/20260107000100_m51_create_assign_technicien_rpc.sql
+LIGNE: 125-141 (INSERT INTO notifications)
+
+PROBLÈME:
+  La RPC utilise des mauvais noms de colonnes pour l'INSERT notifications:
+
+  ❌ titre        → ✅ title
+  ❌ mission_id   → ✅ related_mission_id
+  ❌ ticket_id    → ✅ related_ticket_id
+
+IMPACT:
+  ⚪ NON bloquant en PROD (car le bug #1 empêche d'arriver jusque-là)
+  Mais causerait une erreur après correction du bug #1 si non corrigé
+
+CORRECTION:
+  ✅ Migration M52 créée
+  📄 Fichier PROD: _APPLY_M52_MANUAL.sql
+  ⏱️ Application: Optionnelle (recommandée)
+
+================================================================================
+📋 ORDRE D'APPLICATION RECOMMANDÉ
+================================================================================
+
+ÉTAPE 1 - CRITIQUE (OBLIGATOIRE):
+  ✅ Appliquer M53 (corrige le trigger)
+  📄 Fichier: _APPLY_M53_PROD_URGENT.sql
+  🔗 URL: https://supabase.com/dashboard/project/bwzyajsrmfhrxdmfpyqy/sql
+  
+  Résultat: Assignation technicien débloquée
+
+ÉTAPE 2 - OPTIONNELLE (RECOMMANDÉE):
+  ⚪ Appliquer M52 (corrige la RPC)
+  📄 Fichier: _APPLY_M52_MANUAL.sql
+  
+  Résultat: Évite erreur future dans la notification RPC
+
+================================================================================
+📁 FICHIERS CRÉÉS
+================================================================================
+
+MIGRATIONS PROD (À APPLIQUER):
+  🚨 _APPLY_M53_PROD_URGENT.sql                    (CRITIQUE - Bug trigger)
+  ⚪ _APPLY_M52_MANUAL.sql                          (Optionnel - Bug RPC)
+
+MIGRATIONS COMPLÈTES:
+  📄 20260108000100_m53_fix_notify_technicien_assignment.sql
+  📄 20260108000000_m52_fix_assign_technicien_notifications.sql
+
+DOCUMENTATION:
+  📖 _ACTION_IMMEDIATE_M53.txt                     (Guide rapide M53)
+  📖 _FIX_URGENT_M53_PROD.txt                      (Doc complète M53)
+  📖 _ACTION_IMMEDIATE_FIX_M52.md                  (Guide rapide M52)
+  📖 _README_FIX_M53_URGENT.txt                    (Récapitulatif)
+  📖 _RESOLUTION_BUG_USER_ID.md                    (Doc technique complète)
+  📖 _RECAPITULATIF_BUGS_M52_M53.txt               (Ce fichier)
+
+SCRIPTS:
+  🔧 _check_m48_prod.js                            (Vérifie si M48 appliquée)
+  🔧 _get_notify_technicien_def.js                 (Récupère définition fonction)
+  🔧 _audit_bug_user_id.js                         (Audit complet)
+  🔧 _verify_m52_fix.js                            (Vérifie M52)
+
+================================================================================
+🧪 TESTS POST-APPLICATION
+================================================================================
+
+APRÈS M53:
+  1. Se connecter en tant qu'entreprise
+  2. Ouvrir une mission en statut "en_attente"
+  3. Assigner un technicien
+  4. ✅ DOIT RÉUSSIR sans erreur
+
+VÉRIFIER LA NOTIFICATION:
+  SELECT * FROM notifications 
+  WHERE type = 'mission_assigned' 
+  ORDER BY created_at DESC 
+  LIMIT 1;
+  
+  ✅ Devrait voir une notification avec le bon user_id
+
+================================================================================
+🔐 SÉCURITÉ
+================================================================================
+
+✅ Aucune nouvelle colonne créée
+✅ Utilise les colonnes existantes correctement
+✅ Pas de hack ou fallback
+✅ Triggers recréés proprement
+✅ SECURITY DEFINER maintenu sur les fonctions
+✅ Aucun impact sur autres workflows
+
+WORKFLOWS NON AFFECTÉS:
+  ✅ Création mission
+  ✅ Démarrer mission
+  ✅ Vue technicien
+  ✅ Vue admin
+  ✅ Vue locataire
+  ✅ Vue régie
+
+================================================================================
+📊 RÉSULTAT ATTENDU
+================================================================================
+
+AVANT M53:
+  Dashboard Entreprise > Mission > Assigner technicien
+  ❌ Erreur: "column user_id does not exist"
+  ❌ Workflow bloqué
+  ❌ Lancement pilote impossible
+
+APRÈS M53:
+  Dashboard Entreprise > Mission > Assigner technicien
+  ✅ Assignation réussie
+  ✅ Trigger notify_technicien_assignment s'exécute
+  ✅ Notification créée pour le technicien
+  ✅ Message système créé
+  ✅ Workflow complet fonctionnel
+  ✅ Lancement pilote débloqué
+
+APRÈS M53 + M52:
+  ✅ Tout ce qui précède
+  ✅ Notification RPC correcte (si on rappelle la RPC)
+  ✅ 100% fonctionnel sans risque d'erreur future
+
+================================================================================
+⚠️ IMPORTANT - POURQUOI M48 N'A PAS SUFFI
+================================================================================
+
+M48 contenait déjà le fix de notify_technicien_assignment.
+
+MAIS:
+  - Soit M48 n'a jamais été appliquée en PROD
+  - Soit le schéma de base (16_messagerie.sql) a écrasé la fonction
+
+M53 = Réapplication du fix de M48 pour être sûr.
+
+Pour vérifier si M48 est en PROD:
+  node _check_m48_prod.js
+
+================================================================================
+✅ CONCLUSION
+================================================================================
+
+BUG CRITIQUE: notify_technicien_assignment utilise des colonnes inexistantes
+CORRECTION: M53 recrée la fonction avec les bonnes colonnes
+APPLICATION: 30 secondes via Dashboard Supabase
+IMPACT: Débloque l'assignation technicien
+URGENCE: CRITIQUE (bloquant lancement pilote)
+
+PROCHAINE ÉTAPE:
+  Appliquer _APPLY_M53_PROD_URGENT.sql immédiatement
+
+================================================================================

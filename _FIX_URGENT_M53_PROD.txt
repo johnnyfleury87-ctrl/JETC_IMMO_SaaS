@@ -1,0 +1,102 @@
+================================================================================
+🚨 FIX URGENT PROD - ASSIGNATION TECHNICIEN
+================================================================================
+
+📅 8 janvier 2026
+🎯 Bug identifié: column "user_id" does not exist
+📍 Source réelle: Fonction trigger notify_technicien_assignment
+
+================================================================================
+🔍 DIAGNOSTIC CORRECT
+================================================================================
+
+❌ ERREUR EN PROD:
+   Lors de l'assignation technicien → column "user_id" does not exist
+
+✅ SOURCE IDENTIFIÉE:
+   - Table: public.missions
+   - Triggers: technicien_assignment_notification, trigger_mission_technicien_assignment
+   - Fonction: public.notify_technicien_assignment (OID 41819)
+
+🐛 BUGS DANS LA FONCTION:
+   
+   1. Ligne 372: SELECT user_id, nom FROM techniciens
+      ❌ La colonne user_id N'EXISTE PAS dans techniciens
+      ✅ Doit être: SELECT profile_id, nom FROM techniciens
+   
+   2. Ligne 378: v_mission_ref := NEW.reference
+      ❌ La colonne reference N'EXISTE PAS dans missions
+      ✅ Doit récupérer tickets.reference via JOIN
+
+================================================================================
+🚀 APPLICATION IMMÉDIATE (30 SECONDES)
+================================================================================
+
+ÉTAPE 1: Ouvrir SQL Editor Supabase
+👉 https://supabase.com/dashboard/project/bwzyajsrmfhrxdmfpyqy/sql
+
+ÉTAPE 2: Copier le fichier
+📄 supabase/migrations/_APPLY_M53_PROD_URGENT.sql
+
+ÉTAPE 3: Coller et exécuter
+1. Coller tout le contenu dans l'éditeur
+2. Cliquer "RUN"
+3. ✅ Devrait voir "Success"
+
+================================================================================
+✅ CORRECTION APPLIQUÉE
+================================================================================
+
+CHANGEMENTS:
+✅ techniciens.user_id → techniciens.profile_id
+✅ missions.reference → tickets.reference (via JOIN)
+✅ Trigger recréé
+
+IMPACT:
+✅ Assignation technicien → DÉBLOQUÉ
+✅ Notifications créées correctement
+✅ Aucun impact sur autres workflows
+
+================================================================================
+🧪 TEST APRÈS APPLICATION
+================================================================================
+
+1. Se connecter en tant qu'entreprise
+2. Ouvrir une mission en statut "en_attente"
+3. Assigner un technicien
+4. ✅ DOIT RÉUSSIR sans erreur
+
+Vérifier la notification:
+SELECT * FROM notifications 
+WHERE type = 'mission_assigned' 
+ORDER BY created_at DESC 
+LIMIT 1;
+
+✅ Devrait voir une notification avec le bon user_id
+
+================================================================================
+📁 FICHIERS
+================================================================================
+
+Migration principale:
+- supabase/migrations/20260108000100_m53_fix_notify_technicien_assignment.sql
+
+Version PROD urgente:
+- supabase/migrations/_APPLY_M53_PROD_URGENT.sql  👈 UTILISER CELLE-CI
+
+================================================================================
+⚠️ IMPORTANT
+================================================================================
+
+C'est LE VRAI BUG (pas la RPC assign_technicien_to_mission).
+
+Le problème vient du TRIGGER qui se déclenche automatiquement lors de 
+l'UPDATE de missions.technicien_id.
+
+La fonction trigger utilisait des colonnes qui n'existent pas:
+- techniciens.user_id (c'est profile_id)
+- missions.reference (doit récupérer tickets.reference)
+
+Cette correction est CRITIQUE pour débloquer l'assignation technicien.
+
+================================================================================

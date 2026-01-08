@@ -1,0 +1,98 @@
+{
+  "timestamp": "2026-01-08T10:46:16.402Z",
+  "environment": "https://bwzyajsrmfhrxdmfpyqy.supabase.co",
+  "audit": {
+    "structure": {
+      "accessible": true,
+      "columns": [
+        "id",
+        "mission_id",
+        "entreprise_id",
+        "regie_id",
+        "numero",
+        "montant_ht",
+        "taux_tva",
+        "montant_tva",
+        "montant_ttc",
+        "taux_commission",
+        "montant_commission",
+        "statut",
+        "date_emission",
+        "date_echeance",
+        "date_envoi",
+        "date_paiement",
+        "notes",
+        "created_at",
+        "updated_at",
+        "iban"
+      ]
+    },
+    "factures_stats": {
+      "brouillon": 2
+    },
+    "missions_terminees": [
+      {
+        "id": "2d84c11c-6415-4f49-ba33-8b53ae1ee22d",
+        "statut": "terminee",
+        "entreprise_id": "6ff210bc-9985-457c-8851-4185123edb07",
+        "ticket_id": "2106c14a-c755-4eb1-b440-c5fd3043ab88",
+        "factures": {
+          "id": "8a4cde73-d1eb-4518-bb23-5438fee59eae",
+          "iban": "CH93 0076 2011 6238 5295 7",
+          "notes": "Facture test générée automatiquement",
+          "numero": "FAC-2026-0001",
+          "statut": "brouillon",
+          "taux_tva": 20,
+          "created_at": "2026-01-07T13:51:07.323623+00:00",
+          "montant_ht": 100,
+          "updated_at": "2026-01-07T13:51:07.323623+00:00",
+          "montant_ttc": 120,
+          "montant_tva": 20
+        }
+      },
+      {
+        "id": "7bd639a5-a4a3-4133-9f1a-903b611bd464",
+        "statut": "terminee",
+        "entreprise_id": "6ff210bc-9985-457c-8851-4185123edb07",
+        "ticket_id": "6797fee3-46d4-47b6-b0fc-4b085060076f",
+        "factures": {
+          "id": "cb2a162c-b385-44db-b4cf-de6a90dac7b5",
+          "iban": null,
+          "notes": "Facture générée automatiquement suite à la fin de mission",
+          "numero": "FAC-2026-0002",
+          "statut": "brouillon",
+          "taux_tva": 20,
+          "created_at": "2026-01-08T10:37:40.621946+00:00",
+          "montant_ht": 0,
+          "updated_at": "2026-01-08T10:37:40.621946+00:00",
+          "montant_ttc": 0,
+          "montant_tva": 0
+        }
+      }
+    ],
+    "ui_files_to_check": [
+      "app/entreprise/factures/page.tsx",
+      "app/entreprise/factures/[id]/edit/page.tsx",
+      "components/factures/",
+      "app/api/factures/"
+    ]
+  },
+  "issues": [
+    {
+      "type": "DATA",
+      "severity": "HAUTE",
+      "message": "Mission terminée 2d84c11c-6415-4f49-ba33-8b53ae1ee22d sans facture associée"
+    },
+    {
+      "type": "DATA",
+      "severity": "HAUTE",
+      "message": "Mission terminée 7bd639a5-a4a3-4133-9f1a-903b611bd464 sans facture associée"
+    },
+    {
+      "type": "RLS",
+      "severity": "HAUTE",
+      "message": "Impossible de vérifier les RLS policies - vérification manuelle requise"
+    }
+  ],
+  "recommendations": []
+}

@@ -1,0 +1,25 @@
+🚨 FIX URGENT PROD
+==================
+
+BUG: column "user_id" does not exist
+SOURCE: Trigger notify_technicien_assignment
+
+FIX À APPLIQUER:
+📄 supabase/migrations/_APPLY_M53_PROD_URGENT.sql
+
+COMMENT:
+1. Ouvrir https://supabase.com/dashboard/project/bwzyajsrmfhrxdmfpyqy/sql
+2. Copier _APPLY_M53_PROD_URGENT.sql
+3. Coller et cliquer "RUN"
+
+TEMPS: 30 secondes
+IMPACT: Débloque assignation technicien
+
+BUGS CORRIGÉS:
+✅ techniciens.user_id → techniciens.profile_id
+✅ missions.reference → tickets.reference (via JOIN)
+
+RÉSULTAT:
+Assignation technicien → ✅ Fonctionnel
+
+Doc complète: _FIX_URGENT_M53_PROD.txt

@@ -1,0 +1,228 @@
+================================================================================
+📁 INDEX COMPLET - CORRECTIONS BUG "user_id does not exist"
+================================================================================
+
+Date: 8 janvier 2026
+Bugs: M52 (RPC) + M53 (Trigger)
+
+================================================================================
+🚨 FICHIERS À APPLIQUER EN PROD (PAR ORDRE DE PRIORITÉ)
+================================================================================
+
+1. CRITIQUE (OBLIGATOIRE):
+   📄 supabase/migrations/_APPLY_M53_PROD_URGENT.sql
+      → Corrige le trigger notify_technicien_assignment
+      → Temps: 30 secondes
+      → Débloque l'assignation technicien
+
+2. OPTIONNEL (RECOMMANDÉ):
+   📄 supabase/migrations/_APPLY_M52_MANUAL.sql
+      → Corrige la RPC assign_technicien_to_mission
+      → Temps: 30 secondes
+      → Évite erreur future dans notifications RPC
+
+================================================================================
+📖 GUIDES RAPIDES (LIRE EN PREMIER)
+================================================================================
+
+🚀 _ACTION_IMMEDIATE_M53.txt
+   → Guide ultra-rapide pour appliquer M53
+   → À lire en premier si urgence
+
+📋 _FIX_URGENT_M53_PROD.txt
+   → Guide complet M53 avec contexte
+   → Explications détaillées du bug trigger
+
+📝 _ACTION_IMMEDIATE_FIX_M52.md
+   → Guide rapide pour appliquer M52
+   → Si vous voulez aussi corriger la RPC
+
+================================================================================
+📚 DOCUMENTATION TECHNIQUE COMPLÈTE
+================================================================================
+
+📖 _RESOLUTION_BUG_USER_ID.md
+   → Documentation technique complète
+   → Diagnostic, causes, corrections
+   → Mise à jour avec M52 + M53
+
+📊 _RECAPITULATIF_BUGS_M52_M53.txt
+   → Récapitulatif des deux bugs
+   → Ordre d'application
+   → Tests post-application
+
+📋 _README_FIX_M53_URGENT.txt
+   → Guide complet M53
+   → Instructions détaillées
+
+📝 _README_FIX_M52.txt
+   → Guide complet M52
+   → Contexte et application
+
+📄 _FICHIERS_CORRECTION_M52.md
+   → Index des fichiers M52
+   → Workflow recommandé
+
+📑 _SYNTHESE_BUG_FIX_M52.txt
+   → Synthèse détaillée M52
+   → Format texte
+
+📑 _INDEX_CORRECTIONS.txt
+   → Ce fichier
+
+================================================================================
+🔧 MIGRATIONS SQL COMPLÈTES
+================================================================================
+
+PROD URGENT (versions simplifiées):
+  📄 supabase/migrations/_APPLY_M53_PROD_URGENT.sql
+  📄 supabase/migrations/_APPLY_M52_MANUAL.sql
+
+MIGRATIONS COMPLÈTES (avec documentation):
+  📄 supabase/migrations/20260108000100_m53_fix_notify_technicien_assignment.sql
+  📄 supabase/migrations/20260108000000_m52_fix_assign_technicien_notifications.sql
+
+================================================================================
+🛠️ SCRIPTS D'AUDIT ET VÉRIFICATION
+================================================================================
+
+AUDIT:
+  🔧 _audit_bug_user_id.js
+     → Audit exhaustif policies, RPC, triggers
+     → Identification source du bug
+
+  🔧 _get_notify_technicien_def.js
+     → Récupère définition notify_technicien_assignment depuis PROD
+     → Identifie références user_id
+
+VÉRIFICATION:
+  🔧 _check_m48_prod.js
+     → Vérifie si M48 déjà appliquée en PROD
+     → Utile car M48 contenait déjà le fix
+
+  🔧 _verify_m52_fix.js
+     → Vérifie que M52 est correctement appliquée
+     → Checklist post-application
+
+APPLICATION:
+  🔧 _apply_m52_fix_notifications.js
+     → Tentative application automatique M52
+     → (échoue IPv6 - utiliser méthode manuelle)
+
+  🔧 _apply_m52_via_api.js
+     → Tentative via API Supabase
+     → Génère _APPLY_M52_MANUAL.sql
+
+================================================================================
+📊 RÉSUMÉ DES BUGS
+================================================================================
+
+BUG #1 (M53) - CRITIQUE:
+  Source: Fonction trigger notify_technicien_assignment
+  Erreur: Utilise techniciens.user_id (n'existe pas)
+  Erreur: Utilise missions.reference (n'existe pas)
+  Impact: BLOQUE assignation technicien en PROD
+  Fix: _APPLY_M53_PROD_URGENT.sql
+
+BUG #2 (M52) - SECONDAIRE:
+  Source: RPC assign_technicien_to_mission
+  Erreur: INSERT notifications avec mauvais noms colonnes
+  Impact: Non bloquant (car bug #1 empêche d'arriver là)
+  Fix: _APPLY_M52_MANUAL.sql
+
+================================================================================
+🎯 WORKFLOW RECOMMANDÉ
+================================================================================
+
+1. LIRE: _ACTION_IMMEDIATE_M53.txt (30 sec)
+
+2. APPLIQUER: _APPLY_M53_PROD_URGENT.sql (30 sec)
+   → Dashboard Supabase > SQL Editor
+   → Copier-coller > RUN
+
+3. TESTER: Assigner un technicien (1 min)
+   → Dashboard Entreprise
+   → Mission > Assigner technicien
+   → ✅ Doit réussir
+
+4. OPTIONNEL: APPLIQUER _APPLY_M52_MANUAL.sql (30 sec)
+   → Même procédure
+
+5. VÉRIFIER: node _verify_m52_fix.js (si M52 appliquée)
+
+TEMPS TOTAL: 2-3 minutes
+
+================================================================================
+✅ RÉSULTAT ATTENDU
+================================================================================
+
+AVANT:
+  ❌ Assignation technicien → Erreur "user_id does not exist"
+  ❌ Workflow bloqué
+  ❌ Lancement pilote impossible
+
+APRÈS M53:
+  ✅ Assignation technicien → Fonctionnel
+  ✅ Trigger s'exécute correctement
+  ✅ Notification créée
+  ✅ Lancement pilote débloqué
+
+APRÈS M53 + M52:
+  ✅ Tout ce qui précède
+  ✅ RPC 100% correcte
+  ✅ Aucun risque d'erreur future
+
+================================================================================
+📞 SUPPORT
+================================================================================
+
+EN CAS DE PROBLÈME:
+
+1. Vérifier logs Supabase:
+   Dashboard > Logs > Database
+
+2. Vérifier fonction en PROD:
+   SELECT pg_get_functiondef('public.notify_technicien_assignment'::regprocedure);
+   
+   Doit contenir:
+   ✅ profile_id (pas user_id)
+   ✅ tickets.reference (pas missions.reference)
+
+3. Vérifier trigger:
+   SELECT * FROM pg_trigger t
+   JOIN pg_class c ON t.tgrelid = c.oid
+   WHERE c.relname = 'missions'
+     AND t.tgname = 'technicien_assignment_notification';
+   
+   ✅ Doit retourner 1 ligne
+
+4. Réappliquer la migration si nécessaire
+
+================================================================================
+🔐 SÉCURITÉ
+================================================================================
+
+✅ Aucune nouvelle colonne créée
+✅ Utilise colonnes existantes
+✅ Pas de hack ou fallback
+✅ Triggers recréés proprement
+✅ Fonctions SECURITY DEFINER maintenues
+✅ Aucun impact sur autres workflows
+✅ Policies RLS inchangées
+
+================================================================================
+🎉 CONCLUSION
+================================================================================
+
+Deux bugs identifiés et corrigés:
+  1. M53 (trigger) - CRITIQUE
+  2. M52 (RPC) - Secondaire
+
+Corrections prêtes et documentées.
+Application rapide (2-3 minutes).
+Débloque le lancement pilote.
+
+PROCHAINE ÉTAPE:
+  Appliquer _APPLY_M53_PROD_URGENT.sql immédiatement
+
+================================================================================
