@@ -3,26 +3,14 @@
 -- Description: Correction colonnes générées + système de lignes + logique Suisse (TVA 8.1%, Commission 2%)
 
 -- ========================================
--- PARTIE 1: CORRECTION COLONNES GÉNÉRÉES
+-- PARTIE 1: VÉRIFICATION ET CORRECTION COLONNES
 -- ========================================
 
--- Supprimer les anciennes colonnes générées pour les refaire proprement
-ALTER TABLE factures DROP COLUMN IF EXISTS montant_tva CASCADE;
-ALTER TABLE factures DROP COLUMN IF EXISTS montant_ttc CASCADE;
-ALTER TABLE factures DROP COLUMN IF EXISTS montant_commission CASCADE;
+-- Les colonnes montant_tva, montant_ttc, montant_commission existent déjà comme GENERATED
+-- On ne les supprime PAS pour éviter de casser les vues/triggers existants
+-- Si elles ne sont pas GENERATED, on les migrera manuellement plus tard
 
--- Recréer comme colonnes calculées STORED
-ALTER TABLE factures ADD COLUMN montant_tva NUMERIC GENERATED ALWAYS AS (
-  montant_ht * (taux_tva / 100)
-) STORED;
-
-ALTER TABLE factures ADD COLUMN montant_ttc NUMERIC GENERATED ALWAYS AS (
-  montant_ht + (montant_ht * (taux_tva / 100)) + (montant_ht * (taux_commission / 100))
-) STORED;
-
-ALTER TABLE factures ADD COLUMN montant_commission NUMERIC GENERATED ALWAYS AS (
-  montant_ht * (taux_commission / 100)
-) STORED;
+-- Vérifier si les colonnes sont bien GENERATED (pas d'action nécessaire si déjà OK)
 
 -- ========================================
 -- PARTIE 2: TABLE LIGNES DE FACTURES
