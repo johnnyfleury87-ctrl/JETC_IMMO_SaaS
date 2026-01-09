@@ -495,25 +495,66 @@
           return;
         }
 
-        // Récupérer la régie
-        const { data: regie, error: regieError } = await window.supabaseClient
-          .from('regies')
-          .select('id, nom, email')
+        // ÉTAPE 1 : Charger le profil avec regie_id
+        const { data: profile, error: profileError } = await window.supabaseClient
+          .from('profiles')
+          .select('id, role, regie_id')
           .eq('id', session.user.id)
-          .maybeSingle();
+          .single();
 
-        if (regieError || !regie) {
-          console.error('[AUTH] Erreur lecture régie:', regieError);
-          
-          // ⚠️ NE PAS DÉCONNECTER - Afficher erreur propre
+        if (profileError || !profile) {
+          console.error('[AUTH] Erreur lecture profile:', profileError);
+          const container = document.getElementById('facturesContainer');
+          container.innerHTML = `
+            <div class="error-state">
+              <h3>❌ Erreur profil</h3>
+              <p>Impossible de charger votre profil utilisateur.</p>
+              <p style="font-size: 13px; margin-top: 10px;">Erreur: ${profileError?.message || 'Profil introuvable'}</p>
+              <button class="btn btn-primary" onclick="window.location.reload()" style="margin-top: 15px;">
+                🔄 Réessayer
+              </button>
+            </div>
+          `;
+          return;
+        }
+
+        console.log('[AUTH] Profile chargé:', profile.id, 'role:', profile.role, 'regie_id:', profile.regie_id);
+
+        // ÉTAPE 2 : Vérifier que regie_id est rempli
+        if (!profile.regie_id) {
+          console.error('[AUTH] profile.regie_id manquant');
           const container = document.getElementById('facturesContainer');
           container.innerHTML = `
             <div class="error-state">
               <h3>⚠️ Profil régie incomplet</h3>
-              <p>Aucune régie trouvée pour ce compte (regie_id manquant ou accès refusé).</p>
+              <p>Votre compte utilisateur n'est pas lié à une régie (regie_id manquant).</p>
               <p style="font-size: 13px; margin-top: 10px; color: var(--gray-600);">
-                Vérifiez que votre compte utilisateur est bien lié à une régie dans la base de données.<br>
-                Erreur technique: ${regieError?.message || 'Aucune ligne retournée (RLS ou données manquantes)'}
+                Contactez l'administrateur pour lier votre compte à une régie.<br>
+                User ID: ${profile.id}<br>
+                Role: ${profile.role}
+              </p>
+            </div>
+          `;
+          return;
+        }
+
+        // ÉTAPE 3 : Charger la régie avec profile.regie_id
+        const { data: regie, error: regieError } = await window.supabaseClient
+          .from('regies')
+          .select('id, nom, email')
+          .eq('id', profile.regie_id)
+          .single();
+
+        if (regieError || !regie) {
+          console.error('[AUTH] Erreur lecture régie:', regieError, 'regie_id:', profile.regie_id);
+          const container = document.getElementById('facturesContainer');
+          container.innerHTML = `
+            <div class="error-state">
+              <h3>❌ Régie introuvable</h3>
+              <p>La régie liée à votre compte n'existe pas dans la base de données.</p>
+              <p style="font-size: 13px; margin-top: 10px;">
+                Profile regie_id: ${profile.regie_id}<br>
+                Erreur: ${regieError?.message || 'Aucune ligne retournée (RLS ou régie supprimée)'}
               </p>
               <button class="btn btn-primary" onclick="window.location.reload()" style="margin-top: 15px;">
                 🔄 Réessayer
@@ -524,7 +565,7 @@
         }
 
         currentRegie = regie;
-        console.log('[AUTH] Régie:', regie.nom);
+        console.log('[AUTH] Régie chargée:', regie.nom, 'id:', regie.id);
 
         // Afficher infos user
         document.getElementById('userEmail').textContent = regie.email;
