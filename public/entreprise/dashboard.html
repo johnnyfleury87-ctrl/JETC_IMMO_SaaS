@@ -2099,17 +2099,48 @@
       console.log('[FACTURE] Édition facture:', factureId);
       
       try {
+        // 📊 LOG AVANT APPEL
+        console.log('[FACTURE EDIT] 🔍 AVANT requête:', {
+          table: 'factures',
+          filter: 'eq(id)',
+          factureId: factureId,
+          timestamp: new Date().toISOString()
+        });
+        
         // Charger les données de la facture
-        const { data: facture, error } = await window.supabaseClient
+        const { data: facture, error, status } = await window.supabaseClient
           .from('factures')
           .select('*')
           .eq('id', factureId)
-          .maybeSingle();  // ✅ CORRECTION: maybeSingle au lieu de single
+          .maybeSingle();
         
-        if (error) throw error;
+        // 📊 LOG APRÈS APPEL
+        console.log('[FACTURE EDIT] 📡 APRÈS requête:', {
+          data: facture,
+          error: error,
+          status: status,
+          hasData: !!facture,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Gestion d'erreur avec messages précis
+        if (error) {
+          let errorMsg = '';
+          if (error.code === '42501' || status === 403) {
+            errorMsg = '🔒 Accès refusé (RLS bloque la lecture)';
+          } else if (error.code === 'PGRST116' || status === 406) {
+            errorMsg = '📭 Aucune ligne retournée (facture invisible ou inexistante)';
+          } else {
+            errorMsg = `⚠️ Erreur Supabase: ${error.message} (code: ${error.code})`;
+          }
+          console.error('[FACTURE EDIT] ❌', errorMsg, error);
+          alert(errorMsg);
+          return;
+        }
         
         if (!facture) {
-          alert('⚠️ Facture introuvable ou accès refusé');
+          console.warn('[FACTURE EDIT] ⚠️ Facture NULL (RLS filtré)');
+          alert('⚠️ Facture introuvable ou accès refusé par les politiques de sécurité');
           return;
         }
         
