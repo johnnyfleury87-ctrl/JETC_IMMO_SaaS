@@ -675,8 +675,9 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label>NPA *</label>
-            <input type="text" id="logementNPA" placeholder="1000" pattern="[0-9]{4}" maxlength="4" required>
+            <label>NPA / Code postal *</label>
+            <input type="text" id="logementNPA" placeholder="1000" required>
+            <small id="logementNpaHint" style="color: var(--gray-500); font-size: 12px;">Format suisse : 4 chiffres</small>
           </div>
           <div class="form-group">
             <label>Ville *</label>
@@ -685,8 +686,11 @@
         </div>
 
         <div class="form-group">
-          <label>Pays</label>
-          <input type="text" id="logementPays" value="Suisse" readonly style="background: var(--gray-100); cursor: not-allowed;">
+          <label>Pays *</label>
+          <select id="logementPays" required>
+            <option value="Suisse">Suisse</option>
+            <option value="France">France</option>
+          </select>
         </div>
 
         <!-- CARACTÉRISTIQUES -->
@@ -1304,10 +1308,17 @@
         return;
       }
 
-      // Validation NPA (format suisse : 4 chiffres)
-      if (!/^[0-9]{4}$/.test(npa)) {
-        showModalError('⚠️ Le NPA doit contenir exactement 4 chiffres (format suisse)');
-        return;
+      // Validation NPA/Code postal selon le pays
+      if (pays === 'Suisse') {
+        if (!/^[0-9]{4}$/.test(npa)) {
+          showModalError('⚠️ Le NPA suisse doit contenir exactement 4 chiffres');
+          return;
+        }
+      } else if (pays === 'France') {
+        if (!/^[0-9]{5}$/.test(npa)) {
+          showModalError('⚠️ Le code postal français doit contenir exactement 5 chiffres');
+          return;
+        }
       }
 
       // =====================================================
@@ -1622,6 +1633,23 @@
     // Initialisation
     document.addEventListener('DOMContentLoaded', () => {
       checkAuth();
+
+      // Gérer changement de pays pour adapter le format NPA/Code postal
+      const paysSelect = document.getElementById('logementPays');
+      const npaInput = document.getElementById('logementNPA');
+      const npaHint = document.getElementById('logementNpaHint');
+      
+      paysSelect.addEventListener('change', function() {
+        if (this.value === 'Suisse') {
+          npaInput.placeholder = '1000';
+          npaInput.maxLength = 4;
+          npaHint.textContent = 'Format suisse : 4 chiffres';
+        } else if (this.value === 'France') {
+          npaInput.placeholder = '75001';
+          npaInput.maxLength = 5;
+          npaHint.textContent = 'Format français : 5 chiffres';
+        }
+      });
     });
   </script>
 </body>
