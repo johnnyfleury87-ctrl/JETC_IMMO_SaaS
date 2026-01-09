@@ -569,9 +569,9 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label>NPA *</label>
-            <input type="text" id="immeubleNPA" placeholder="1000" pattern="[0-9]{4}" maxlength="4" required>
-            <small style="color: var(--gray-500); font-size: 12px;">Format suisse : 4 chiffres</small>
+            <label>NPA / Code postal *</label>
+            <input type="text" id="immeubleNPA" placeholder="1000" required>
+            <small id="npaHint" style="color: var(--gray-500); font-size: 12px;">Format suisse : 4 chiffres</small>
           </div>
           <div class="form-group">
             <label>Ville *</label>
@@ -580,8 +580,11 @@
         </div>
 
         <div class="form-group">
-          <label>Pays</label>
-          <input type="text" id="immeublePays" value="Suisse" readonly style="background: var(--gray-100); cursor: not-allowed;">
+          <label>Pays *</label>
+          <select id="immeublePays" required>
+            <option value="Suisse">Suisse</option>
+            <option value="France">France</option>
+          </select>
         </div>
 
         <!-- INFORMATIONS BÂTIMENT -->
@@ -1015,9 +1018,17 @@
         return;
       }
 
-      if (!/^[0-9]{4}$/.test(npa)) {
-        showModalError('⚠️ Le NPA doit contenir exactement 4 chiffres (format suisse)');
-        return;
+      // Validation NPA/Code postal selon le pays
+      if (pays === 'Suisse') {
+        if (!/^[0-9]{4}$/.test(npa)) {
+          showModalError('⚠️ Le NPA suisse doit contenir exactement 4 chiffres');
+          return;
+        }
+      } else if (pays === 'France') {
+        if (!/^[0-9]{5}$/.test(npa)) {
+          showModalError('⚠️ Le code postal français doit contenir exactement 5 chiffres');
+          return;
+        }
       }
 
       if (!nombre_etages || nombre_etages === '') {
@@ -1220,6 +1231,23 @@
         } else {
           configLogementsDiv.style.display = 'none';
           document.getElementById('immeubleNombreLogements').required = false;
+        }
+      });
+
+      // Gérer changement de pays pour adapter le format NPA/Code postal
+      const paysSelect = document.getElementById('immeublePays');
+      const npaInput = document.getElementById('immeubleNPA');
+      const npaHint = document.getElementById('npaHint');
+      
+      paysSelect.addEventListener('change', function() {
+        if (this.value === 'Suisse') {
+          npaInput.placeholder = '1000';
+          npaInput.maxLength = 4;
+          npaHint.textContent = 'Format suisse : 4 chiffres';
+        } else if (this.value === 'France') {
+          npaInput.placeholder = '75001';
+          npaInput.maxLength = 5;
+          npaHint.textContent = 'Format français : 5 chiffres';
         }
       });
     });
