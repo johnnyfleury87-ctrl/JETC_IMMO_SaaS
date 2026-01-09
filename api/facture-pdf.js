@@ -65,41 +65,52 @@ module.exports = async (req, res) => {
       return res.status(404).json({ error: 'Facture non trouvée' });
     }
 
-    // 3. Vérifier droits d'accès
-    // Si Entreprise: facture.entreprise_id doit correspondre à l'user.id
-    // Si Régie: facture.regie_id doit correspondre à l'user.id
-    const { data: profile } = await supabaseAdmin
+    // 3. Vérifier droits d'accès via profile.<role>_id
+    // CRITIQUE: user.id = profiles.id (auth), PAS entreprises.id ou regies.id
+    // Donc on récupère profile.entreprise_id / profile.regie_id pour comparer
+    const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
-      .select('role')
+      .select('role, entreprise_id, regie_id')
       .eq('id', user.id)
       .maybeSingle();
 
-    if (!profile) {
-      console.error('[PDF] Profil introuvable pour user:', user.id);
+    if (profileError || !profile) {
+      console.error('[PDF] Erreur profile:', profileError);
       return res.status(403).json({ error: 'Profil introuvable' });
     }
 
-    const isEntreprise = profile.role === 'entreprise';
-    const isRegie = profile.role === 'regie';
+    console.log('[PDF] User:', user.id, 'Role:', profile.role, 'entreprise_id:', profile.entreprise_id, 'regie_id:', profile.regie_id);
+    console.log('[PDF] Facture entreprise_id:', facture.entreprise_id, 'regie_id:', facture.regie_id);
+
     const isAdmin = profile.role === 'admin_jtec';
 
     // Admin peut tout voir
     if (isAdmin) {
-      // OK, continue
+      console.log('[PDF] Admin access granted');
     }
-    // Entreprise: vérifier ownership
-    else if (isEntreprise) {
-      if (facture.entreprise_id !== user.id) {
-        console.error('[PDF] Entreprise', user.id, 'tente d\'accéder à facture entreprise_id', facture.entreprise_id);
-        return res.status(403).json({ error: 'Accès refusé - Cette facture ne vous appartient pas' });
+    // Entreprise: vérifier ownership via profile.entreprise_id
+    else if (profile.role === 'entreprise') {
+      if (!profile.entreprise_id) {
+        console.error('[PDF] Entreprise profile incomplet: entreprise_id manquant');
+        return res.status(403).json({ error: 'Profil entreprise incomplet (entreprise_id manquant)' });
       }
+      if (facture.entreprise_id !== profile.entreprise_id) {
+        console.error('[PDF] Entreprise', profile.entreprise_id, 'tente d\'accéder à facture entreprise_id', facture.entreprise_id);
+        return res.status(403).json({ error: 'Cette facture ne vous appartient pas' });
+      }
+      console.log('[PDF] Entreprise access granted');
     }
-    // Régie: vérifier ownership
-    else if (isRegie) {
-      if (facture.regie_id !== user.id) {
-        console.error('[PDF] Régie', user.id, 'tente d\'accéder à facture regie_id', facture.regie_id);
-        return res.status(403).json({ error: 'Accès refusé - Cette facture ne concerne pas votre régie' });
+    // Régie: vérifier ownership via profile.regie_id
+    else if (profile.role === 'regie') {
+      if (!profile.regie_id) {
+        console.error('[PDF] Régie profile incomplet: regie_id manquant');
+        return res.status(403).json({ error: 'Profil régie incomplet (regie_id manquant)' });
       }
+      if (facture.regie_id !== profile.regie_id) {
+        console.error('[PDF] Régie', profile.regie_id, 'tente d\'accéder à facture regie_id', facture.regie_id);
+        return res.status(403).json({ error: 'Cette facture ne concerne pas votre régie' });
+      }
+      console.log('[PDF] Régie access granted');
     }
     // Rôle non autorisé
     else {
