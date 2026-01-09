@@ -21,36 +21,63 @@ DROP POLICY IF EXISTS factures_update ON factures;
 ALTER TABLE factures ENABLE ROW LEVEL SECURITY;
 
 -- ✅ ENTREPRISE : Voir ses factures
--- auth.uid() = entreprise_id directement
+-- Utilise profiles.entreprise_id (pas auth.uid() direct)
 CREATE POLICY "Entreprise voit ses factures"
   ON factures
   FOR SELECT
   TO authenticated
-  USING (entreprise_id = auth.uid());
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+        AND profiles.role = 'entreprise'
+        AND profiles.entreprise_id = factures.entreprise_id
+    )
+  );
 
 -- ✅ ENTREPRISE : Éditer ses factures (si brouillon)
 CREATE POLICY "Entreprise édite factures brouillon"
   ON factures
   FOR UPDATE
   TO authenticated
-  USING (entreprise_id = auth.uid() AND statut = 'brouillon');
+  USING (
+    statut = 'brouillon'
+    AND EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+        AND profiles.role = 'entreprise'
+        AND profiles.entreprise_id = factures.entreprise_id
+    )
+  );
 
 -- ✅ ENTREPRISE : Créer ses factures (via RPC generate_facture_from_mission)
 CREATE POLICY "Entreprise insère ses factures"
   ON factures
   FOR INSERT
   TO authenticated
-  WITH CHECK (entreprise_id = auth.uid());
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+        AND profiles.role = 'entreprise'
+        AND profiles.entreprise_id = factures.entreprise_id
+    )
+  );
 
 -- ✅ RÉGIE : Voir les factures envoyées sur ses biens
--- auth.uid() = regie_id directement
+-- Utilise profiles.regie_id (pas auth.uid() direct)
 CREATE POLICY "Régie voit factures envoyées"
   ON factures
   FOR SELECT
   TO authenticated
   USING (
-    regie_id = auth.uid()
-    AND statut IN ('envoyee', 'payee', 'refusee')
+    statut IN ('envoyee', 'payee', 'refusee')
+    AND EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+        AND profiles.role = 'regie'
+        AND profiles.regie_id = factures.regie_id
+    )
   );
 
 -- ✅ RÉGIE : Traiter les factures (changer statut)
@@ -59,8 +86,13 @@ CREATE POLICY "Régie traite factures"
   FOR UPDATE
   TO authenticated
   USING (
-    regie_id = auth.uid()
-    AND statut IN ('envoyee', 'payee', 'refusee')
+    statut IN ('envoyee', 'payee', 'refusee')
+    AND EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+        AND profiles.role = 'regie'
+        AND profiles.regie_id = factures.regie_id
+    )
   );
 
 -- ========================================

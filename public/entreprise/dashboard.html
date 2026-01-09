@@ -2104,9 +2104,14 @@
           .from('factures')
           .select('*')
           .eq('id', factureId)
-          .single();
+          .maybeSingle();  // ✅ CORRECTION: maybeSingle au lieu de single
         
         if (error) throw error;
+        
+        if (!facture) {
+          alert('⚠️ Facture introuvable ou accès refusé');
+          return;
+        }
         
         // Vérifier que c'est bien un brouillon
         if (facture.statut !== 'brouillon') {
