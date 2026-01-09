@@ -19,20 +19,23 @@ La migration M61b corrige la contrainte NPA sur la table `logements` (oubliée d
 
 BEGIN;
 
--- Supprimer les anciennes contraintes strictes
-ALTER TABLE logements DROP CONSTRAINT IF EXISTS check_npa_format;
-ALTER TABLE logements DROP CONSTRAINT IF EXISTS check_logements_npa_format;
-ALTER TABLE logements DROP CONSTRAINT IF EXISTS check_logement_npa_format;
-
--- Ajouter nouvelle contrainte flexible (4 ou 5 chiffres)
+-- Supprimer toutes les contraintes NPA existantes
 ALTER TABLE logements
-ADD CONSTRAINT check_logement_npa_multi_pays 
-CHECK (npa ~ '^[0-9]{4,5}$');
+  DROP CONSTRAINT IF EXISTS check_npa_format,
+  DROP CONSTRAINT IF EXISTS check_logements_npa_format,
+  DROP CONSTRAINT IF EXISTS check_logement_npa_format,
+  DROP CONSTRAINT IF EXISTS check_logement_npa_multi_pays,
+  DROP CONSTRAINT IF EXISTS check_logements_npa_multi_pays;
+
+-- Ajouter contrainte flexible (4 ou 5 chiffres)
+ALTER TABLE logements
+  ADD CONSTRAINT check_logements_npa_multi_pays
+  CHECK (npa ~ '^[0-9]{4,5}$');
 
 -- Mise à jour commentaire
 COMMENT ON COLUMN logements.npa IS 'Code postal / NPA - Suisse (4 chiffres) ou France (5 chiffres)';
 
--- Log
+-- Log migration (AVANT COMMIT)
 INSERT INTO migration_logs (migration_name, description)
 VALUES (
   '20260109000002_m61b_patch_logements_npa',
@@ -41,26 +44,30 @@ VALUES (
 
 COMMIT;
 
--- Vérification
-SELECT 
-  constraint_name, 
-  check_clause
-FROM information_schema.check_constraints
-WHERE constraint_name LIKE '%npa%'
-ORDER BY constraint_name;
+-- Validation (dans un bloc DO)
+DO $$
+DECLARE
+  v_total INTEGER;
+  v_valides INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO v_total FROM logements WHERE npa IS NOT NULL;
+  SELECT COUNT(*) INTO v_valides FROM logements WHERE npa ~ '^[0-9]{4,5}$';
+  
+  RAISE NOTICE '✅ M61b OK: logements.npa accepte 4 ou 5 chiffres';
+  RAISE NOTICE 'Total: % | Valides: %', v_total, v_valides;
+END $$;
 ```
 
 3. **Cliquer sur "Run"**
 
 4. **Vérifier le résultat**
-   - La requête doit retourner `check_logement_npa_multi_pays` avec clause `npa ~ '^[0-9]{4,5}$'`
+   - La requête doit afficher `✅ M61b OK` dans les notices
    - Aucune erreur
 
 ## ✅ Résultat attendu
 
 Après l'exécution :
-- ✅ `check_logement_npa_multi_pays` sur table `logements`
-- ✅ Accepte 4 ou 5 chiffres
+- ✅ `check_logements_npa_multi_pays` sur table `logements` 
 - ✅ 100% compatible avec données existantes
 
 ## 🧪 Test rapide
