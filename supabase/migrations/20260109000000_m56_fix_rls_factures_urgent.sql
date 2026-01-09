@@ -3,7 +3,27 @@
 -- Description: Correction RLS policies obsolètes (profiles) + activation vues factures
 
 -- ========================================
--- PARTIE 1: SUPPRESSION ANCIENNES POLICIES OBSOLÈTES
+-- PARTIE 1: SYNCHRONISATION PROFILES (CRITIQUE)
+-- ========================================
+
+-- CONTEXT: profiles.entreprise_id et profiles.regie_id doivent être remplis
+-- pour que les policies RLS fonctionnent.
+-- Si ces colonnes sont NULL, les policies bloqueront TOUT.
+
+-- Synchroniser entreprises
+UPDATE profiles
+SET entreprise_id = profiles.id
+WHERE role = 'entreprise' 
+  AND entreprise_id IS NULL;
+
+-- Synchroniser régies  
+UPDATE profiles
+SET regie_id = profiles.id
+WHERE role = 'regie'
+  AND regie_id IS NULL;
+
+-- ========================================
+-- PARTIE 2: SUPPRESSION ANCIENNES POLICIES OBSOLÈTES
 -- ========================================
 
 -- Ces policies utilisent une table 'profiles' qui n'existe pas/plus
