@@ -818,7 +818,7 @@
                 style="width: 100%; padding: 10px; border: 1px solid var(--gray-300); border-radius: 6px; margin-top: 5px;"
               >
               <p style="font-size: 12px; color: var(--gray-600); margin-top: 5px;">
-                TVA 20% et commission JTEC 10% seront calculées automatiquement
+                <span id="tvInfoText">TVA et commission JTEC 10% seront calculées automatiquement</span>
               </p>
             </div>
             
@@ -850,19 +850,19 @@
               <h4 style="margin: 0 0 10px 0;">Récapitulatif</h4>
               <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                 <span>Montant HT :</span>
-                <span id="recapMontantHT">0.00 CHF</span>
+                <span id="recapMontantHT">0.00</span>
               </div>
               <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                <span>TVA (20%) :</span>
-                <span id="recapTVA">0.00 CHF</span>
+                <span id="labelTVA">TVA :</span>
+                <span id="recapTVA">0.00</span>
               </div>
               <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                 <span>Commission JTEC (10%) :</span>
-                <span id="recapCommission">0.00 CHF</span>
+                <span id="recapCommission">0.00</span>
               </div>
               <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 16px; padding-top: 10px; border-top: 2px solid var(--gray-300);">
                 <span>Montant TTC :</span>
-                <span id="recapMontantTTC">0.00 CHF</span>
+                <span id="recapMontantTTC">0.00</span>
               </div>
             </div>
           </div>
@@ -997,7 +997,7 @@
         
         const { data: entreprise, error } = await window.supabaseClient
           .from('entreprises')
-          .select('id, nom, siret, adresse, ville')
+          .select('id, nom, siret, adresse, ville, currency')
           .eq('profile_id', profileId)
           .single();
         
@@ -2015,14 +2015,27 @@
     
     function updateFactureRecap() {
       const montantHT = parseFloat(document.getElementById('inputFactureMontant').value) || 0;
-      const tva = montantHT * 0.20;
+      
+      // Déterminer le taux de TVA selon la devise de l'entreprise
+      const currency = window.currentEntreprise?.currency || 'CHF';
+      const tauxTVA = currency === 'EUR' ? 0.20 : 0.081;
+      
+      const tva = montantHT * tauxTVA;
       const commission = montantHT * 0.10;
       const montantTTC = montantHT + tva;
       
-      document.getElementById('recapMontantHT').textContent = montantHT.toFixed(2) + ' CHF';
-      document.getElementById('recapTVA').textContent = tva.toFixed(2) + ' CHF';
-      document.getElementById('recapCommission').textContent = commission.toFixed(2) + ' CHF';
-      document.getElementById('recapMontantTTC').textContent = montantTTC.toFixed(2) + ' CHF';
+      const currencySymbol = currency === 'EUR' ? ' €' : ' CHF';
+      const tauxTVAText = (tauxTVA * 100).toFixed(1) + '%';
+      
+      // Mettre à jour les textes informatifs
+      document.getElementById('tvInfoText').textContent = `TVA ${tauxTVAText} et commission JTEC 10% seront calculées automatiquement`;
+      document.getElementById('labelTVA').textContent = `TVA (${tauxTVAText}) :`;
+      
+      // Mettre à jour les montants
+      document.getElementById('recapMontantHT').textContent = montantHT.toFixed(2) + currencySymbol;
+      document.getElementById('recapTVA').textContent = tva.toFixed(2) + currencySymbol;
+      document.getElementById('recapCommission').textContent = commission.toFixed(2) + currencySymbol;
+      document.getElementById('recapMontantTTC').textContent = montantTTC.toFixed(2) + currencySymbol;
     }
     
     async function confirmerCreerFacture() {

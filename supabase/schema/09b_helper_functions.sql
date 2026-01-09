@@ -32,6 +32,7 @@ create or replace function get_user_regie_id()
 returns uuid
 language sql
 security definer
+set search_path = public
 stable
 as $$
   select regie_id from (
@@ -53,4 +54,4 @@ as $$
   ) as user_regie;
 $$;
 
-comment on function get_user_regie_id is 'Retourne la regie_id de l''utilisateur connecté (pour rôles regie et locataire)';
+comment on function get_user_regie_id is 'Retourne la regie_id de l''utilisateur connecté (pour rôles regie et locataire). SECURITY DEFINER avec search_path fixe.';
