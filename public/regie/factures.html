@@ -503,9 +503,20 @@
           .single();
 
         if (regieError || !regie) {
-          console.error('[AUTH] Régie non trouvée');
-          await window.supabaseClient.auth.signOut();
-          window.location.href = '/login.html';
+          console.error('[AUTH] Erreur lecture régie:', regieError);
+          
+          // ⚠️ NE PAS DÉCONNECTER - Afficher erreur propre
+          const container = document.getElementById('facturesContainer');
+          container.innerHTML = `
+            <div class="error-state">
+              <h3>❌ Erreur d'authentification</h3>
+              <p>Impossible de charger vos informations.</p>
+              <p style="font-size: 13px; margin-top: 10px;">Erreur: ${regieError?.message || 'Profil régie introuvable'}</p>
+              <button class="btn btn-primary" onclick="window.location.reload()" style="margin-top: 15px;">
+                🔄 Réessayer
+              </button>
+            </div>
+          `;
           return;
         }
 
@@ -521,8 +532,21 @@
         await loadFactures();
 
       } catch (error) {
-        console.error('[AUTH] Erreur:', error);
-        window.location.href = '/login.html';
+        console.error('[AUTH] Exception:', error);
+        
+        // ⚠️ NE PAS DÉCONNECTER - Afficher erreur propre
+        const container = document.getElementById('facturesContainer');
+        if (container) {
+          container.innerHTML = `
+            <div class="error-state">
+              <h3>❌ Erreur technique</h3>
+              <p>${error.message}</p>
+              <button class="btn btn-primary" onclick="window.location.reload()" style="margin-top: 15px;">
+                🔄 Réessayer
+              </button>
+            </div>
+          `;
+        }
       }
     }
 
@@ -658,16 +682,19 @@
             <div style="font-size: 13px; color: var(--gray-500);">
               IBAN: ${escapeHtml(facture.facture_iban || 'Non renseigné')}
             </div>
-            ${showActions ? `
-              <div style="display: flex; gap: 10px;">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button class="btn btn-secondary" onclick="telechargerPDF('${facture.facture_id}', '${escapeHtml(facture.facture_numero)}')">
+                📄 Télécharger PDF
+              </button>
+              ${showActions ? `
                 <button class="btn btn-success" onclick="validerFacture('${facture.facture_id}')">
                   ✅ Valider paiement
                 </button>
                 <button class="btn btn-danger" onclick="refuserFacture('${facture.facture_id}')">
                   ❌ Refuser
                 </button>
-              </div>
-            ` : ''}
+              ` : ''}
+            </div>
           </div>
         </div>
       `;
@@ -676,6 +703,44 @@
     // ========================================
     // ACTIONS FACTURES
     // ========================================
+    async function telechargerPDF(factureId, numero) {
+      try {
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
+        if (!session) {
+          alert('Session expirée. Veuillez vous reconnecter.');
+          return;
+        }
+
+        const url = `/api/facture-pdf?facture_id=${encodeURIComponent(factureId)}`;
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Erreur téléchargement PDF');
+        }
+
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `facture_${numero}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(downloadUrl);
+        document.body.removeChild(a);
+
+      } catch (error) {
+        console.error('[PDF] Erreur:', error);
+        alert(`Erreur: ${error.message}`);
+      }
+    }
+
     async function validerFacture(factureId) {
       if (!confirm('Confirmer la validation de paiement de cette facture ?')) return;
 
@@ -690,6 +755,11 @@
           return;
         }
 
+        if (data && !data.success) {
+          alert(`Erreur: ${data.error}`);
+          return;
+        }
+
         alert('✅ Facture validée et payée !');
         await loadFactures();
 
@@ -700,13 +770,13 @@
     }
 
     async function refuserFacture(factureId) {
-      const raison = prompt('Raison du refus:');
-      if (!raison) return;
-
+      const raison = prompt('Raison du refus (optionnel):');
+      if (raison === null) return; // Annulation
+      
       try {
-        const { data, error } = await window.supabaseClient.rpc('update_facture_status', {
+        const { data, error } = await window.supabaseClient.rpc('refuser_facture', {
           p_facture_id: factureId,
-          p_nouveau_statut: 'refusee'
+          p_raison: raison || null
         });
 
         if (error) {
@@ -714,7 +784,12 @@
           return;
         }
 
-        alert('❌ Facture refusée');
+        if (data && !data.success) {
+          alert(`Erreur: ${data.error}`);
+          return;
+        }
+
+        alert('❌ Facture refusée. L\'entreprise pourra la corriger et la renvoyer.');
         await loadFactures();
 
       } catch (error) {
