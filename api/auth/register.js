@@ -44,7 +44,7 @@ module.exports = async (req, res) => {
       body += chunk.toString();
     }
     
-    const { email, password, language = 'fr', nomAgence, nbCollaborateurs, nbLogements, siret } = JSON.parse(body);
+    const { email, password, language = 'fr', nomAgence, nbCollaborateurs, nbLogements, siret, currency = 'CHF' } = JSON.parse(body);
     
     console.log('[AUTH/REGISTER] Tentative inscription:', email);
     
@@ -103,6 +103,14 @@ module.exports = async (req, res) => {
       return res.end(JSON.stringify({
         success: false,
         error: 'Le numéro SIRET doit contenir exactement 14 chiffres'
+      }));
+    }
+    
+    if (!['EUR', 'CHF'].includes(currency)) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({
+        success: false,
+        error: 'Devise invalide. Utilisez EUR ou CHF.'
       }));
     }
     
@@ -179,6 +187,7 @@ module.exports = async (req, res) => {
         nb_collaborateurs: parseInt(nbCollaborateurs),
         nb_logements_geres: parseInt(nbLogements),
         siret: siret || null,
+        currency: currency,
         statut_validation: 'en_attente'
       });
     

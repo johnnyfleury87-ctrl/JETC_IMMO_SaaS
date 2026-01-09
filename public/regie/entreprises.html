@@ -669,6 +669,17 @@
               ⚠️ <strong>Sans compte</strong> : L'entreprise n'aura pas accès à la plateforme (partenaire référencé uniquement)
             </div>
           </div>
+
+          <div class="form-group" style="padding: 15px; background: var(--gray-50); border-radius: 8px; border-left: 4px solid var(--gray-400);">
+            <label style="font-weight: 600;">💰 Devise héritée de la régie</label>
+            <div style="font-size: 20px; margin: 10px 0;">
+              <span id="currencyDisplay">-</span>
+            </div>
+            <div class="form-help">
+              Les entreprises utilisent automatiquement la devise de votre régie. 
+              Cette valeur ne peut pas être modifiée.
+            </div>
+          </div>
         </div>
 
         <div class="modal-footer">
@@ -733,7 +744,7 @@
         // Charger infos régie complètes
         const { data: regie, error: regieError } = await window.supabaseClient
           .from('regies')
-          .select('id, nom')
+          .select('id, nom, currency')
           .eq('id', profile.regie_id)
           .single();
 
@@ -770,7 +781,7 @@
         // Charger entreprises via RLS (policy SELECT existante via regies_entreprises)
         const { data: entreprisesData, error } = await window.supabaseClient
           .from('entreprises')
-          .select('id, nom, email, telephone, ville, code_postal, siret, created_at')
+          .select('id, nom, email, telephone, ville, code_postal, siret, created_at, currency')
           .order('nom', { ascending: true });
 
         if (error) {
@@ -838,6 +849,7 @@
                 <div class="entreprise-icon">🏭</div>
                 <div class="entreprise-info">
                   <div class="entreprise-nom">${entreprise.nom}</div>
+                  ${entreprise.currency ? `<span class="badge" style="background: ${entreprise.currency === 'EUR' ? '#3b82f6' : '#10b981'}; margin-top: 4px;">${entreprise.currency === 'EUR' ? '🇪🇺 EUR' : '🇨🇭 CHF'}</span>` : ''}
                   ${entreprise.ville ? `<div class="entreprise-ville">📍 ${entreprise.ville}${entreprise.code_postal ? ` (${entreprise.code_postal})` : ''}</div>` : ''}
                 </div>
               </div>
@@ -899,6 +911,12 @@
     function openCreateModal() {
       document.getElementById('createModal').classList.add('active');
       document.getElementById('createForm').reset();
+      
+      // Afficher la devise de la régie dans le formulaire
+      if (currentRegie?.currency) {
+        const currencyDisplay = document.getElementById('currencyDisplay');
+        currencyDisplay.textContent = currentRegie.currency === 'EUR' ? '🇪🇺 Euro (EUR)' : '🇨🇭 Franc suisse (CHF)';
+      }
     }
 
     function closeCreateModal() {

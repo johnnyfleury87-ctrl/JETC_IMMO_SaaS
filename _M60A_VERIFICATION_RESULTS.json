@@ -1,0 +1,25 @@
+{
+  "date": "2026-01-09T11:37:22.116Z",
+  "success": true,
+  "errors": [],
+  "warnings": [],
+  "stats": {
+    "regies": {
+      "total": 2,
+      "eur": 0,
+      "chf": 2,
+      "null": 0
+    },
+    "entreprises": {
+      "total": 2,
+      "ok": 2,
+      "noCurrency": 0,
+      "noRegie": 0
+    }
+  },
+  "compatibilite": {
+    "montant_reel_chf_preserved": true,
+    "code_frontend_ok": true,
+    "code_backend_ok": true
+  }
+}

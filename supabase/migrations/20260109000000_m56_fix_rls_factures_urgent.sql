@@ -26,15 +26,20 @@ WHERE role = 'regie'
 -- PARTIE 2: SUPPRESSION ANCIENNES POLICIES OBSOLÈTES
 -- ========================================
 
--- Ces policies utilisent une table 'profiles' qui n'existe pas/plus
+-- Supprimer TOUTES les policies (anciennes ET nouvelles pour permettre réexécution)
 DROP POLICY IF EXISTS factures_entreprise_select ON factures;
 DROP POLICY IF EXISTS factures_regie_select ON factures;
 DROP POLICY IF EXISTS factures_admin_jtec_all ON factures;
 DROP POLICY IF EXISTS factures_entreprise_insert ON factures;
 DROP POLICY IF EXISTS factures_update ON factures;
+DROP POLICY IF EXISTS "Entreprise voit ses factures" ON factures;
+DROP POLICY IF EXISTS "Entreprise édite factures brouillon" ON factures;
+DROP POLICY IF EXISTS "Entreprise insère ses factures" ON factures;
+DROP POLICY IF EXISTS "Régie voit factures envoyées" ON factures;
+DROP POLICY IF EXISTS "Régie traite factures" ON factures;
 
 -- ========================================
--- PARTIE 2: NOUVELLES POLICIES RLS CORRECTES
+-- PARTIE 3: NOUVELLES POLICIES RLS CORRECTES
 -- ========================================
 
 -- RLS activé
@@ -116,21 +121,21 @@ CREATE POLICY "Régie traite factures"
   );
 
 -- ========================================
--- PARTIE 3: POLICIES SUR LA VUE missions_factures_complet
+-- PARTIE 4: POLICIES SUR LA VUE missions_factures_complet
 -- ========================================
 
 -- La vue hérite des policies de la table factures via JOIN
 -- Pas besoin de policies supplémentaires
 
 -- ========================================
--- PARTIE 4: VÉRIFIER EXISTENCE VUE
+-- PARTIE 5: VÉRIFIER EXISTENCE VUE
 -- ========================================
 
 -- La vue missions_factures_complet doit exister (créée dans M50)
 -- Pas de DROP/RECREATE ici, on la garde telle quelle
 
 -- ========================================
--- PARTIE 5: PERMISSIONS EXPLICITES
+-- PARTIE 6: PERMISSIONS EXPLICITES
 -- ========================================
 
 -- S'assurer que authenticated peut accéder aux factures
@@ -138,7 +143,7 @@ GRANT SELECT, INSERT, UPDATE ON factures TO authenticated;
 GRANT SELECT ON missions_factures_complet TO authenticated;
 
 -- ========================================
--- PARTIE 6: TESTER LES POLICIES
+-- PARTIE 7: TESTER LES POLICIES
 -- ========================================
 
 -- Test Entreprise (remplacer UUID par vraie entreprise)

@@ -702,6 +702,16 @@
             <small style="color: var(--gray-600); font-size: 12px; display: block; margin-top: 4px;">Le locataire peut être créé sans logement assigné</small>
           </div>
 
+          <div class="form-group" style="padding: 15px; background: var(--gray-50); border-radius: 8px; border-left: 4px solid var(--gray-400);">
+            <label style="font-weight: 600;">💰 Devise</label>
+            <div style="font-size: 18px; margin: 8px 0;">
+              <span id="currencyDisplayLocataire">-</span>
+            </div>
+            <div class="form-help" style="font-size: 12px;">
+              Héritée de la régie
+            </div>
+          </div>
+
           <div class="form-row">
             <div class="form-group">
               <label for="date_entree">Date d'entrée <span class="required">*</span></label>
@@ -1114,7 +1124,7 @@
     // MODAL CRÉATION
     // ============================================
 
-    function openCreateModal() {
+    async function openCreateModal() {
       // ✅ Vérification : Si pas de regieId, avertir mais laisser ouvrir
       if (!regieId) {
         console.warn('[LOCATAIRES][CREATE] Pas de regieId, création peut échouer');
@@ -1125,6 +1135,24 @@
       document.getElementById('createModal').classList.add('active');
       document.getElementById('createLocataireForm').reset();
       hideAlerts();
+      
+      // Afficher la devise de la régie
+      if (regieId) {
+        try {
+          const { data: regie } = await window.supabaseClient
+            .from('regies')
+            .select('currency')
+            .eq('id', regieId)
+            .single();
+            
+          if (regie?.currency) {
+            document.getElementById('currencyDisplayLocataire').textContent = 
+              regie.currency === 'EUR' ? '🇪🇺 EUR' : '🇨🇭 CHF';
+          }
+        } catch (error) {
+          console.error('Erreur chargement devise:', error);
+        }
+      }
     }
 
     function closeCreateModal() {
