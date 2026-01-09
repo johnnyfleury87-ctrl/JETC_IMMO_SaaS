@@ -1,0 +1,33 @@
+{
+  "tables": {},
+  "vues": {},
+  "policies": {},
+  "donnees": {
+    "factures": [
+      {
+        "id": "8a4cde73-d1eb-4518-bb23-5438fee59eae",
+        "numero": "FAC-2026-0001",
+        "mission_id": "2d84c11c-6415-4f49-ba33-8b53ae1ee22d",
+        "entreprise_id": "6ff210bc-9985-457c-8851-4185123edb07",
+        "regie_id": "ec0ad50b-7b27-45b3-aa6c-ab31d061e38f",
+        "statut": "envoyee",
+        "montant_ht": 100,
+        "montant_ttc": 110.1
+      },
+      {
+        "id": "1b941df2-b6ba-4c93-8002-94acfaba0fd6",
+        "numero": "FAC-2026-0002",
+        "mission_id": "7bd639a5-a4a3-4133-9f1a-903b611bd464",
+        "entreprise_id": "6ff210bc-9985-457c-8851-4185123edb07",
+        "regie_id": "ec0ad50b-7b27-45b3-aa6c-ab31d061e38f",
+        "statut": "envoyee",
+        "montant_ht": 3459,
+        "montant_ttc": 4496.7
+      }
+    ]
+  },
+  "problemes": [
+    "Impossible de lire structure table factures",
+    "Impossible de vérifier les policies RLS"
+  ]
+}

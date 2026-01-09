@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Factures - Régie - JETC_IMMO</title>
+  <link rel="stylesheet" href="/css/design-system.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/bootstrapSupabase.js"></script>
+  <script src="/js/languageManager.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--gray-50);
+      min-height: 100vh;
+    }
+
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar (réutilisé) */
+    .sidebar {
+      width: 280px;
+      background: white;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      z-index: 1000;
+    }
+
+    .sidebar-header {
+      padding: 30px 20px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .logo-dashboard {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .logo-dashboard img {
+      height: 42px;
+      width: auto;
+    }
+
+    .logo-dashboard h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin: 0;
+    }
+
+    .sidebar-subtitle {
+      font-size: 13px;
+      color: var(--gray-600);
+      margin-top: 5px;
+      padding-left: 54px;
+    }
+
+    .sidebar-menu {
+      flex: 1;
+      padding: 20px 0;
+      overflow-y: auto;
+    }
+
+    .menu-item {
+      padding: 12px 20px;
+      color: var(--gray-700);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+    }
+
+    .menu-item:hover {
+      background: var(--gray-50);
+      color: var(--primary-blue);
+    }
+
+    .menu-item.active {
+      background: var(--blue-50);
+      color: var(--primary-blue);
+      border-left-color: var(--primary-blue);
+      font-weight: 600;
+    }
+
+    .sidebar-footer {
+      padding: 20px;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    .user-info-sidebar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .user-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-email {
+      font-size: 13px;
+      color: var(--gray-700);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-role {
+      font-size: 11px;
+      color: var(--gray-500);
+    }
+
+    .btn-logout {
+      width: 100%;
+      padding: 10px;
+      background: var(--gray-100);
+      color: var(--gray-700);
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .btn-logout:hover {
+      background: var(--gray-200);
+      color: var(--gray-900);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 30px 40px;
+    }
+
+    .page-header {
+      margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+      color: var(--gray-900);
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .page-header p {
+      color: var(--gray-600);
+      font-size: 16px;
+    }
+
+    /* Filtres */
+    .filters-container {
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 20px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .filter-group label {
+      font-size: 13px;
+      color: var(--gray-600);
+      font-weight: 600;
+    }
+
+    .filter-group select {
+      padding: 8px 12px;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      color: var(--gray-700);
+      background: white;
+      cursor: pointer;
+    }
+
+    /* Liste des factures */
+    .factures-list {
+      display: grid;
+      gap: 15px;
+    }
+
+    .facture-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      transition: all 0.2s;
+    }
+
+    .facture-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .facture-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 15px;
+    }
+
+    .facture-card-title {
+      flex: 1;
+    }
+
+    .facture-card-title h3 {
+      color: var(--gray-900);
+      font-size: 18px;
+      margin-bottom: 5px;
+    }
+
+    .facture-card-title p {
+      color: var(--gray-600);
+      font-size: 14px;
+    }
+
+    .facture-card-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .badge-brouillon { background: #fef3c7; color: #92400e; }
+    .badge-envoyee { background: #dbeafe; color: #1e40af; }
+    .badge-payee { background: #d1fae5; color: #065f46; }
+    .badge-refusee { background: #fecaca; color: #991b1b; }
+
+    .facture-card-body {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      padding: 15px;
+      background: var(--gray-50);
+      border-radius: var(--radius-md);
+      margin-bottom: 15px;
+    }
+
+    .facture-info-item {
+      font-size: 13px;
+    }
+
+    .facture-info-item label {
+      display: block;
+      color: var(--gray-500);
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+
+    .facture-info-item span {
+      color: var(--gray-900);
+      font-weight: 600;
+    }
+
+    .facture-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .btn-success {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+      background: var(--gray-100);
+      color: var(--gray-700);
+      border: 1px solid var(--gray-300);
+    }
+
+    .btn-secondary:hover {
+      background: var(--gray-200);
+    }
+
+    .loading-state, .empty-state, .error-state {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .loading-state {
+      color: var(--primary-blue);
+    }
+
+    .empty-state {
+      color: var(--gray-500);
+    }
+
+    .error-state {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: var(--radius-md);
+      padding: 20px;
+      color: #991b1b;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+      .main-content {
+        margin-left: 0;
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-dashboard">
+          <img src="/logo_moi.png" alt="JETC_IMMO Logo">
+          <h1>JETC_IMMO</h1>
+        </div>
+        <div class="sidebar-subtitle">Régie immobilière</div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <a href="/regie/dashboard.html" class="menu-item">
+          <span>🏠</span>
+          <span>Dashboard</span>
+        </a>
+        <a href="/regie/immeubles.html" class="menu-item">
+          <span>🏢</span>
+          <span>Immeubles</span>
+        </a>
+        <a href="/regie/logements.html" class="menu-item">
+          <span>🏠</span>
+          <span>Logements</span>
+        </a>
+        <a href="/regie/locataires.html" class="menu-item">
+          <span>👥</span>
+          <span>Locataires</span>
+        </a>
+        <a href="/regie/tickets.html" class="menu-item">
+          <span>🎫</span>
+          <span>Tickets</span>
+        </a>
+        <a href="/regie/entreprises.html" class="menu-item">
+          <span>🏭</span>
+          <span>Entreprises</span>
+        </a>
+        <a href="/regie/factures.html" class="menu-item active">
+          <span>📄</span>
+          <span>Factures</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-info-sidebar">
+          <div class="user-avatar" id="userAvatar">R</div>
+          <div class="user-details">
+            <div class="user-email" id="userEmail">Chargement...</div>
+            <div class="user-role" id="agenceName">Régie</div>
+          </div>
+        </div>
+        <button class="btn-logout" onclick="logout()">Déconnexion</button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="page-header">
+        <h1>📄 Factures</h1>
+        <p>Factures reçues des entreprises pour validation</p>
+      </div>
+
+      <!-- Filtres -->
+      <div class="filters-container">
+        <div class="filter-group">
+          <label>Statut</label>
+          <select id="filterStatut" onchange="filterFactures()">
+            <option value="all">Tous</option>
+            <option value="envoyee">Envoyées</option>
+            <option value="payee">Payées</option>
+            <option value="refusee">Refusées</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Entreprise</label>
+          <select id="filterEntreprise" onchange="filterFactures()">
+            <option value="all">Toutes</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Liste des factures -->
+      <div id="facturesContainer">
+        <div class="loading-state">
+          <div style="font-size: 32px; margin-bottom: 10px;">⏳</div>
+          <p>Chargement des factures...</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    let currentRegie = null;
+    let allFactures = [];
+    let filteredFactures = [];
+
+    // ========================================
+    // LOGOUT
+    // ========================================
+    async function logout() {
+      console.log('[LOGOUT] Déconnexion...');
+      await window.supabaseClient.auth.signOut();
+      window.location.href = '/login.html';
+    }
+
+    // ========================================
+    // AUTH
+    // ========================================
+    async function checkAuth() {
+      try {
+        await window.__SUPABASE_READY__;
+        
+        const { data: { session }, error } = await window.supabaseClient.auth.getSession();
+        
+        if (error || !session) {
+          console.error('[AUTH] Pas de session');
+          window.location.href = '/login.html';
+          return;
+        }
+
+        // Récupérer la régie
+        const { data: regie, error: regieError } = await window.supabaseClient
+          .from('regies')
+          .select('id, nom, email')
+          .eq('id', session.user.id)
+          .single();
+
+        if (regieError || !regie) {
+          console.error('[AUTH] Régie non trouvée');
+          await window.supabaseClient.auth.signOut();
+          window.location.href = '/login.html';
+          return;
+        }
+
+        currentRegie = regie;
+        console.log('[AUTH] Régie:', regie.nom);
+
+        // Afficher infos user
+        document.getElementById('userEmail').textContent = regie.email;
+        document.getElementById('agenceName').textContent = regie.nom;
+        document.getElementById('userAvatar').textContent = regie.nom.charAt(0).toUpperCase();
+
+        // Charger les factures
+        await loadFactures();
+
+      } catch (error) {
+        console.error('[AUTH] Erreur:', error);
+        window.location.href = '/login.html';
+      }
+    }
+
+    // ========================================
+    // LOAD FACTURES
+    // ========================================
+    async function loadFactures() {
+      console.log('[FACTURES] Chargement...');
+      
+      const container = document.getElementById('facturesContainer');
+      container.innerHTML = '<div class="loading-state"><div style="font-size: 32px; margin-bottom: 10px;">⏳</div><p>Chargement...</p></div>';
+
+      try {
+        // Charger factures via vue missions_factures_complet
+        const { data, error } = await window.supabaseClient
+          .from('missions_factures_complet')
+          .select('*')
+          .eq('regie_id', currentRegie.id)
+          .not('facture_id', 'is', null)
+          .in('facture_statut', ['envoyee', 'payee', 'refusee'])
+          .order('facture_date_emission', { ascending: false });
+
+        if (error) {
+          console.error('[FACTURES] Erreur:', error);
+          container.innerHTML = `<div class="error-state"><h3>Erreur</h3><p>${error.message}</p></div>`;
+          return;
+        }
+
+        console.log('[FACTURES] Chargées:', data?.length || 0);
+
+        allFactures = data || [];
+        filteredFactures = allFactures;
+
+        // Peupler filtre entreprises
+        const entreprises = [...new Set(allFactures.map(f => f.entreprise_nom))].filter(Boolean);
+        const filterEntreprise = document.getElementById('filterEntreprise');
+        entreprises.forEach(nom => {
+          const option = document.createElement('option');
+          option.value = nom;
+          option.textContent = nom;
+          filterEntreprise.appendChild(option);
+        });
+
+        renderFactures();
+
+      } catch (error) {
+        console.error('[FACTURES] Exception:', error);
+        container.innerHTML = `<div class="error-state"><h3>Erreur</h3><p>${error.message}</p></div>`;
+      }
+    }
+
+    // ========================================
+    // FILTER FACTURES
+    // ========================================
+    function filterFactures() {
+      const statutFilter = document.getElementById('filterStatut').value;
+      const entrepriseFilter = document.getElementById('filterEntreprise').value;
+
+      filteredFactures = allFactures.filter(f => {
+        if (statutFilter !== 'all' && f.facture_statut !== statutFilter) return false;
+        if (entrepriseFilter !== 'all' && f.entreprise_nom !== entrepriseFilter) return false;
+        return true;
+      });
+
+      renderFactures();
+    }
+
+    // ========================================
+    // RENDER FACTURES
+    // ========================================
+    function renderFactures() {
+      const container = document.getElementById('facturesContainer');
+
+      if (filteredFactures.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div style="font-size: 48px; margin-bottom: 15px;">📄</div>
+            <h3>Aucune facture</h3>
+            <p>Aucune facture à traiter pour le moment</p>
+          </div>
+        `;
+        return;
+      }
+
+      const html = `<div class="factures-list">${filteredFactures.map(renderFactureCard).join('')}</div>`;
+      container.innerHTML = html;
+    }
+
+    function renderFactureCard(facture) {
+      const dateEmission = new Date(facture.facture_date_emission).toLocaleDateString('fr-FR');
+      const montantHT = parseFloat(facture.facture_montant_ht || 0).toFixed(2);
+      const montantTTC = parseFloat(facture.facture_montant_ttc || 0).toFixed(2);
+      const commission = parseFloat(facture.facture_commission || 0).toFixed(2);
+
+      const showActions = facture.facture_statut === 'envoyee';
+
+      return `
+        <div class="facture-card">
+          <div class="facture-card-header">
+            <div class="facture-card-title">
+              <h3>${escapeHtml(facture.facture_numero)}</h3>
+              <p>${escapeHtml(facture.entreprise_nom)} • ${escapeHtml(facture.ticket_titre || 'Mission')}</p>
+            </div>
+            <span class="facture-card-badge badge-${facture.facture_statut}">
+              ${getStatutLabel(facture.facture_statut)}
+            </span>
+          </div>
+
+          <div class="facture-card-body">
+            <div class="facture-info-item">
+              <label>Date émission</label>
+              <span>${dateEmission}</span>
+            </div>
+            <div class="facture-info-item">
+              <label>Montant HT</label>
+              <span>CHF ${montantHT}</span>
+            </div>
+            <div class="facture-info-item">
+              <label>Montant TTC</label>
+              <span style="color: var(--primary-blue);">CHF ${montantTTC}</span>
+            </div>
+            <div class="facture-info-item">
+              <label>Commission JETC</label>
+              <span>CHF ${commission}</span>
+            </div>
+            <div class="facture-info-item">
+              <label>Mission</label>
+              <span>${escapeHtml(facture.mission_statut || '-')}</span>
+            </div>
+          </div>
+
+          <div class="facture-card-footer">
+            <div style="font-size: 13px; color: var(--gray-500);">
+              IBAN: ${escapeHtml(facture.facture_iban || 'Non renseigné')}
+            </div>
+            ${showActions ? `
+              <div style="display: flex; gap: 10px;">
+                <button class="btn btn-success" onclick="validerFacture('${facture.facture_id}')">
+                  ✅ Valider paiement
+                </button>
+                <button class="btn btn-danger" onclick="refuserFacture('${facture.facture_id}')">
+                  ❌ Refuser
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    // ========================================
+    // ACTIONS FACTURES
+    // ========================================
+    async function validerFacture(factureId) {
+      if (!confirm('Confirmer la validation de paiement de cette facture ?')) return;
+
+      try {
+        const { data, error } = await window.supabaseClient.rpc('update_facture_status', {
+          p_facture_id: factureId,
+          p_nouveau_statut: 'payee'
+        });
+
+        if (error) {
+          alert(`Erreur: ${error.message}`);
+          return;
+        }
+
+        alert('✅ Facture validée et payée !');
+        await loadFactures();
+
+      } catch (error) {
+        console.error('[VALIDER] Erreur:', error);
+        alert(`Erreur: ${error.message}`);
+      }
+    }
+
+    async function refuserFacture(factureId) {
+      const raison = prompt('Raison du refus:');
+      if (!raison) return;
+
+      try {
+        const { data, error } = await window.supabaseClient.rpc('update_facture_status', {
+          p_facture_id: factureId,
+          p_nouveau_statut: 'refusee'
+        });
+
+        if (error) {
+          alert(`Erreur: ${error.message}`);
+          return;
+        }
+
+        alert('❌ Facture refusée');
+        await loadFactures();
+
+      } catch (error) {
+        console.error('[REFUSER] Erreur:', error);
+        alert(`Erreur: ${error.message}`);
+      }
+    }
+
+    // ========================================
+    // UTILS
+    // ========================================
+    function escapeHtml(text) {
+      if (!text) return '';
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return text.toString().replace(/[&<>"']/g, m => map[m]);
+    }
+
+    function getStatutLabel(statut) {
+      const labels = {
+        'brouillon': 'Brouillon',
+        'envoyee': 'Envoyée',
+        'payee': 'Payée',
+        'refusee': 'Refusée'
+      };
+      return labels[statut] || statut;
+    }
+
+    // ========================================
+    // INIT
+    // ========================================
+    window.addEventListener('DOMContentLoaded', () => {
+      checkAuth();
+    });
+  </script>
+</body>
+</html>

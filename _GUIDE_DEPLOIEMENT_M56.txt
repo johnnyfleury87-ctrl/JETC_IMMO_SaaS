@@ -1,0 +1,134 @@
+🚀 DÉPLOIEMENT M56 - FIX RLS FACTURES (APPLICATION MANUELLE)
+═══════════════════════════════════════════════════════════════════
+
+📋 ÉTAPES DE DÉPLOIEMENT
+
+┌─────────────────────────────────────────────────────────────────┐
+│ ÉTAPE 1 : APPLIQUER LA MIGRATION SQL                           │
+└─────────────────────────────────────────────────────────────────┘
+
+1. Ouvrir Supabase SQL Editor :
+   https://supabase.com/dashboard/project/bwzyajsrmfhrxdmfpyqy/sql
+
+2. Créer une nouvelle requête
+
+3. Copier-coller le contenu du fichier :
+   supabase/migrations/20260109000000_m56_fix_rls_factures_urgent.sql
+
+4. Cliquer "Run" (F5)
+
+5. Vérifier succès (pas d'erreur rouge)
+
+┌─────────────────────────────────────────────────────────────────┐
+│ ÉTAPE 2 : VÉRIFIER LES POLICIES                                 │
+└─────────────────────────────────────────────────────────────────┘
+
+Exécuter dans SQL Editor :
+
+SELECT 
+  policyname,
+  cmd,
+  SUBSTRING(qual::text, 1, 100) AS using_clause
+FROM pg_policies
+WHERE tablename = 'factures'
+ORDER BY policyname;
+
+✅ Attendu : 5 policies
+
+1. "Entreprise voit ses factures" (SELECT)
+2. "Entreprise édite factures brouillon" (UPDATE)
+3. "Entreprise insère ses factures" (INSERT)
+4. "Régie voit factures envoyées" (SELECT)
+5. "Régie traite factures" (UPDATE)
+
+┌─────────────────────────────────────────────────────────────────┐
+│ ÉTAPE 3 : TESTER ACCÈS ENTREPRISE                              │
+└─────────────────────────────────────────────────────────────────┘
+
+Récupérer UUID entreprise :
+
+SELECT id, nom, email FROM entreprises LIMIT 1;
+
+Tester visibilité (remplacer UUID) :
+
+SELECT * FROM factures 
+WHERE entreprise_id = '<UUID>';
+
+✅ Si factures = apparaissent → RLS OK
+
+┌─────────────────────────────────────────────────────────────────┐
+│ ÉTAPE 4 : TESTER ACCÈS RÉGIE                                   │
+└─────────────────────────────────────────────────────────────────┘
+
+Récupérer UUID régie :
+
+SELECT id, nom, email FROM regies LIMIT 1;
+
+Tester visibilité (remplacer UUID) :
+
+SELECT * FROM factures 
+WHERE regie_id = '<UUID>' 
+AND statut IN ('envoyee', 'payee', 'refusee');
+
+✅ Si factures envoyées = apparaissent → RLS OK
+
+┌─────────────────────────────────────────────────────────────────┐
+│ ÉTAPE 5 : VIDER CACHE NAVIGATEUR                               │
+└─────────────────────────────────────────────────────────────────┘
+
+Frontend déjà corrigé (pas de redéploiement nécessaire)
+
+Pour forcer rafraîchissement :
+- Windows/Linux : Ctrl + Shift + R
+- Mac : Cmd + Shift + R
+
+┌─────────────────────────────────────────────────────────────────┐
+│ ÉTAPE 6 : TESTS UTILISATEURS                                   │
+└─────────────────────────────────────────────────────────────────┘
+
+▶ TEST ENTREPRISE
+
+1. Se connecter avec compte Entreprise
+2. Aller sur "Dashboard"
+3. Cliquer onglet "Factures" (menu gauche)
+4. ✅ Vérifier : liste des factures s'affiche
+
+▶ TEST RÉGIE
+
+1. Se connecter avec compte Régie
+2. Aller sur "Factures" (menu gauche)
+3. ✅ Vérifier : liste des factures envoyées
+4. Sur facture "envoyee" :
+   - Cliquer "✅ Valider paiement"
+   - ✅ Vérifier : statut → "payee"
+   - ✅ Vérifier : mission → "validee"
+   - ✅ Vérifier : ticket → "clos"
+
+═══════════════════════════════════════════════════════════════════
+✅ CHECKLIST COMPLÈTE
+═══════════════════════════════════════════════════════════════════
+
+□ Migration M56 appliquée dans Supabase SQL Editor
+□ 5 policies RLS créées (vérification pg_policies)
+□ Test accès Entreprise (SELECT factures)
+□ Test accès Régie (SELECT factures)
+□ Cache navigateur vidé
+□ Test frontend Entreprise (menu Factures actif)
+□ Test frontend Régie (page factures.html)
+□ Test workflow complet (validation paiement)
+
+═══════════════════════════════════════════════════════════════════
+📂 FICHIERS MODIFIÉS
+═══════════════════════════════════════════════════════════════════
+
+✅ supabase/migrations/20260109000000_m56_fix_rls_factures_urgent.sql
+✅ public/entreprise/dashboard.html
+✅ public/regie/dashboard.html
+✅ public/regie/factures.html (nouveau)
+
+═══════════════════════════════════════════════════════════════════
+🎉 MISSION ACCOMPLIE - M56
+═══════════════════════════════════════════════════════════════════
+
+Date: 2026-01-09
+Status: ✅ READY TO DEPLOY
