@@ -500,7 +500,7 @@
           .from('regies')
           .select('id, nom, email')
           .eq('id', session.user.id)
-          .single();
+          .maybeSingle();
 
         if (regieError || !regie) {
           console.error('[AUTH] Erreur lecture régie:', regieError);
@@ -509,9 +509,12 @@
           const container = document.getElementById('facturesContainer');
           container.innerHTML = `
             <div class="error-state">
-              <h3>❌ Erreur d'authentification</h3>
-              <p>Impossible de charger vos informations.</p>
-              <p style="font-size: 13px; margin-top: 10px;">Erreur: ${regieError?.message || 'Profil régie introuvable'}</p>
+              <h3>⚠️ Profil régie incomplet</h3>
+              <p>Aucune régie trouvée pour ce compte (regie_id manquant ou accès refusé).</p>
+              <p style="font-size: 13px; margin-top: 10px; color: var(--gray-600);">
+                Vérifiez que votre compte utilisateur est bien lié à une régie dans la base de données.<br>
+                Erreur technique: ${regieError?.message || 'Aucune ligne retournée (RLS ou données manquantes)'}
+              </p>
               <button class="btn btn-primary" onclick="window.location.reload()" style="margin-top: 15px;">
                 🔄 Réessayer
               </button>

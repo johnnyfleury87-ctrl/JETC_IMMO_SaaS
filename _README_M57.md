@@ -9,6 +9,13 @@ Corriger 4 bugs critiques remontés après déploiement M56 :
 
 ## 📦 CONTENU M57
 
+### ⚠️ HOTFIX M57.1 REQUIS
+**IMPORTANT :** Bugs critiques découverts après M57 nécessitent hotfix M57.1 :
+- 🐛 RLS manquante sur table `regies` (406 PGRST116)
+- 🐛 Auth PDF incorrecte (403 sur téléchargement)
+
+**👉 Voir documentation complète :** [_HOTFIX_M57_1.md](_HOTFIX_M57_1.md)
+
 ### 1. Migration SQL
 **Fichier :** `supabase/migrations/20260109010000_m57_fix_workflow_refus.sql`
 

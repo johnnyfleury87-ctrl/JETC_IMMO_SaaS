@@ -65,24 +65,46 @@ module.exports = async (req, res) => {
       return res.status(404).json({ error: 'Facture non trouvée' });
     }
 
-    // 3. Vérifier droits d'accès (RLS via user context)
-    // Si Entreprise: doit être la sienne
-    // Si Régie: doit être une facture de sa mission
+    // 3. Vérifier droits d'accès
+    // Si Entreprise: facture.entreprise_id doit correspondre à l'user.id
+    // Si Régie: facture.regie_id doit correspondre à l'user.id
     const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('role')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
-    const isEntreprise = profile?.role === 'entreprise';
-    const isRegie = profile?.role === 'regie';
-
-    if (isEntreprise && facture.entreprise_id !== user.id) {
-      return res.status(403).json({ error: 'Accès refusé' });
+    if (!profile) {
+      console.error('[PDF] Profil introuvable pour user:', user.id);
+      return res.status(403).json({ error: 'Profil introuvable' });
     }
 
-    if (isRegie && facture.regie_id !== user.id) {
-      return res.status(403).json({ error: 'Accès refusé' });
+    const isEntreprise = profile.role === 'entreprise';
+    const isRegie = profile.role === 'regie';
+    const isAdmin = profile.role === 'admin_jtec';
+
+    // Admin peut tout voir
+    if (isAdmin) {
+      // OK, continue
+    }
+    // Entreprise: vérifier ownership
+    else if (isEntreprise) {
+      if (facture.entreprise_id !== user.id) {
+        console.error('[PDF] Entreprise', user.id, 'tente d\'accéder à facture entreprise_id', facture.entreprise_id);
+        return res.status(403).json({ error: 'Accès refusé - Cette facture ne vous appartient pas' });
+      }
+    }
+    // Régie: vérifier ownership
+    else if (isRegie) {
+      if (facture.regie_id !== user.id) {
+        console.error('[PDF] Régie', user.id, 'tente d\'accéder à facture regie_id', facture.regie_id);
+        return res.status(403).json({ error: 'Accès refusé - Cette facture ne concerne pas votre régie' });
+      }
+    }
+    // Rôle non autorisé
+    else {
+      console.error('[PDF] Rôle non autorisé:', profile.role);
+      return res.status(403).json({ error: 'Accès refusé - Rôle non autorisé' });
     }
 
     // 4. Récupérer les lignes de facturation
