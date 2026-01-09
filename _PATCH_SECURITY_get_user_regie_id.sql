@@ -7,7 +7,12 @@
 /**
  * Retourne la regie_id de l'utilisateur connecté
  * Utilisée dans les policies RLS pour filtrer par régie
- * PATCH: Ajout SET search_path = public (sécurité SECURITY DEFINER)
+ * 
+ * AMÉLIORATIONS:
+ * 1. Ajout SET search_path = public (sécurité SECURITY DEFINER)
+ * 2. Version robuste pour locataires:
+ *    - Priorité: locataires.regie_id (ajouté M60A, hérité automatiquement)
+ *    - Fallback: remontée logements → immeubles (legacy)
  */
 CREATE OR REPLACE FUNCTION get_user_regie_id()
 RETURNS UUID
@@ -24,18 +29,21 @@ AS $$
     
     UNION
     
-    -- Pour le rôle 'locataire', remonter via logements → immeubles
-    SELECT i.regie_id
+    -- Pour le rôle 'locataire', version robuste avec fallback
+    SELECT COALESCE(
+      l.regie_id,                    -- Priorité: colonne directe (M60A)
+      i.regie_id                     -- Fallback: remontée via immeubles (legacy)
+    ) AS regie_id
     FROM locataires l
-    JOIN logements lg ON lg.id = l.logement_id
-    JOIN immeubles i ON i.id = lg.immeuble_id
+    LEFT JOIN logements lg ON lg.id = l.logement_id
+    LEFT JOIN immeubles i ON i.id = lg.immeuble_id
     WHERE l.profile_id = auth.uid()
     
     LIMIT 1
   ) AS user_regie;
 $$;
 
-COMMENT ON FUNCTION get_user_regie_id IS 'Retourne la regie_id de l''utilisateur connecté (pour rôles regie et locataire). SECURITY DEFINER avec search_path fixe.';
+COMMENT ON FUNCTION get_user_regie_id() IS 'Retourne la regie_id de l''utilisateur connecté (rôles regie et locataire). SECURITY DEFINER avec search_path fixe. Version robuste avec locataires.regie_id + fallback logements/immeubles.';
 
 -- ============================================
 -- Vérification
@@ -43,5 +51,13 @@ COMMENT ON FUNCTION get_user_regie_id IS 'Retourne la regie_id de l''utilisateur
 
 DO $$
 BEGIN
-  RAISE NOTICE '✅ get_user_regie_id : search_path fixé à public';
+  RAISE NOTICE '========================================';
+  RAISE NOTICE 'PATCH SÉCURITÉ get_user_regie_id()';
+  RAISE NOTICE '========================================';
+  RAISE NOTICE '✅ SET search_path = public ajouté';
+  RAISE NOTICE '✅ Signature complète dans COMMENT ON FUNCTION';
+  RAISE NOTICE '✅ Logique locataires robuste:';
+  RAISE NOTICE '   - Priorité: locataires.regie_id';
+  RAISE NOTICE '   - Fallback: logements → immeubles';
+  RAISE NOTICE '========================================';
 END $$;

@@ -24,7 +24,7 @@
  * 
  * Fonctionne pour deux rôles :
  * - 'regie' : Récupère directement depuis regies.profile_id
- * - 'locataire' : Remonte via locataires → logements → immeubles → regie_id
+ * - 'locataire' : Priorité locataires.regie_id (M60A), fallback logements → immeubles
  * 
  * Utilisée dans les policies RLS pour filtrer les données par régie.
  */
@@ -43,15 +43,18 @@ as $$
     
     union
     
-    -- Pour le rôle 'locataire', remonter via logements → immeubles
-    select i.regie_id
+    -- Pour le rôle 'locataire', version robuste avec fallback
+    select coalesce(
+      l.regie_id,                    -- Priorité: colonne directe (M60A)
+      i.regie_id                     -- Fallback: remontée via immeubles (legacy)
+    ) as regie_id
     from locataires l
-    join logements lg on lg.id = l.logement_id
-    join immeubles i on i.id = lg.immeuble_id
+    left join logements lg on lg.id = l.logement_id
+    left join immeubles i on i.id = lg.immeuble_id
     where l.profile_id = auth.uid()
     
     limit 1
   ) as user_regie;
 $$;
 
-comment on function get_user_regie_id is 'Retourne la regie_id de l''utilisateur connecté (pour rôles regie et locataire). SECURITY DEFINER avec search_path fixe.';
+comment on function get_user_regie_id() is 'Retourne la regie_id de l''utilisateur connecté (rôles regie et locataire). SECURITY DEFINER avec search_path fixe. Version robuste avec locataires.regie_id + fallback logements/immeubles.';
